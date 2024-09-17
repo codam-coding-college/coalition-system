@@ -83,7 +83,7 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 					question: req.body.question,
 				},
 			});
-			return res.redirect(`/admin/quiz#question-${question.id}`);
+			return res.redirect(`/admin/quiz/questions/${question.id}`);
 		} catch (err) {
 			console.error('Failed to create question:', err);
 			return res.status(400).send('Failed to create question');
@@ -189,7 +189,7 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 		catch (err) {
 			console.error('Failed to create answer:', err);
 		}
-		res.redirect(`/admin/quiz#question-${req.body.question_id}`);
+		res.redirect(`/admin/quiz#question-${req.body.question_id}`); // answers are always created from this element on the main quiz admin page
 	});
 
 	// Edit answer
@@ -280,6 +280,6 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 				id: parseInt(req.params.id),
 			},
 		});
-		return res.redirect(`/admin/quiz${answer.question_id}`);
+		return res.redirect(`/admin/quiz/questions/${answer.question_id}`);
 	});
 };
