@@ -139,23 +139,13 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 				};
 			}
 
-			// Fetch a random quiz question from the database
-			// const skip = Math.max(0, Math.floor(Math.random() * questionCount) - 1);
-			// const randomQuestionId = await prisma.codamCoalitionTestQuestion.findMany({
-			// 	take: 1,
-			// 	skip: skip,
-			// 	select: {
-			// 		id: true,
-			// 	},
-			// });
-
 			// Fetch all questions that the user hasn't answered yet
 			const unansweredQuestions = await prisma.codamCoalitionTestQuestion.findMany({
 				where: {
 					id: {
 						notIn: userSession.quiz.questionsAnswered || []
-					}
-				}
+					},
+				},
 			});
 			if (unansweredQuestions.length === 0) {
 				console.log('No more questions available, user should refer to the results');

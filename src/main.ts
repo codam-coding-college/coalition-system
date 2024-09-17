@@ -22,6 +22,7 @@ import { setupNunjucksFilters } from './handlers/filters';
 import { setupExpressMiddleware } from './handlers/middleware';
 import { setupLoginRoutes } from './routes/login';
 import { setupQuizRoutes } from './routes/quiz';
+import { setupAdminRoutes } from './routes/admin';
 
 // Set up the Express app
 const app = express();
@@ -53,6 +54,7 @@ setupExpressMiddleware(app);
 // Set up routes
 setupLoginRoutes(app);
 setupQuizRoutes(app, prisma);
+setupAdminRoutes(app, prisma);
 
 // Start the Express server
 app.listen(4000, async () => {

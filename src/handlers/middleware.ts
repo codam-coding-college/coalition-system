@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import { Request, Response, NextFunction } from "express";
 import { CustomSessionData } from "./session";
 import { ExpressIntraUser } from '../intra/oauth';
+import { isStaff } from '../utils';
 
 
 const checkIfAuthenticated = function(req: Request, res: Response, next: NextFunction) {
@@ -33,10 +34,20 @@ const includeUser = function(req: Request, res: Response, next: NextFunction) {
 	next();
 };
 
+const staffMiddleware = async function(req: Request, res: Response, next: NextFunction) {
+	const user = req.user as ExpressIntraUser;
+	if (await isStaff(user)) {
+		return next();
+	}
+	return res.status(403).send('Forbidden');
+};
+
 export const setupExpressMiddleware = function(app: any) {
 	app.use(express.static('static'));
 	app.use(bodyParser.json());
+	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(checkIfAuthenticated);
 	app.use(includeUser);
+	app.all('/admin/*', staffMiddleware); // require staff accounts to access admin routes
 	app.use(expressErrorHandler); // should remain last
 };

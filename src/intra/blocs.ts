@@ -1,7 +1,7 @@
 import Fast42 from '@codam/fast42';
 import { prisma, syncData } from './base';
 import { syncCoalition } from './coalitions';
-import { CAMPUS_ID } from '../env';
+import { CAMPUS_ID, CURSUS_ID } from '../env';
 
 // Bloc object can be an object returned by /v2/bloc/:id !
 export const syncBloc = async function(bloc: any): Promise<void> {
@@ -42,6 +42,7 @@ export const syncBlocs = async function(api: Fast42, syncDate: Date): Promise<vo
 	// Fetch all blocs from the API updated since the last shutdown
 	const blocs = await syncData(api, syncDate, syncSince, `/blocs`, {
 		'filter[campus_id]': CAMPUS_ID.toString(),
+		'filter[cursus_id]': CURSUS_ID.toString(),
 	});
 
 	// Insert or update each bloc in the database

@@ -1,0 +1,67 @@
+{% extends "base.njk" %}
+{% set title = "Questionnaire settings" %}
+
+{% block content %}
+<h2>Questions</h2>
+<div class="admin-list-table">
+	{% for question in questions %}
+		<div class="admin-list-table-item">
+			<h3 id="question-{{ question.id }}">{{ question.question }} ({{ question.id }})</h3>
+			<div class="admin-list-table-item-actions">
+				<a href="/admin/quiz/questions/{{ question.id }}/edit" class="btn btn-primary">Edit</a>
+				<form action="/admin/quiz/questions/{{ question.id }}/delete" method="post">
+					<button class="btn btn-danger">Delete</button>
+				</form>
+			</div>
+			<table>
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Answer</th>
+						<th>Coalition</th>
+						<th>Weight</th>
+						<th>Edit</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for answer in question.answers %}
+						<tr>
+							<td>{{ answer.id }}</td>
+							<td>{{ answer.answer }}</td>
+							<td>{{ answer.coalition.intra_coalition.name }}</td>
+							<td>{{ answer.weight }}</td>
+							<td>
+								<a href="/admin/quiz/answers/{{ answer.id }}/edit" class="btn btn-primary">Edit</a>
+								<form action="/admin/quiz/answers/{{ answer.id }}/delete" method="post">
+									<button class="btn btn-danger">Delete</button>
+								</form>
+							</td>
+						</tr>
+					{% endfor %}
+					<tr>
+						<td colspan="5">
+							<form action="/admin/quiz/answers/new" method="post">
+								<input type="hidden" name="question_id" value="{{ question.id }}">
+								<input type="text" name="answer" placeholder="Answer" required>
+								<select name="coalition_id" required>
+									{% for coalition in coalitions %}
+										<option value="{{ coalition.id }}">{{ coalition.name }}</option>
+									{% endfor %}
+								<input type="number" name="weight" placeholder="Weight" required min="1" value="1">
+								<button class="btn btn-primary">Add answer</button>
+							</form>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	{% endfor %}
+
+	<div class="admin-list-table-new">
+		<form action="/admin/quiz/questions/new" method="post">
+			<input type="text" name="question" placeholder="Question" required>
+			<button class="btn btn-primary">Add question</button>
+		</form>
+	</div>
+</div>
+{% endblock %}

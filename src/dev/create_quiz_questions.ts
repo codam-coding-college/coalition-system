@@ -1,20 +1,6 @@
 import { CodamCoalition, CodamCoalitionTestAnswer, CodamCoalitionTestQuestion, PrismaClient } from '@prisma/client';
+import { getCoalitionIds } from '../utils';
 const prisma = new PrismaClient();
-
-const getCoalitionIds = async function(): Promise<any> {
-	const coalitionIds = await prisma.intraCoalition.findMany({
-		select: {
-			id: true,
-			slug: true,
-		},
-	});
-	// return { slug: id, slug: id, ...}
-	const returnable: { [key: string]: number } = {};
-	for (const coalition of coalitionIds) {
-		returnable[coalition.slug] = coalition.id;
-	}
-	return returnable;
-};
 
 const deleteExistingQuizQuestions = async function(): Promise<void> {
 	await prisma.codamCoalitionTestAnswer.deleteMany({});

@@ -1,0 +1,12 @@
+{% extends "base.njk" %}
+{% set title = "Questionnaire settings" %}
+
+{% block content %}
+<h2>Edit question</h2>
+<h3>{{ question.question }} ({{ question.id }})</h3>
+<form action="/admin/quiz/questions/{{ question.id }}/edit" method="post">
+	<input type="text" name="question" placeholder="Question" value="{{ question.question }}" required>
+	<button class="btn btn-primary">Save</button>
+	<a href="/admin/quiz/questions/{{ question.id }}" class="btn btn-secondary">Back to overview</a>
+</form>
+{% endblock %}

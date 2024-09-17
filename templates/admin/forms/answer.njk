@@ -1,0 +1,25 @@
+{% extends "base.njk" %}
+{% set title = "Questionnaire settings" %}
+
+{% block content %}
+<h2>Edit answer</h2>
+<h3>{{ answer.question.question }} ({{ answer.question.id }})</h3>
+<h4>{{ answer.answer }} ({{ answer.id }})</h4>
+<form action="/admin/quiz/answers/{{ answer.id }}/edit" method="post">
+	<select name="question_id" required>
+		{% for question in questions %}
+			<option value="{{ question.id }}" {% if question.id == answer.question.id %}selected{% endif %}>{{ question.question }}</option>
+		{% endfor %}
+	</select>
+	<input type="text" name="question" placeholder="Answer" value="{{ answer.answer }}" required>
+	<input type="number" name="weight" placeholder="Weight" value="{{ answer.weight }}" required min="1">
+	<select name="coalition_id" required>
+		{% for coalition in coalitions %}
+			<option value="{{ coalition.id }}" {% if coalition.id == answer.coalition.id %}selected{% endif %}>{{ coalition.name }}</option>
+		{% endfor %}
+	</select>
+
+	<button class="btn btn-primary">Save</button>
+	<a href="/admin/quiz/answers/{{ answer.id }}" class="btn btn-secondary">Back to overview</a>
+</form>
+{% endblock %}
