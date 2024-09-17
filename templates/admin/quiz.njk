@@ -23,14 +23,16 @@
 	<div class="card-body">
 		<h5 class="card-title">{{ question.question }}</h5>
 
+		<form action="/admin/quiz/answers/new" method="post" id="question-{{ question.id }}-new-answer-form"></form>
+
 		<table class="table table-striped">
 			<thead>
 				<tr>
 					<!-- <th scope="col">ID</th> -->
 					<th scope="col">Answer</th>
-					<th scope="col">Coalition</th>
+					<th scope="col" style="width: 25%;">Coalition</th>
 					<th scope="col" style="width: 10%;">Weight</th>
-					<th scope="col text-end" style="text-align: end;">Options</th> <!-- for some reason the text-end class doesn't work here -->
+					<th scope="col text-end" style="text-align: end; width: 20%;">Options</th> <!-- for some reason the text-end class doesn't work here -->
 				</tr>
 			</thead>
 			<tbody>
@@ -50,25 +52,23 @@
 				{% endfor %}
 			</tbody>
 			<tfoot>
-				<form action="/admin/quiz/answers/new" method="post">
-					<tr class="align-middle">
-						<!-- <th scope="row">New</th> -->
-						<td><input type="text" class="form-control" name="answer" placeholder="New answer..." aria-label="New answer" required></td>
-						<td>
-							<select class="form-select" aria-label="Coalition" name="coalition_id" required>
-								<option value="" selected disabled hidden>Choose a coalition...</option>
-								{% for coalition in coalitions %}
-									<option value="{{ coalition.id }}">{{ coalition.name }}</option>
-								{% endfor %}
-							</select>
-						</td>
-						<td><input type="number" class="form-control" name="weight" min="1" value="1" step="1" required></td>
-						<td class="text-end">
-							<input type="hidden" name="question_id" value="{{ question.id }}">
-							<a href="/admin/quiz/answers/new?question_id={{ question.id }}" class="btn btn-outline-primary">Add answer</a>
-						</td>
-					</tr>
-				</form>
+				<tr class="align-middle">
+					<!-- <th scope="row">New</th> -->
+					<td><input type="text" class="form-control" name="answer" placeholder="New answer..." aria-label="New answer" form="question-{{ question.id }}-new-answer-form" required></td>
+					<td>
+						<select class="form-select" aria-label="Coalition" name="coalition_id" form="question-{{ question.id }}-new-answer-form" required>
+							<option value="" selected disabled hidden>Choose a coalition...</option>
+							{% for coalition in coalitions %}
+								<option value="{{ coalition.id }}">{{ coalition.name }}</option>
+							{% endfor %}
+						</select>
+					</td>
+					<td><input type="number" class="form-control" name="weight" form="question-{{ question.id }}-new-answer-form" min="1" value="1" step="1" required></td>
+					<td class="text-end">
+						<input type="hidden" name="question_id" form="question-{{ question.id }}-new-answer-form" value="{{ question.id }}">
+						<button type="submit" href="/admin/quiz/answers/new" class="btn btn-outline-primary" form="question-{{ question.id }}-new-answer-form">Add answer</button>
+					</td>
+				</tr>
 			</tfoot>
 		</table>
 	</div>
