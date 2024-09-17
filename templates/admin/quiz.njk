@@ -2,65 +2,94 @@
 {% set title = "Questionnaire settings" %}
 
 {% block content %}
-<h2>Questions</h2>
-<div class="admin-list-table">
-	{% for question in questions %}
-		<div class="admin-list-table-item">
-			<h3 id="question-{{ question.id }}">{{ question.question }} ({{ question.id }})</h3>
-			<div class="admin-list-table-item-actions">
-				<a href="/admin/quiz/questions/{{ question.id }}/edit" class="btn btn-primary">Edit</a>
-				<form action="/admin/quiz/questions/{{ question.id }}/delete" method="post">
-					<button class="btn btn-danger">Delete</button>
-				</form>
-			</div>
-			<table>
-				<thead>
-					<tr>
-						<th>ID</th>
-						<th>Answer</th>
-						<th>Coalition</th>
-						<th>Weight</th>
-						<th>Edit</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for answer in question.answers %}
-						<tr>
-							<td>{{ answer.id }}</td>
-							<td>{{ answer.answer }}</td>
-							<td>{{ answer.coalition.intra_coalition.name }}</td>
-							<td>{{ answer.weight }}</td>
-							<td>
-								<a href="/admin/quiz/answers/{{ answer.id }}/edit" class="btn btn-primary">Edit</a>
-								<form action="/admin/quiz/answers/{{ answer.id }}/delete" method="post">
-									<button class="btn btn-danger">Delete</button>
-								</form>
-							</td>
-						</tr>
-					{% endfor %}
-					<tr>
-						<td colspan="5">
-							<form action="/admin/quiz/answers/new" method="post">
-								<input type="hidden" name="question_id" value="{{ question.id }}">
-								<input type="text" name="answer" placeholder="Answer" required>
-								<select name="coalition_id" required>
-									{% for coalition in coalitions %}
-										<option value="{{ coalition.id }}">{{ coalition.name }}</option>
-									{% endfor %}
-								<input type="number" name="weight" placeholder="Weight" required min="1" value="1">
-								<button class="btn btn-primary">Add answer</button>
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Staff</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Questionnaire settings</li>
+	</ol>
+</nav>
+
+{% for question in questions %}
+<div class="card w-100 mb-4" id="question-{{ question.id }}">
+	<div class="card-header pe-2 d-flex align-items-center">
+		<div class="d-inline-block pe-3 lh-lg flex-grow-1">Question {{ question.id }}</div>
+		<div class="d-inline-block">
+			<a href="/admin/quiz/questions/{{ question.id }}/edit" class="btn btn-secondary">Edit question</a>
+			<form class="d-inline-block" action="/admin/quiz/questions/{{ question.id }}/delete" method="post">
+				<button class="btn btn-danger">Delete question</button>
+			</form>
+		</div>
+	</div>
+	<div class="card-body">
+		<h5 class="card-title">{{ question.question }}</h5>
+
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<!-- <th scope="col">ID</th> -->
+					<th scope="col">Answer</th>
+					<th scope="col">Coalition</th>
+					<th scope="col" style="width: 10%;">Weight</th>
+					<th scope="col text-end" style="text-align: end;">Options</th> <!-- for some reason the text-end class doesn't work here -->
+				</tr>
+			</thead>
+			<tbody>
+				{% for answer in question.answers %}
+					<tr class="align-middle">
+						<!-- <th scope="row">{{ answer.id }}</th> -->
+						<td>{{ answer.answer }}</td>
+						<td>{{ answer.coalition.intra_coalition.name }}</td>
+						<td>{{ answer.weight }}</td>
+						<td class="text-end">
+							<a href="/admin/quiz/answers/{{ answer.id }}/edit" class="btn btn-outline-secondary">Edit</a>
+							<form class="d-inline-block" action="/admin/quiz/answers/{{ answer.id }}/delete" method="post">
+								<button class="btn btn-outline-danger">Delete</button>
 							</form>
 						</td>
 					</tr>
-				</tbody>
-			</table>
-		</div>
-	{% endfor %}
+				{% endfor %}
+			</tbody>
+			<tfoot>
+				<form action="/admin/quiz/answers/new" method="post">
+					<tr class="align-middle">
+						<!-- <th scope="row">New</th> -->
+						<td><input type="text" class="form-control" name="answer" placeholder="New answer..." aria-label="New answer" required></td>
+						<td>
+							<select class="form-select" aria-label="Coalition" name="coalition_id" required>
+								<option value="" selected disabled hidden>Choose a coalition...</option>
+								{% for coalition in coalitions %}
+									<option value="{{ coalition.id }}">{{ coalition.name }}</option>
+								{% endfor %}
+							</select>
+						</td>
+						<td><input type="number" class="form-control" name="weight" min="1" value="1" step="1" required></td>
+						<td class="text-end">
+							<input type="hidden" name="question_id" value="{{ question.id }}">
+							<a href="/admin/quiz/answers/new?question_id={{ question.id }}" class="btn btn-outline-primary">Add answer</a>
+						</td>
+					</tr>
+				</form>
+			</tfoot>
+		</table>
+	</div>
+</div>
+{% endfor %}
 
-	<div class="admin-list-table-new">
+<div class="card w-100 mb-4" id="question-new">
+	<div class="card-header pe-2 d-flex align-items-center">
+		<div class="d-inline-block pe-3 lh-lg flex-grow-1">Create a new question</div>
+		<div class="d-inline-block">
+
+		</div>
+	</div>
+	<div class="card-body">
 		<form action="/admin/quiz/questions/new" method="post">
-			<input type="text" name="question" placeholder="Question" required>
-			<button class="btn btn-primary">Add question</button>
+			<div class="mb-3">
+				<!-- <label for="question" class="form-label">Question</label> -->
+				<input type="text" id="question" name="question" class="form-control" placeholder="Question" required>
+			</div>
+
+			<button type="submit" class="btn btn-primary">Create question</button>
 		</form>
 	</div>
 </div>

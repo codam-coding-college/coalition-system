@@ -2,24 +2,47 @@
 {% set title = "Questionnaire settings" %}
 
 {% block content %}
-<h2>Edit answer</h2>
-<h3>{{ answer.question.question }} ({{ answer.question.id }})</h3>
-<h4>{{ answer.answer }} ({{ answer.id }})</h4>
-<form action="/admin/quiz/answers/{{ answer.id }}/edit" method="post">
-	<select name="question_id" required>
-		{% for question in questions %}
-			<option value="{{ question.id }}" {% if question.id == answer.question.id %}selected{% endif %}>{{ question.question }}</option>
-		{% endfor %}
-	</select>
-	<input type="text" name="question" placeholder="Answer" value="{{ answer.answer }}" required>
-	<input type="number" name="weight" placeholder="Weight" value="{{ answer.weight }}" required min="1">
-	<select name="coalition_id" required>
-		{% for coalition in coalitions %}
-			<option value="{{ coalition.id }}" {% if coalition.id == answer.coalition.id %}selected{% endif %}>{{ coalition.name }}</option>
-		{% endfor %}
-	</select>
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/quiz/#question-{{ answer.question.id }}">Questionnaire settings</a></li>
+		<li class="breadcrumb-item"><a href="/admin/quiz/questions/{{ answer.question.id }}">Question {{ answer.question.id }}</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Answer {{ answer.id }}</li>
+	</ol>
+</nav>
 
-	<button class="btn btn-primary">Save</button>
+<form action="/admin/quiz/answers/{{ answer.id }}/edit" method="post">
+	<div class="mb-3">
+		<label for="question" class="form-label">Question</label>
+		<select id="question" name="question_id" class="form-select" required>
+			{% for question in questions %}
+				<option value="{{ question.id }}" {% if question.id == answer.question.id %}selected{% endif %}>{{ question.question }}</option>
+			{% endfor %}
+		</select>
+	</div>
+
+	<div class="mb-3">
+		<label for="answer" class="form-label">Answer</label>
+		<input type="text" id="answer" name="answer" class="form-control" placeholder="Answer" value="{{ answer.answer }}" required>
+	</div>
+
+	<div class="row g-3 mb-3">
+		<div class="col-md-8">
+			<label for="coalition" class="form-label">Coalition</label>
+			<select id="coalition" name="coalition_id" class="form-select" required>
+				{% for coalition in coalitions %}
+					<option value="{{ coalition.id }}" {% if coalition.id == answer.coalition.id %}selected{% endif %}>{{ coalition.name }}</option>
+				{% endfor %}
+			</select>
+		</div>
+
+		<div class="col-md-4">
+			<label for="weight" class="form-label">Weight</label>
+			<input type="number" id="weight" name="weight" class="form-control" placeholder="Weight" value="{{ answer.weight }}" required min="1">
+		</div>
+	</div>
+
+	<button type="submit" class="btn btn-primary">Save answer</button>
 	<a href="/admin/quiz/answers/{{ answer.id }}" class="btn btn-secondary">Back to overview</a>
 </form>
 {% endblock %}

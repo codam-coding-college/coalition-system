@@ -98,6 +98,9 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 			where: {
 				id: parseInt(req.params.id),
 			},
+			include: {
+				answers: true,
+			},
 		});
 		if (!question) {
 			return res.status(404).send('Question not found');

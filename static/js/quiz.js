@@ -93,8 +93,12 @@ Quiz.prototype.results = async function() {
 
 Quiz.prototype.update_quiz = function() {
 	// Update progress bar
-	this.dom.progressBar.max = this.total;
-	this.dom.progressBar.value = this.progress;
+	this.dom.progressBar.setAttribute('aria-valuemax', this.total);
+	this.dom.progressBar.setAttribute('aria-valuenow', this.progress);
+	this.dom.progressBar.firstElementChild.style.width = `${(this.progress / this.total) * 100}%`;
+
+	// Disable next button until an answer is selected
+	this.dom.nextButton.disabled = true;
 
 	// Remove old question and answers
 	while (this.dom.answers.firstChild) {
@@ -109,25 +113,26 @@ Quiz.prototype.update_quiz = function() {
 	this.dom.question.textContent = this.question.question;
 	for (const answer of this.answers) {
 		const li = document.createElement('li');
+		li.classList.add('quiz-answer', 'list-group-item', 'list-group-item-action');
 
 		const input = document.createElement('input');
+		input.classList.add('form-check-input', 'me-1');
 		input.type = 'radio';
 		input.name = 'answer';
 		input.value = answer.id;
-		input.id = answer.id;
+		input.id = `answer-${answer.id}`;
+		input.required = true;
 		input.addEventListener('change', () => this.dom.nextButton.disabled = false); // Enable next button when an answer is selected
 		li.appendChild(input);
 
 		const label = document.createElement('label');
+		label.classList.add('form-check-label', 'stretched-link');
 		label.textContent = answer.answer;
-		label.htmlFor = answer.id;
+		label.htmlFor = `answer-${answer.id}`;
 		li.appendChild(label);
 
 		this.dom.answers.appendChild(li);
 	}
-
-	// Disable next button until an answer is selected
-	this.dom.nextButton.disabled = true;
 };
 
 const quiz = new Quiz(document.getElementById('quiz'));

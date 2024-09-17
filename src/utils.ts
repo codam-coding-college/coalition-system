@@ -3,10 +3,17 @@ import { ExpressIntraUser } from "./intra/oauth";
 const prisma = new PrismaClient();
 
 export const isStudentOrStaff = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
-	// If the user is staff, let them continue
 	if (await isStaff(intraUser)) {
 		return true;
 	}
+	if (await isStudent(intraUser)) {
+		return true;
+	}
+	return false;
+};
+
+export const isStudent = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
+	return true;
 	// TODO: if the student has an ongoing 42cursus, let them continue
 	const userId = intraUser.id;
 	// const cursusUser = await prisma.cursusUser.findFirst({
@@ -17,7 +24,6 @@ export const isStudentOrStaff = async function(intraUser: ExpressIntraUser | Int
 	// 	},
 	// });
 	// return (cursusUser !== null);
-	return true;
 };
 
 export const isStaff = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {

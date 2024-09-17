@@ -2,11 +2,27 @@
 {% set title = "Questionnaire settings" %}
 
 {% block content %}
-<h2>Edit question</h2>
-<h3>{{ question.question }} ({{ question.id }})</h3>
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/quiz/questions/{{ question.id }}">Questionnaire settings</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Question {{ question.id }}</li>
+	</ol>
+</nav>
+
 <form action="/admin/quiz/questions/{{ question.id }}/edit" method="post">
-	<input type="text" name="question" placeholder="Question" value="{{ question.question }}" required>
-	<button class="btn btn-primary">Save</button>
+	<div class="mb-2">
+		<label for="question" class="form-label">Question</label>
+		<input type="text" id="question" name="question" class="form-control" placeholder="Question" value="{{ question.question }}" required>
+	</div>
+
+	<ul class="list-group list-group-flush mb-3">
+	{% for answer in question.answers %}
+		<li class="list-group-item text-body-secondary"><i>{{ answer.answer }}</i></li>
+	{% endfor %}
+	</ul>
+
+	<button type="submit" class="btn btn-primary">Save question</button>
 	<a href="/admin/quiz/questions/{{ question.id }}" class="btn btn-secondary">Back to overview</a>
 </form>
 {% endblock %}

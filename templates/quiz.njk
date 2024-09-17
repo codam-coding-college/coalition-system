@@ -2,11 +2,36 @@
 {% set title = "Questionnaire" %}
 
 {% block content %}
-<div id="quiz">
-	<progress id="quiz-progress" value="0" max="100"></progress>
-	<div id="quiz-question"></div>
-	<ul id="quiz-answers"></ul>
-	<button id="quiz-next" class="btn btn-primary" disabled>Next</button>
+<div class="container-sm">
+	<div class="row d-flex flex-column justify-content-center">
+		<div class="card w-100 align-self-center p-0 mt-5" style="overflow: hidden; max-width: 500px;" id="quiz">
+			<div id="quiz-progress" class="progress" role="progressbar" aria-label="Questionnaire progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="0" style="border-radius: 0; height: 3px;">
+				<div class="progress-bar" style="width: 50%;"></div>
+			</div>
+			<div class="card-header p-3">
+				<b id="quiz-question" class="card-title">Coalition questionnaire</b>
+			</div>
+			<div class="">
+				<ul id="quiz-answers" class="list-group list-group-flush">
+					<li class="list-group-item list-group-item-action">
+						<input class="form-check-input me-1" type="radio" name="answer" id="answer-1" value="1" required>
+						<label class="form-check-label stretched-link" for="answer-1">Answer 1</label>
+					</li>
+					<li class="list-group-item list-group-item-action">
+						<input class="form-check-input me-1" type="radio" name="answer" id="answer-2" value="2" required>
+						<label class="form-check-label stretched-link" for="answer-2">Answer 2</label>
+					</li>
+					<li class="list-group-item list-group-item-action">
+						<input class="form-check-input me-1" type="radio" name="answer" id="answer-3" value="3" required>
+						<label class="form-check-label stretched-link" for="answer-3">Answer 3</label>
+					</li>
+				</ul>
+			</div>
+			<div class="card-footer text-end p-2">
+				<button id="quiz-next" class="btn btn-primary">Next question</button>
+			</div>
+		</div>
+	</div>
 </div>
 <script src="/js/quiz.js"></script>
 {% endblock %}
