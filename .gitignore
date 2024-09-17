@@ -1,0 +1,9 @@
+.env
+.shutdown-timestamp
+build/*
+dist/*
+node_modules/*
+*.db
+*.db-journal
+*/.DS_Store
+.DS_Store

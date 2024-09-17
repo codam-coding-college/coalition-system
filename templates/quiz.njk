@@ -1,0 +1,12 @@
+{% extends "base.njk" %}
+{% set title = "Questionnaire" %}
+
+{% block content %}
+<div id="quiz">
+	<progress id="quiz-progress" value="0" max="100"></progress>
+	<div id="quiz-question"></div>
+	<ul id="quiz-answers"></ul>
+	<button id="quiz-next" class="btn btn-primary" disabled>Next</button>
+</div>
+<script src="/js/quiz.js"></script>
+{% endblock %}

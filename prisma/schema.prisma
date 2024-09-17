@@ -1,0 +1,232 @@
+generator client {
+	provider = "prisma-client-js"
+}
+
+datasource db {
+	provider = "sqlite"
+	url      = "file:../coal.db?mode=memory&cache=shared&connection_limit=1"
+}
+
+// TODO: DO NOT COPY INTRA'S SYSTEM!
+// BUILD YOUR OWN, CUSTOM DATABASE STRUCTURE THAT SUITS CODAM'S NEEDS.
+// THEN FIND A WAY TO PASS OVER THESE SCORES TO INTRA WITHOUT CARING ABOUT THEIR CALCULATION SYSTEM.
+// All calculation rules can be deleted from the bloc 20. Calculations will be done on our side.
+// We do however need to set the deadlines correctly, so that they are in sync between Intra and this coalition system. Perhaps fetch them from Intra to make sure?
+
+// Would be nice to be able to import old existing scores to look at past leaderboards. The fact that we're gonna use a new system should not matter. Make it backwards compatible with Intra!
+
+// The amount of points given on Intra should always be in the 1000s so that it can easily be divided by the amount of active participants in the coalition system to get the coalition average.
+// This way we can use a mock account to remove the neccessary points from each coalition to balance things out (the students will see their total amount of points contributed, but
+// if they go to the coalition scores overview on Intra, they will see the balanced scores).
+// EXAMPLE: when a student scores 1200 points for their coalition and the coalition has 300 active participants, remove 1200 / 300 * 299 = 1196 points from the coalition total for this score.
+// This point reduction can be done by a mock Intra account, just give a negative score of -1196 to this user. This mock user takes the hits for all students :')
+// TODO: one caveat with this is that if the amount of participants changes, we'd have to balance out all scores again. Maybe do this daily? The graph on Intra will be a bit weird, but it's the only way to keep it balanced.
+// Perhaps only recalculate when a new participant joins!
+// EXAMPLE: the coalition has 1.000.000 points in total, with 250 participants. Old average was then 4.000 points. New participant joins, total is now 1.000.000 + 1000 = 1.001.000, with 251 participants. New average is 3.984 points. Remove 16 points on the mock user.
+
+// ********************************************* //
+// CUSTOM CODAM SECTION                          //
+// ********************************************* //
+
+model CodamUser {
+	id               Int      @id // Same as intra user id
+
+	// Relations
+	coalition_scores CoalitionScore[]
+
+	// Link to Intra
+	intra_user       IntraUser   @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model CodamCoalition {
+	id               Int      @id // Same as intra coalition id
+	description      String?
+
+	// Relations
+	coalition_scores CoalitionScore[]
+	coalition_test_answers CodamCoalitionTestAnswer[]
+
+	// Link to Intra
+	intra_coalition  IntraCoalition   @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+// Fixed type of score for the coalition system
+model CoalitionFixedType {
+	id               Int      @id @default(autoincrement())
+	type             String   @unique
+	point_amount     Int
+
+	created_at       DateTime @default(now())
+	updated_at       DateTime @default(now()) @updatedAt
+
+	// Relations
+	scores           CoalitionScore[]
+}
+
+model CoalitionScore {
+	id               Int      @id @default(autoincrement())
+	coalition_id     Int
+	user_id          Int
+	amount           Int
+	reason           String   // Does not necessarily have to be the same as on Intra
+	type             String   // e.g. "project", "eval", "logtime", "exam", "basic_event", "intermediate_event", "advanced_event"
+	fixed_type_id    Int?     // If the type is of a fixed type with a predefined amount of points, this will be set
+	type_intra_id    Int?     // Id of the object that caused the score to be created, if created by something specific (e.g. a location, project_user, scale_team, etc.)
+
+	created_at       DateTime @default(now())
+	updated_at       DateTime @default(now()) @updatedAt
+
+	// Relations
+	coalition        CodamCoalition   @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	user             CodamUser        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	fixed_type       CoalitionFixedType? @relation(fields: [fixed_type_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+	// Link to Intra
+	intra_score_id   Int?     @unique
+	intra_score      IntraScore?   @relation(fields: [intra_score_id], references: [id])
+}
+
+// For the "sorting hat" quiz
+model CodamCoalitionTestQuestion {
+	id               Int      @id @default(autoincrement())
+	question         String
+
+	// Relations
+	answers          CodamCoalitionTestAnswer[] // Can be more than 3 theoretically, in case there are more coalitions
+}
+
+// An answer to a question in the "sorting hat" quiz
+model CodamCoalitionTestAnswer {
+	id               Int      @id @default(autoincrement())
+	question_id      Int
+	answer           String
+	coalition_id     Int
+	weight           Int      @default(1) // Amount of points to add to the coalition score in the student's quiz result (can be negative too!)
+
+	// Relations
+	coalition        CodamCoalition @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	question         CodamCoalitionTestQuestion @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+// ********************************************* //
+// INTRA SECTION                                 //
+// All ids here are defined by Intra             //
+// ********************************************* //
+
+// Intra User
+model IntraUser {
+	id               Int      @id
+	email            String
+	login            String
+	first_name       String
+	last_name        String
+	usual_first_name String?
+	usual_full_name  String
+	display_name     String
+	kind             String
+	image            String?
+	pool_month       String?
+	pool_year        String?
+	anonymize_date   DateTime?
+
+	created_at       DateTime
+	updated_at       DateTime
+
+	// Relations
+	coalition_users IntraCoalitionUser[]
+
+	// Codam
+	codam_user      CodamUser?
+}
+
+// Intra Bloc
+// Defines one coalition "tournament" in Intra
+model IntraBloc {
+	id               Int      @id
+	cursus_id        Int
+	squad_size       Int?
+
+	created_at       DateTime
+	updated_at       DateTime
+
+	// Relations
+	coalitions       IntraCoalition[]
+	deadlines        IntraBlocDeadline[]
+}
+
+// Intra Bloc Deadline
+model IntraBlocDeadline {
+	id               Int      @id
+	bloc_id          Int
+	coalition_id     Int?     // Defines the winner?
+	begin_at         DateTime
+	end_at           DateTime
+
+	created_at       DateTime
+	updated_at       DateTime
+
+	// Relations
+	bloc             IntraBloc         @relation(fields: [bloc_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	coalition        IntraCoalition?   @relation(fields: [coalition_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+}
+
+// Intra Coalition
+model IntraCoalition {
+	id               Int      @id
+	name             String
+	slug             String
+	image_url        String?
+	color            String?
+	score            Int
+	user_id          Int?    // Coalition leader user id
+
+	// Relations
+	blocs            IntraBloc[]
+	coalition_users  IntraCoalitionUser[]
+	deadlines        IntraBlocDeadline[]
+	scores           IntraScore[]
+
+	// Codam
+	codam_coalition  CodamCoalition?
+}
+
+// Intra Coalition User
+// Links a user to a coalition
+model IntraCoalitionUser {
+	id               Int      @id
+	coalition_id     Int
+	user_id          Int
+	score            Int
+	rank             Int
+
+	created_at       DateTime
+	updated_at       DateTime
+
+	// Relations
+	user             IntraUser        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	coalition        IntraCoalition   @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	scores           IntraScore[]
+}
+
+// Intra Score
+// Defines a score that a user has received for their coalition
+model IntraScore {
+	id               Int      @id
+	coalition_id     Int      // Coalition that scored the points
+	scoreable_id     Int?     // Id of the object that caused the score to be created
+	scoreable_type   String?  // Defines what the scoreable_id points to (e.g. ScaleTeam, ProjectsUser, can be anything really)
+	coalitions_user_id Int    // Coalitions_user of the user who scored the points
+	calculation_id   Int?     // Calculation used to determine amount of points (null if coming from a manual action)
+	value            Int      // Points scored
+	reason           String   // (Visible) reason for the points being scored
+
+	created_at       DateTime
+	updated_at       DateTime
+
+	// Relations
+	coalition        IntraCoalition       @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+	coalitions_user  IntraCoalitionUser   @relation(fields: [coalitions_user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+	// Codam
+	codam_score      CoalitionScore?
+}

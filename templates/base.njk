@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>{{ title | e if title }}{{ " | " if title }}Codam Coalition System</title>
+	<link rel="stylesheet" href="/css/base.css" />
+	<!-- theme color -->
+	<meta name="theme-color" content="#6610f2" />
+</head>
+<body>
+	{% if not noheader %}
+	<header>
+		<button id="menu-toggler">&#9776;</button>
+		<h1>Codam Coalition System</h1>
+		<h2>{{ title | e }}</h2>
+		<div id="menu-container">
+			<ul class="menu-list">
+				<li><a href="/">Home</a></li>
+				{% if user.isStudentOrStaff %}
+				<li><a href="/admin">Admin Overview</a></li>
+				{% endif %}
+				<li><a href="/logout">Logout</a></li>
+			</ul>
+		</div>
+	</header>
+	{% endif %}
+	<script>
+		/* Menu toggler */
+		const menuToggler = document.getElementById('menu-toggler');
+		const menuContainer = document.getElementById('menu-container');
+		menuToggler.addEventListener('click', () => {
+			menuContainer.classList.toggle('open');
+			// Remove the menu on click outside
+			document.addEventListener('click', function closeMenu(e) {
+				if (!menuContainer.contains(e.target) && !menuToggler.contains(e.target)) {
+					menuContainer.classList.remove('open');
+					document.removeEventListener('click', closeMenu);
+				}
+			});
+		});
+	</script>
+	<main class="{{ 'noheader' if noheader }}">
+		{% block content %}{% endblock %}
+	</main>
+</body>
+</html>
