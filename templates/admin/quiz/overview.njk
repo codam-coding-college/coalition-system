@@ -14,9 +14,9 @@
 	<div class="card-header pe-2 d-flex align-items-center">
 		<div class="d-inline-block pe-3 lh-lg flex-grow-1">Question {{ question.id }}</div>
 		<div class="d-inline-block">
-			<a href="/admin/quiz/questions/{{ question.id }}/edit" class="btn btn-secondary">Edit question</a>
+			<a href="/admin/quiz/questions/{{ question.id }}/edit" class="btn btn-sm btn-secondary">Edit question</a>
 			<form class="d-inline-block" action="/admin/quiz/questions/{{ question.id }}/delete" method="post">
-				<button class="btn btn-danger">Delete question</button>
+				<button class="btn btn-sm btn-danger">Delete question</button>
 			</form>
 		</div>
 	</div>
@@ -43,9 +43,9 @@
 						<td>{{ answer.coalition.intra_coalition.name }}</td>
 						<td>{{ answer.weight }}</td>
 						<td class="text-end">
-							<a href="/admin/quiz/answers/{{ answer.id }}/edit" class="btn btn-outline-secondary">Edit</a>
+							<a href="/admin/quiz/answers/{{ answer.id }}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
 							<form class="d-inline-block" action="/admin/quiz/answers/{{ answer.id }}/delete" method="post">
-								<button class="btn btn-outline-danger">Delete</button>
+								<button class="btn btn-sm btn-outline-danger">Delete</button>
 							</form>
 						</td>
 					</tr>
@@ -83,13 +83,15 @@
 		</div>
 	</div>
 	<div class="card-body">
-		<form action="/admin/quiz/questions/new" method="post">
-			<div class="mb-3">
+		<form action="/admin/quiz/questions/new" method="post" class="row g-3 mb-3">
+			<div class="col-md-9">
 				<!-- <label for="question" class="form-label">Question</label> -->
 				<input type="text" id="question" name="question" class="form-control" placeholder="Question" required>
 			</div>
 
-			<button type="submit" class="btn btn-primary">Create question</button>
+			<div class="col-md-3">
+				<button type="submit" class="btn btn-primary w-100">Create question</button>
+			</div>
 		</form>
 	</div>
 </div>
