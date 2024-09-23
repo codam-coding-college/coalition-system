@@ -12,7 +12,7 @@ const createQuizAnswer = async function(questionId: number, answer: string, coal
 		data: {
 			question_id: questionId,
 			answer: answer,
-			coalition_id: coalitionId
+			coalition_id: coalitionId,
 		},
 	});
 };

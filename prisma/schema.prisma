@@ -32,7 +32,7 @@ model CodamUser {
 	id               Int      @id // Same as intra user id
 
 	// Relations
-	coalition_scores CoalitionScore[]
+	coalition_scores CodamCoalitionScore[]
 
 	// Link to Intra
 	intra_user       IntraUser   @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -43,7 +43,7 @@ model CodamCoalition {
 	description      String?
 
 	// Relations
-	coalition_scores CoalitionScore[]
+	coalition_scores CodamCoalitionScore[]
 	coalition_test_answers CodamCoalitionTestAnswer[]
 
 	// Link to Intra
@@ -51,26 +51,25 @@ model CodamCoalition {
 }
 
 // Fixed type of score for the coalition system
-model CoalitionFixedType {
-	id               Int      @id @default(autoincrement())
-	type             String   @unique
+model CodamCoalitionFixedType {
+	type             String   @id // should not contain spaces. e.g. "project", "eval", "logtime", "exam", "basic_event", "intermediate_event", "advanced_event"
+	description      String
 	point_amount     Int
 
 	created_at       DateTime @default(now())
 	updated_at       DateTime @default(now()) @updatedAt
 
 	// Relations
-	scores           CoalitionScore[]
+	scores           CodamCoalitionScore[]
 }
 
-model CoalitionScore {
+model CodamCoalitionScore {
 	id               Int      @id @default(autoincrement())
 	coalition_id     Int
 	user_id          Int
 	amount           Int
 	reason           String   // Does not necessarily have to be the same as on Intra
-	type             String   // e.g. "project", "eval", "logtime", "exam", "basic_event", "intermediate_event", "advanced_event"
-	fixed_type_id    Int?     // If the type is of a fixed type with a predefined amount of points, this will be set
+	fixed_type_id    String?  // If the type is of a fixed type with a predefined amount of points, this will be set. If it is custom, this will be null.
 	type_intra_id    Int?     // Id of the object that caused the score to be created, if created by something specific (e.g. a location, project_user, scale_team, etc.)
 
 	created_at       DateTime @default(now())
@@ -79,7 +78,7 @@ model CoalitionScore {
 	// Relations
 	coalition        CodamCoalition   @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 	user             CodamUser        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-	fixed_type       CoalitionFixedType? @relation(fields: [fixed_type_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+	fixed_type       CodamCoalitionFixedType? @relation(fields: [fixed_type_id], references: [type], onDelete: SetNull, onUpdate: Cascade)
 
 	// Link to Intra
 	intra_score_id   Int?     @unique
@@ -101,7 +100,7 @@ model CodamCoalitionTestAnswer {
 	question_id      Int
 	answer           String
 	coalition_id     Int
-	weight           Int      @default(1) // Amount of points to add to the coalition score in the student's quiz result (can be negative too!)
+	weight           Int      @default(10) // Amount of points to add to the coalition score in the student's quiz result (can be negative too!)
 
 	// Relations
 	coalition        CodamCoalition @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -228,5 +227,19 @@ model IntraScore {
 	coalitions_user  IntraCoalitionUser   @relation(fields: [coalitions_user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
 	// Codam
-	codam_score      CoalitionScore?
+	codam_score      CodamCoalitionScore?
+}
+
+// Intra Project
+// Defines a project in Intra, used for the coalition system's point system
+model IntraProject {
+	id               Int      @id
+	name             String
+	slug             String
+	difficulty       Int?
+	description      String?
+	exam             Boolean
+
+	created_at       DateTime
+	updated_at       DateTime
 }

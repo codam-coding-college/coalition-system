@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 // Imports for the Intra API
 import Fast42 from '@codam/fast42';
 import { INTRA_API_UID, INTRA_API_SECRET } from './env';
-import { syncWithIntra } from './intra/base';
+import { syncWithIntra } from './sync/base';
 let initSyncComplete = false;
 
 // Imports for the handlers and routes

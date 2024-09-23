@@ -1,0 +1,24 @@
+{% extends "base.njk" %}
+{% set title = "Points assigner" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/points/manual">Points Assigner</a></li>
+		<li class="breadcrumb-item active" aria-current="page">{{ manual_type }}</li>
+	</ol>
+</nav>
+
+<p>Select the type of points you want to assign manually:</p>
+<ul class="nav flex-column">
+	<li class="nav-item">
+		<a class="nav-link" href="/admin/points/manual/custom">custom</a>
+	</li>
+	{% for fixedPointType in fixedPointTypes %}
+		<li class="nav-item">
+			<a class="nav-link" href="/admin/points/manual/{{ fixedPointType.type }}">{{ fixedPointType.type }}</a>
+		</li>
+	{% endfor %}
+</ul>
+{% endblock %}

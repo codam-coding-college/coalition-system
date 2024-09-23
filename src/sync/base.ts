@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import Fast42 from "@codam/fast42";
+import { initCodamCoalitionFixedTypes } from "./fixed_point_types";
 import { syncUsers } from "./users";
 import { syncBlocs } from "./blocs";
 import { NODE_ENV, DEV_DAYS_LIMIT } from "../env";
 import { cleanupDB } from "./cleanup";
+import { syncProjects } from "./projects";
 
 export const prisma = new PrismaClient();
 
@@ -162,6 +164,8 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 
 	console.info(`Starting Intra synchronization at ${now.toISOString()}...`);
 
+	await initCodamCoalitionFixedTypes();
+	await syncProjects(api, now);
 	await syncUsers(api, now);
 	await syncBlocs(api, now); // also syncs coalitions
 	await cleanupDB(api);

@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { Request, Response, NextFunction } from "express";
 import { CustomSessionData } from "./session";
-import { ExpressIntraUser } from '../intra/oauth';
+import { ExpressIntraUser } from '../sync/oauth';
 import { isStaff } from '../utils';
 
 

@@ -35,7 +35,7 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 			},
 		});
 
-		return res.render('admin/quiz.njk', {
+		return res.render('admin/quiz/overview.njk', {
 			questions,
 			coalitions,
 		});
@@ -105,7 +105,7 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 		if (!question) {
 			return res.status(404).send('Question not found');
 		}
-		return res.render('admin/forms/question.njk', {
+		return res.render('admin/quiz/question.njk', {
 			question,
 		});
 	});
@@ -221,7 +221,7 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 			},
 		});
 
-		return res.render('admin/forms/answer.njk', {
+		return res.render('admin/quiz/answer.njk', {
 			answer,
 			questions,
 			coalitions,

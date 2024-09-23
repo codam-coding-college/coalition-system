@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import passport from 'passport';
-import { ExpressIntraUser } from '../intra/oauth';
+import { ExpressIntraUser } from '../sync/oauth';
 import { CustomSessionData } from '../handlers/session';
 
 export const setupLoginRoutes = function(app: Express): void {

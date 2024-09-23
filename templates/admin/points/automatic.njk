@@ -1,0 +1,38 @@
+{% extends "base.njk" %}
+{% set title = "Edit points system" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Edit points system</li>
+	</ol>
+</nav>
+
+<table class="table table-striped">
+	<thead>
+		<th scope="col">Type</th>
+		<th scope="col">Description</th>
+		<th scope="col">Points</th>
+		<th scope="col">Total points in current tournament</th>
+		<th scope="col">Total points in all past tournaments</th>
+		<th scope="col text-end" style="text-align: end;">Options</th> <!-- for some reason the text-end class doesn't work here -->
+	</thead>
+	<tbody>
+		{% for fixedPointType in fixedPointTypes %}
+			<tr>
+				<td>{{ fixedPointType.type }}</td>
+				<td>{{ fixedPointType.description }}</td>
+				<td>{{ fixedPointType.point_amount }}</td>
+				<td><!-- TODO --></td>
+				<td><!-- TODO --></td>
+				<td class="text-end">
+					<a href="/admin/points/automatic/{{ fixedPointType.type }}/edit" class="btn btn-outline-secondary">Edit</a>
+				</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+<p>To add a new fixed and possibly automated type, you will have to modify the code of the Coalition System.</p>
+{% endblock %}

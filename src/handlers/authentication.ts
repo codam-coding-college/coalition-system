@@ -3,7 +3,7 @@ import passport from 'passport';
 import OAuth2Strategy from 'passport-oauth2';
 import { PrismaClient } from '@prisma/client';
 import { INTRA_API_UID, INTRA_API_SECRET, URL_ORIGIN, SESSION_SECRET } from '../env';
-import { getIntraUser, ExpressIntraUser } from '../intra/oauth';
+import { getIntraUser, ExpressIntraUser } from '../sync/oauth';
 import { isStudent, isStaff } from '../utils';
 
 export const setupPassport = function(prisma: PrismaClient): void {

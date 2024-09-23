@@ -1,5 +1,5 @@
 import { PrismaClient, IntraUser } from "@prisma/client";
-import { ExpressIntraUser } from "./intra/oauth";
+import { ExpressIntraUser } from "./sync/oauth";
 const prisma = new PrismaClient();
 
 export const isStudentOrStaff = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {

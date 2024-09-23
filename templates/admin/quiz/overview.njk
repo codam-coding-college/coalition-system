@@ -63,7 +63,7 @@
 							{% endfor %}
 						</select>
 					</td>
-					<td><input type="number" class="form-control" name="weight" form="question-{{ question.id }}-new-answer-form" min="1" value="1" step="1" required></td>
+					<td><input type="number" class="form-control" name="weight" form="question-{{ question.id }}-new-answer-form" min="1" value="10" step="1" required></td>
 					<td class="text-end">
 						<input type="hidden" name="question_id" form="question-{{ question.id }}-new-answer-form" value="{{ question.id }}">
 						<button type="submit" href="/admin/quiz/answers/new" class="btn btn-outline-primary" form="question-{{ question.id }}-new-answer-form">Add answer</button>

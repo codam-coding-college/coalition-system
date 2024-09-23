@@ -3,7 +3,7 @@ import { Express, Request, Response } from "express";
 import passport from 'passport';
 import { CustomSessionData } from '../handlers/session';
 import { CodamCoalition, CodamCoalitionTestAnswer, CodamCoalitionTestQuestion, PrismaClient } from '@prisma/client';
-import { ExpressIntraUser } from '../intra/oauth';
+import { ExpressIntraUser } from '../sync/oauth';
 
 export interface QuizSessionQuestion {
 	question: CodamCoalitionTestQuestion;
