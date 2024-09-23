@@ -151,14 +151,21 @@ const ApiSearcher = function(options) {
 			const tr = document.createElement('tr');
 			for (const header of this.headers) {
 				const td = document.createElement('td');
-				const value = header.dataKey.reduce((obj, key) => obj[key], row);
-				if (header.dataFormat === 'text') {
-					td.innerText = value;
-				} else if (header.dataFormat === 'datetime') {
-					td.innerText = new Date(value).toLocaleString();
-				} else {
-					td.innerText = value;
-					console.warn('Unknown data format', header.dataFormat);
+				try {
+					const value = header.dataKey.reduce((obj, key) => obj[key], row);
+					if (header.dataFormat === 'text') {
+						td.innerText = value;
+					} else if (header.dataFormat === 'datetime') {
+						td.innerText = new Date(value).toLocaleString();
+					} else {
+						td.innerText = value;
+						console.warn('Unknown data format', header.dataFormat);
+					}
+				}
+				catch (err) {
+					console.error(`An error occurred while parsing data (${header.dataKey})`, row, err);
+					td.innerText = '⚠ PARSING ERROR';
+					td.classList.add('text-danger');
 				}
 				tr.appendChild(td);
 			}

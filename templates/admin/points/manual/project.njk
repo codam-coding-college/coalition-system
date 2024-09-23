@@ -1,0 +1,76 @@
+{% extends "base.njk" %}
+{% set title = "Points assigner" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/points/manual">Points Assigner</a></li>
+		<li class="breadcrumb-item active" aria-current="page">{{ manual_type }}</li>
+	</ol>
+</nav>
+
+<form class="row g-3 mb-3" id="searchfilterform">
+	<div class="col">
+		<select id="searchfilter" name="searchfilter" class="form-select" required>
+			<option value="" selected disabled hidden>Choose a filter</option>
+			<option value="none">No filter</option>
+			<option value="login">Login</option>
+			<option value="id">Team ID</option>
+		</select>
+	</div>
+	<div class="col">
+		<input type="text" id="searchfilterval" name="searchfilterval" class="form-control" placeholder="Filter value..." required>
+	</div>
+	<div class="col">
+		<button type="submit" class="btn btn-primary" id="searchfilterbtn">Search</button>
+	</div>
+</form>
+
+<table class="table table-striped" id="results">
+	<thead>
+		<tr>
+			<th scope="col" data-key="id">Team ID</th>
+			<th scope="col" data-key="logins">Login(s)</th>
+			<th scope="col" data-key="project.name">Project</th>
+			<th scope="col" data-key="updated_at" data-format="datetime">Last Update</th>
+			<th scope="col" data-key="status">Status</th>
+			<th scope="col" data-key="final_mark">Final Mark</th>
+		</tr>
+	</thead>
+	<tbody id="search-results">
+
+	</tbody>
+</table>
+
+<script src="/js/apisearcher.js"></script>
+<script>
+const apiSearcher = new ApiSearcher({
+	url: window.location.origin + '/admin/apisearch/projects/',
+	results: '#results',
+	filterSelector: '#searchfilter',
+	filterValue: '#searchfilterval',
+	filterForm: '#searchfilterform',
+	pointsCalculator: function(data) {
+		try {
+			if (!data.final_mark || data['validated?'] === false) {
+				return 0;
+			}
+			const basePoints = {{ fixedPointType.point_amount }};
+			return Math.floor(data.final_mark * data.project.difficulty * basePoints / 100);
+		}
+		catch (err) {
+			console.error("Error calculating points", data, err);
+			return -1;
+		}
+	},
+	actions: [
+		{
+			name: 'Trigger',
+			url: window.location.origin + '/admin/points/trigger/{{ fixedPointType.type }}/id/', // id will be appended
+			background: true, // background request, set to false to open in the same tab instead
+		}
+	]
+});
+</script>
+{% endblock %}

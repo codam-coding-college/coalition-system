@@ -44,3 +44,34 @@ export const getCoalitionIds = async function(): Promise<any> {
 	}
 	return returnable;
 };
+
+export const parseTeamInAPISearcher = async function(teams: any): Promise<any> {
+	const projects = await prisma.intraProject.findMany({
+		select: {
+			id: true,
+			slug: true,
+			name: true,
+			difficulty: true,
+		},
+	});
+
+	// Remove all teams that are not validated
+	// @ts-ignore
+	teams = teams.filter(t => t['validated?'] === true);
+
+	for (const team of teams) {
+		// Add the project to the team
+		const project = projects.find(p => p.id === team.project_id);
+		team.project = project;
+
+		// Concatenate all logins for easier displaying in a table
+		// @ts-ignore
+		team.logins = team.users.map(u => u.login).join(', ') || '';
+	}
+
+	// Remove all teams that do not have a corresponding project
+	// @ts-ignore
+	teams = teams.filter(t => t.project !== undefined);
+
+	return teams;
+};
