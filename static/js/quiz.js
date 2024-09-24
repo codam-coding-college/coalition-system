@@ -116,7 +116,7 @@ Quiz.prototype.update_quiz = function() {
 		li.classList.add('quiz-answer', 'list-group-item', 'list-group-item-action');
 
 		const input = document.createElement('input');
-		input.classList.add('form-check-input', 'me-1');
+		input.classList.add('form-check-input', 'me-3');
 		input.type = 'radio';
 		input.name = 'answer';
 		input.value = answer.id;
