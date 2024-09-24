@@ -1,0 +1,69 @@
+{% extends "base.njk" %}
+{% set title = "Points assigner" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/points/manual">Points Assigner</a></li>
+		<li class="breadcrumb-item active" aria-current="page">{{ manual_type }}</li>
+	</ol>
+</nav>
+
+<form class="row g-3 mb-3" id="searchfilterform">
+	<div class="col">
+		<select id="searchfilter" name="searchfilter" class="form-select" required>
+			<option value="" selected disabled hidden>Choose a filter</option>
+			<option value="none">No filter</option>
+			<option value="corrector">Login (evaluator)</option>
+			<option value="team">Evaluated team ID</option>
+			<option value="scale_team">ScaleTeam (evaluation) ID</option>
+		</select>
+	</div>
+	<div class="col">
+		<input type="text" id="searchfilterval" name="searchfilterval" class="form-control" placeholder="Filter value..." required>
+	</div>
+	<div class="col">
+		<button type="submit" class="btn btn-primary" id="searchfilterbtn">Search</button>
+	</div>
+</form>
+
+<table class="table table-striped" id="results">
+	<thead>
+		<tr>
+			<th scope="col" data-key="id">ScaleTeam ID</th>
+			<th scope="col" data-key="corrector.login">Evaluator</th>
+			<th scope="col" data-key="team.project.name">Project</th>
+			<th scope="col" data-key="correcteds_logins">Evaluated</th>
+			<th scope="col" data-key="team.id">Team ID</th>
+			<th scope="col" data-key="filled_at" data-format="datetime">Filled at</th>
+			<th scope="col" data-key="final_mark">Mark</th>
+		</tr>
+	</thead>
+	<tbody id="search-results">
+
+	</tbody>
+</table>
+
+<script src="/js/apisearcher.js"></script>
+<script>
+const apiSearcher = new ApiSearcher({
+	url: window.location.origin + '/admin/apisearch/evaluations/',
+	results: '#results',
+	filterSelector: '#searchfilter',
+	filterValue: '#searchfilterval',
+	filterForm: '#searchfilterform',
+	pointsCalculator: function(data) {
+		const basePoints = {{ fixedPointType.point_amount }};
+		return basePoints;
+	},
+	actions: [
+		{
+			name: 'Trigger',
+			url: window.location.origin + '/admin/points/trigger/{{ fixedPointType.type }}/id/', // id will be appended
+			background: true, // background request, set to false to open in the same tab instead
+		}
+	]
+});
+</script>
+{% endblock %}

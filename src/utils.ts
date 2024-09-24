@@ -75,3 +75,30 @@ export const parseTeamInAPISearcher = async function(teams: any): Promise<any> {
 
 	return teams;
 };
+
+export const parseScaleTeamInAPISearcher = async function(scaleTeams: any): Promise<any> {
+	const projects = await prisma.intraProject.findMany({
+		select: {
+			id: true,
+			slug: true,
+			name: true,
+			difficulty: true,
+		},
+	});
+
+	// Remove all evaluations done by "supervisor" (Internship evaluations)
+	// @ts-ignore
+	scaleTeams = scaleTeams.filter(t => t['corrector']['login'] !== "supervisor");
+
+	for (const scaleTeam of scaleTeams) {
+		// Add the project to the team
+		const project = projects.find(p => p.id === scaleTeam.team.project_id);
+		scaleTeam.team.project = project;
+
+		// Concatenate all logins for easier displaying in a table
+		// @ts-ignore
+		scaleTeam.correcteds_logins = scaleTeam.correcteds.map(u => u.login).join(', ') || '';
+	}
+
+	return scaleTeams;
+};

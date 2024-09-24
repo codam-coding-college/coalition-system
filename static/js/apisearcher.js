@@ -131,10 +131,11 @@ const ApiSearcher = function(options) {
 			const tr = document.createElement('tr');
 			for (let j = 0; j < this.headers.length + 2; j++) {
 				const td = document.createElement('td');
+				td.classList.add('placeholder-glow');
 				tr.appendChild(td);
 
 				const placeholderSpan = document.createElement('span');
-				placeholderSpan.classList.add('placeholder', 'placeholder-glow', 'col-8');
+				placeholderSpan.classList.add('placeholder', 'col-8');
 				td.appendChild(placeholderSpan);
 			}
 			tbody.appendChild(tr);
