@@ -3,6 +3,7 @@ import Fast42 from "@codam/fast42";
 import { initCodamCoalitionFixedTypes } from "./fixed_point_types";
 import { syncUsers } from "./users";
 import { syncBlocs } from "./blocs";
+import { syncCoalitionUsers } from "./coalitions_users";
 import { NODE_ENV, DEV_DAYS_LIMIT } from "../env";
 import { cleanupDB } from "./cleanup";
 import { syncProjects } from "./projects";
@@ -168,6 +169,7 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 	await syncProjects(api, now);
 	await syncUsers(api, now);
 	await syncBlocs(api, now); // also syncs coalitions
+	await syncCoalitionUsers(api, now);
 	await cleanupDB(api);
 
 	console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);

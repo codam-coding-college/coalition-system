@@ -243,3 +243,12 @@ model IntraProject {
 	created_at       DateTime
 	updated_at       DateTime
 }
+
+model IntraWebhook {
+	delivery_id      String   @id
+	model            String
+	event            String
+	body             String
+
+	received_at      DateTime @default(now())
+}

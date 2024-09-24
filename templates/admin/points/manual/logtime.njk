@@ -53,7 +53,7 @@ const apiSearcher = new ApiSearcher({
 	pointsCalculator: function(data) {
 		const beginAt = new Date(data.begin_at);
 		const endAt = new Date(data.end_at);
-		const duration = (endAt - beginAt) / 1000;
+		const duration = (endAt.getTime() - beginAt.getTime()) / 1000;
 		const basePoints = {{ fixedPointType.point_amount }}; // points per hour
 		const points = Math.floor(duration / 3600 * basePoints);
 		return points;

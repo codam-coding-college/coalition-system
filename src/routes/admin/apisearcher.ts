@@ -1,22 +1,10 @@
 import { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import Fast42 from '@codam/fast42';
-import { CAMPUS_ID, INTRA_API_UID, INTRA_API_SECRET, CURSUS_ID } from '../../env';
-import { parseTeamInAPISearcher, parseScaleTeamInAPISearcher } from '../../utils';
+import { CAMPUS_ID, CURSUS_ID } from '../../env';
+import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTeamInAPISearcher } from '../../utils';
 
 const EXAM_PROJECT_IDS = [1320, 1321, 1322, 1323, 1324];
-
-const getAPIClient = async function(): Promise<Fast42> {
-	return new Fast42([{
-		client_id: INTRA_API_UID,
-		client_secret: INTRA_API_SECRET,
-	}]).init();
-}
-
-const fetchSingleApiPage = async function(api: Fast42, endpoint: string, params: Record<string, string>): Promise<any> {
-	const job = await api.get(endpoint, params);
-	return await job.json();
-}
 
 export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient): void {
 

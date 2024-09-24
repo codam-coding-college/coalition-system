@@ -1,6 +1,20 @@
 import { PrismaClient, IntraUser } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
+import Fast42 from "@codam/fast42";
+import { INTRA_API_UID, INTRA_API_SECRET } from "./env";
 const prisma = new PrismaClient();
+
+export const getAPIClient = async function(): Promise<Fast42> {
+	return new Fast42([{
+		client_id: INTRA_API_UID,
+		client_secret: INTRA_API_SECRET,
+	}]).init();
+};
+
+export const fetchSingleApiPage = async function(api: Fast42, endpoint: string, params: Record<string, string>): Promise<any> {
+	const job = await api.get(endpoint, params);
+	return await job.json();
+};
 
 export const isStudentOrStaff = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
 	if (await isStaff(intraUser)) {
