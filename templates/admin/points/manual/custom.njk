@@ -1,0 +1,31 @@
+{% extends "base.njk" %}
+{% set title = "Points assigner" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/points/manual">Points Assigner</a></li>
+		<li class="breadcrumb-item active" aria-current="page">{{ manual_type }}</li>
+	</ol>
+</nav>
+
+<form action="/admin/points/manual/custom" method="post">
+	<div class="mb-2">
+		<label for="login" class="form-label">Login student</label>
+		<input type="text" id="login" name="login" class="form-control" placeholder="Login" required>
+	</div>
+
+	<div class="mb-2">
+		<label for="point_amount" class="form-label">Point amount</label>
+		<input type="number" id="point_amount" name="point_amount" class="form-control" placeholder="Point amount" required value="0" step="1">
+	</div>
+
+	<div class="mb-2">
+		<label for="reason" class="form-label">Reason</label>
+		<input type="text" id="reason" name="reason" class="form-control" placeholder="Reason" required>
+	</div>
+
+	<button type="submit" class="btn btn-primary">Assign points</button>
+</form>
+{% endblock %}

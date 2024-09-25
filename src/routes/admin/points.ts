@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import { CodamCoalition, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 
 export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClient): void {
@@ -69,6 +69,13 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 
 	app.get('/admin/points/manual/:type', async (req, res) => {
 		const type = req.params.type;
+		if (type == "custom") {
+			return res.render('admin/points/manual/custom.njk', {
+				manual_type: type,
+				fixedPointType: null,
+			});
+		}
+
 		const fixedPointType = await prisma.codamCoalitionFixedType.findFirst({
 			where: {
 				type: type,
