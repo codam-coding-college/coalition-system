@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { Express, Response } from 'express';
 import { handleLocationCloseWebhook, Location } from './hooks/locations';
 import { handleProjectsUserUpdateWebhook, ProjectUser } from './hooks/projects_users';
+import { handleScaleTeamUpdateWebhook, ScaleTeam } from './hooks/scale_teams';
 
 export interface WebhookHeaders {
 	modelType: string;
@@ -61,10 +62,13 @@ export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): 
 			switch (webhookHeaders.modelType) {
 				case "location": // location close
 					const location: Location = JSON.parse(req.body) as Location;
-					return await handleLocationCloseWebhook(prisma, location, res, webhookHeaders.deliveryId, );
+					return await handleLocationCloseWebhook(prisma, location, res, webhookHeaders.deliveryId);
 				case "projects_user": // project or exam validation
 					const projectUser: ProjectUser = JSON.parse(req.body) as ProjectUser;
-					return await handleProjectsUserUpdateWebhook(prisma, projectUser, res, webhookHeaders.deliveryId, );
+					return await handleProjectsUserUpdateWebhook(prisma, projectUser, res, webhookHeaders.deliveryId);
+				case "scale_team": // scale team (evaluation) update
+					const scaleTeam: ScaleTeam = JSON.parse(req.body) as ScaleTeam;
+					return await handleScaleTeamUpdateWebhook(prisma, scaleTeam, res, webhookHeaders.deliveryId);
 				default:
 					console.warn("Unknown model type", webhookHeaders.modelType);
 					return await respondWebHookHandledStatus(prisma, webhookHeaders.deliveryId, res, WebhookHandledStatus.Error);

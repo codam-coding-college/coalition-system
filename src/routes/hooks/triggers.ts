@@ -1,11 +1,10 @@
 // Webhook triggers for the admin panel
 import { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
-import Fast42 from '@codam/fast42';
-import { CAMPUS_ID, CURSUS_ID } from '../../env';
 import { getAPIClient, fetchSingleApiPage } from '../../utils';
 import { handleLocationCloseWebhook, Location } from './locations';
 import { handleProjectsUserUpdateWebhook, ProjectUser } from './projects_users';
+import { handleScaleTeamUpdateWebhook, ScaleTeam } from './scale_teams';
 
 export const setupWebhookTriggerRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/points/trigger/logtime/id/:id', async (req, res) => {
@@ -59,10 +58,23 @@ export const setupWebhookTriggerRoutes = function(app: Express, prisma: PrismaCl
 			return res.status(404).json({ error: 'Project user not found' });
 		}
 		await handleProjectsUserUpdateWebhook(prisma, projectUser);
+		return res.status(200).json({ status: 'ok' });
 	});
 
 	app.get('/admin/points/trigger/exam/projects_user_id/:id', async (req, res) => {
 		// Redirect to project projects_user ID trigger
 		res.redirect(`/admin/points/trigger/project/projects_user_id/${req.params.id}`);
+	});
+
+	app.get('/admin/points/trigger/evaluation/id/:id', async (req, res) => {
+		// ID belongs to a scale_team ID in the intra system
+		const api = await getAPIClient();
+		const scaleTeam: ScaleTeam = await fetchSingleApiPage(api, `/scale_teams/${req.params.id}`, {}) as ScaleTeam;
+		if (scaleTeam === null) {
+			console.error(`Failed to find scale_team ${req.params.id}, cannot trigger scale_team update webhook`);
+			return res.status(404).json({ error: 'Scale team not found' });
+		}
+		await handleScaleTeamUpdateWebhook(prisma, scaleTeam);
+		return res.status(200).json({ status: 'ok' });
 	});
 };
