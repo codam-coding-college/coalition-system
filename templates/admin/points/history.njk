@@ -1,0 +1,44 @@
+{% extends "base.njk" %}
+{% set title = "Point History" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Point History</li>
+	</ol>
+</nav>
+
+<table class="table coalition-colored">
+	<thead>
+		<th scope="col">Date</th>
+		<th scope="col">Coalition</th>
+		<th scope="col">Points</th>
+		<th scope="col">User</th>
+		<th scope="col">Reason</th>
+		<th scope="col">Type</th>
+		<th scope="col">Intra Type ID</th>
+		<th scope="col">Intra Score ID</th>
+		<th scope="col text-end" style="text-align: end;">Actions</th> <!-- for some reason the text-end class doesn't work here -->
+	</thead>
+	<tbody>
+		{% for score in scores %}
+			<tr style="background: {{ coalitions[score.coalition_id].intra_coalition.color | rgba(0.25) }}">
+				<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
+				<td>{{ coalitions[score.coalition_id].intra_coalition.name }}</td>
+				<td>{{ score.amount }}</td>
+				<td>{{ score.user.intra_user.login }}</td>
+				<td style="white-space: normal; word-wrap: break-word;">{{ score.reason }}</td>
+				<td>{{ score.fixed_type_id if score.fixed_type_id else "" }}</td>
+				<td>{{ score.type_intra_id if score.type_intra_id else "" }}</td>
+				<td>{{ score.intra_score_id if score.intra_score_id else "not yet synced" }}</td>
+				<td class="text-end" style="white-space: nowrap;">
+					<a href="/admin/points/sync/{{ score.id }}" class="btn btn-sm btn-outline-secondary" title="Force synchronize with Intra">Sync</a>
+					<a href="/admin/points/recalculate/{{ score.id }}" class="btn btn-sm btn-outline-warning" title="Force recalculate this score with the current point system settings">Recalculate</a>
+					<a href="/admin/points/delete/{{ score.id }}" class="btn btn-sm btn-outline-danger" title="Remove this score and act like it never happened">Remove</a>
+				</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endblock %}

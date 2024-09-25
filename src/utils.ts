@@ -2,7 +2,6 @@ import { PrismaClient, IntraUser } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { INTRA_API_UID, INTRA_API_SECRET } from "./env";
-const prisma = new PrismaClient();
 
 export const getAPIClient = async function(): Promise<Fast42> {
 	return new Fast42([{
@@ -44,7 +43,7 @@ export const isStaff = async function(intraUser: ExpressIntraUser | IntraUser): 
 	return intraUser.kind === 'admin';
 };
 
-export const getCoalitionIds = async function(): Promise<any> {
+export const getCoalitionIds = async function(prisma: PrismaClient): Promise<any> {
 	const coalitionIds = await prisma.intraCoalition.findMany({
 		select: {
 			id: true,
@@ -59,7 +58,7 @@ export const getCoalitionIds = async function(): Promise<any> {
 	return returnable;
 };
 
-export const parseTeamInAPISearcher = async function(teams: any): Promise<any> {
+export const parseTeamInAPISearcher = async function(prisma: PrismaClient, teams: any): Promise<any> {
 	const projects = await prisma.intraProject.findMany({
 		select: {
 			id: true,
@@ -75,6 +74,7 @@ export const parseTeamInAPISearcher = async function(teams: any): Promise<any> {
 
 	for (const team of teams) {
 		// Add the project to the team
+		// @ts-ignore
 		const project = projects.find(p => p.id === team.project_id);
 		team.project = project;
 
@@ -90,7 +90,7 @@ export const parseTeamInAPISearcher = async function(teams: any): Promise<any> {
 	return teams;
 };
 
-export const parseScaleTeamInAPISearcher = async function(scaleTeams: any): Promise<any> {
+export const parseScaleTeamInAPISearcher = async function(prisma: PrismaClient, scaleTeams: any): Promise<any> {
 	const projects = await prisma.intraProject.findMany({
 		select: {
 			id: true,
@@ -106,6 +106,7 @@ export const parseScaleTeamInAPISearcher = async function(scaleTeams: any): Prom
 
 	for (const scaleTeam of scaleTeams) {
 		// Add the project to the team
+		// @ts-ignore
 		const project = projects.find(p => p.id === scaleTeam.team.project_id);
 		scaleTeam.team.project = project;
 

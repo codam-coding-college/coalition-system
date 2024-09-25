@@ -1,8 +1,56 @@
 import { Express } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { CodamCoalition, PrismaClient } from '@prisma/client';
 import fs from 'fs';
 
 export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClient): void {
+	app.get('/admin/points/history', async (req, res) => {
+		// Retrieve all scores
+		const scores = await prisma.codamCoalitionScore.findMany({
+			select: {
+				id: true,
+				intra_score_id: true,
+				amount: true,
+				reason: true,
+				created_at: true,
+				fixed_type_id: true,
+				type_intra_id: true,
+				coalition_id: true,
+				coalition: false,
+				fixed_type: false,
+				user: {
+					select: {
+						intra_user: {
+							select: {
+								login: true,
+							}
+						}
+					},
+				},
+			},
+			orderBy: {
+				created_at: 'desc',
+			},
+		});
+
+		// Retrieve all coalitions
+		const coalitionRows = await prisma.codamCoalition.findMany({
+			select: {
+				intra_coalition: true,
+			},
+		});
+
+		// Create a map of coalition id to coalition object
+		const coalitions: { [key: number]: any } = {};
+		for (const row of coalitionRows) {
+			coalitions[row.intra_coalition.id] = row;
+		}
+
+		return res.render('admin/points/history.njk', {
+			scores,
+			coalitions,
+		});
+	});
+
 	app.get('/admin/points/manual', async (req, res) => {
 		// Retrieve all fixed point types
 		const fixedPointTypes = await prisma.codamCoalitionFixedType.findMany({

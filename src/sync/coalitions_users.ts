@@ -18,7 +18,7 @@ export const syncCoalitionUser = async function(coalitionUser: any): Promise<voi
 		}
 
 		// Check if coalitionUser is of any of the coalitions we care about (are in our database)
-		const coalitionIds = await getCoalitionIds();
+		const coalitionIds = await getCoalitionIds(prisma);
 		const coalitionIdsArray = Object.values(coalitionIds);
 		if (!coalitionIdsArray.includes(coalitionUser.coalition_id)) {
 			console.warn(`Coalition ${coalitionUser.coalition_id} is not in our database, skipping local CoalitionUser creation...`);
@@ -73,7 +73,7 @@ export const syncCoalitionUsers = async function(api: Fast42, syncDate: Date): P
 	const syncSince = new Date(LAST_SHUTDOWN_TIMESTAMP);
 
 	// Fetch all of our coalition ids
-	const coalitionIds = await getCoalitionIds();
+	const coalitionIds = await getCoalitionIds(prisma);
 
 	// Fetch all users from the API updated since the last shutdown
 	console.log('Coalition IDs used by the coalitions_users synchronization: ', coalitionIds);

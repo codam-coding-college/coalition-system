@@ -81,7 +81,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'page[size]': '100',
 				'sort': '-updated_at'
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(teams);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
 		}
 		catch (err) {
@@ -111,7 +111,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'page[size]': '100',
 				'sort': '-updated_at'
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(teams);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
 		}
 		catch (err) {
@@ -128,7 +128,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			const teams = await fetchSingleApiPage(api, '/teams/', {
 				'filter[id]': teamId,
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(teams);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
 		}
 		catch (err) {
@@ -150,7 +150,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'page[size]': '100',
 				'sort': '-updated_at'
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(teams);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
 		}
 		catch (err) {
@@ -181,7 +181,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'page[size]': '100',
 				'sort': '-updated_at'
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(teams);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
 		}
 		catch (err) {
@@ -199,7 +199,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'filter[id]': teamId,
 				'filter[project_id]': EXAM_PROJECT_IDS.join(','),
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(teams);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
 		}
 		catch (err) {
@@ -221,7 +221,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'page[size]': '25',
 				'sort': '-filled_at'
 			});
-			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(evaluations);
+			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
 			return res.json(modifiedScaleTeams);
 		}
 		catch (err) {
@@ -255,7 +255,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'page[size]': '25',
 				'sort': '-filled_at'
 			});
-			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(evaluations);
+			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
 			return res.json(modifiedScaleTeams);
 		}
 		catch (err) {
@@ -275,7 +275,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'page[size]': '25',
 				'sort': '-filled_at'
 			});
-			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(evaluations);
+			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
 			return res.json(modifiedScaleTeams);
 		}
 		catch (err) {
@@ -295,7 +295,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				'page[size]': '25',
 				'sort': '-filled_at'
 			});
-			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(evaluations);
+			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
 			return res.json(modifiedScaleTeams);
 		}
 		catch (err) {

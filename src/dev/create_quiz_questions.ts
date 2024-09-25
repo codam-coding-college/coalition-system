@@ -23,7 +23,7 @@ const createQuizQuestionAnswerSet = async function(question: string, answers: { 
 			question: question
 		},
 	});
-	const coalitionIds = await getCoalitionIds();
+	const coalitionIds = await getCoalitionIds(prisma);
 	// Randomize the order of the answers to make it less obvious to the client
 	// which answer belongs to which coalition (based on lower answer id in the DB = earlier created = vela, pyxis, cetus etc.)
 	answers = answers.sort(() => Math.random() - 0.5);

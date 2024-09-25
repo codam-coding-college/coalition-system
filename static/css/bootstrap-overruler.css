@@ -1,0 +1,3 @@
+.table.coalition-colored > :not(caption) > * > * {
+	background-color: transparent !important;
+}

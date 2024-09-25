@@ -52,4 +52,15 @@ export const setupNunjucksFilters = function(app: Express): void {
 		}
 		return date.getTime();
 	});
+
+	// Add filter to replace hex color with RGBA color
+	nunjucksEnv.addFilter('rgba', (hex: string, alpha: number) => {
+		if (!hex || !hex.startsWith('#')) {
+			return `rgba(0, 0, 0, ${alpha})`;
+		}
+		const r = parseInt(hex.substring(1, 3), 16);
+		const g = parseInt(hex.substring(3, 5), 16);
+		const b = parseInt(hex.substring(5, 7), 16);
+		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+	});
 };
