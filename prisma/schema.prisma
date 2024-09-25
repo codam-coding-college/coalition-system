@@ -249,6 +249,8 @@ model IntraWebhook {
 	model            String
 	event            String
 	body             String
+	status           String
 
 	received_at      DateTime @default(now())
+	handled_at       DateTime?
 }

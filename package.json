@@ -27,8 +27,7 @@
 		"nunjucks": "^3.2.4",
 		"passport": "^0.7.0",
 		"passport-oauth2": "^1.8.0",
-		"prisma": "^5.14.0",
-		"uuid": "^10.0.0"
+		"prisma": "^5.14.0"
 	},
 	"devDependencies": {
 		"@semantic-release-plus/docker": "^3.1.3",

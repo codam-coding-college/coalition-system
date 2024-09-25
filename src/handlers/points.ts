@@ -28,7 +28,7 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 	// TODO: create intra score (maybe not here but in a runner/job?)
 }
 
-export const updateScore = async function(prisma: PrismaClient, score: CodamCoalitionScore, new_score: number): Promise<CodamCoalitionScore> {
+export const updateScore = async function(prisma: PrismaClient, score: CodamCoalitionScore, new_score: number, reason: string): Promise<CodamCoalitionScore> {
 	console.log(`Updating CodamScore ${score.id} of ${score.user_id} of coalition ${score.coalition_id} with new amount ${new_score}...`);
 	await prisma.codamCoalitionScore.update({
 		where: {
@@ -37,7 +37,8 @@ export const updateScore = async function(prisma: PrismaClient, score: CodamCoal
 		data: {
 			amount: new_score,
 			updated_at: new Date(),
-		},
+			reason: reason,
+		}
 	});
 
 	// TODO: update intra score (maybe not here but in a runner/job?)
@@ -62,7 +63,7 @@ export const handleFixedPointScore = async function(prisma: PrismaClient, type: 
 		// Update the existing score
 		console.warn(`Score already exists for type ${type.type} and typeIntraId ${typeIntraId}, updating CodamScore ${existingScore.id} with IntraScore ${existingScore.intra_score_id}...`);
 		// TODO: delete the score if the new amount is 0 or if the coalitionsUser does not exist
-		return await updateScore(prisma, existingScore, points);
+		return await updateScore(prisma, existingScore, points, reason);
 	}
 
 	// Create a new score
