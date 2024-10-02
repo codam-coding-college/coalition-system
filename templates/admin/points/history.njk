@@ -33,12 +33,36 @@
 				<td>{{ score.type_intra_id if score.type_intra_id else "" }}</td>
 				<td>{{ score.intra_score_id if score.intra_score_id else "not yet synced" }}</td>
 				<td class="text-end" style="white-space: nowrap;">
-					<a href="/admin/points/sync/{{ score.id }}" class="btn btn-sm btn-outline-secondary" title="Force synchronize with Intra">Sync</a>
-					<a href="/admin/points/recalculate/{{ score.id }}" class="btn btn-sm btn-outline-warning" title="Force recalculate this score with the current point system settings">Recalculate</a>
-					<a href="/admin/points/delete/{{ score.id }}" class="btn btn-sm btn-outline-danger" title="Remove this score and act like it never happened">Remove</a>
+					<a href="/admin/points/history/{{ score.id }}/sync" class="btn btn-sm btn-outline-secondary" title="Force synchronize with Intra" onclick="buttonHandler(event)">Sync</a>
+					<a href="/admin/points/history/{{ score.id }}/recalculate" class="btn btn-sm btn-outline-warning" title="Force recalculate this score with the current point system settings" onclick="buttonHandler(event)">Recalculate</a>
+					<a href="/admin/points/history/{{ score.id }}/delete" class="btn btn-sm btn-outline-danger" title="Remove this score and act like it never happened" onclick="buttonHandler(event)">Delete</a>
 				</td>
 			</tr>
 		{% endfor %}
 	</tbody>
 </table>
+<script>
+function buttonHandler(event) {
+	event.preventDefault();
+	const href = event.target.href;
+	fetch(href, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	})
+	.then(response => response.json())
+	.then(data => {
+		if (data.error) {
+			console.error(`Error calling ${href}: `, data.error);
+			return;
+		}
+		console.log(data);
+	})
+	.catch((error) => {
+		console.error(`Error calling ${href}: `, error);
+	});
+	return false;
+}
+</script>
 {% endblock %}

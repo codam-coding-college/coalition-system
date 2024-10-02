@@ -51,6 +51,61 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 		});
 	});
 
+	app.get('/admin/points/history/:id/recalculate', async (req, res) => {
+		// Just trigger the right webhook again
+		const scoreId = parseInt(req.params.id);
+		if (isNaN(scoreId)) {
+			return res.status(400).json({ error: 'Invalid score ID' });
+		}
+
+		// Get the score from the database
+		const score = await prisma.codamCoalitionScore.findFirst({
+			where: {
+				id: scoreId,
+			},
+		});
+
+		if (!score) {
+			return res.status(404).json({ error: 'Score not found' });
+		}
+
+		if (score.fixed_type_id === null || score.type_intra_id === null) {
+			return res.status(400).json({ error: 'Score is not based on a fixed type, cannot recalculate' });
+		}
+
+		// Retrigger the webhook using a redirect (a new trigger will update the existing score)
+		return res.redirect(`/admin/points/trigger/${score.fixed_type_id}/id/${score.type_intra_id}`);
+	});
+
+	app.get('/admin/points/history/:id/delete', async (req, res) => {
+		const scoreId = parseInt(req.params.id);
+		if (isNaN(scoreId)) {
+			return res.status(400).json({ error: 'Invalid score ID' });
+		}
+
+		// Fetch the score from the database
+		const score = await prisma.codamCoalitionScore.findFirst({
+			where: {
+				id: scoreId,
+			},
+		});
+
+		if (!score) {
+			return res.status(404).json({ error: 'Score not found' });
+		}
+
+		// TODO: delete the intra score
+
+		// Delete the score from the database
+		await prisma.codamCoalitionScore.delete({
+			where: {
+				id: scoreId,
+			},
+		});
+
+		return res.status(200).json({ status: 'ok' });
+	});
+
 	app.get('/admin/points/manual', async (req, res) => {
 		// Retrieve all fixed point types
 		const fixedPointTypes = await prisma.codamCoalitionFixedType.findMany({

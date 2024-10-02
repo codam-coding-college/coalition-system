@@ -10,71 +10,105 @@ export const setupWebhookTriggerRoutes = function(app: Express, prisma: PrismaCl
 	app.get('/admin/points/trigger/logtime/id/:id', async (req, res) => {
 		// ID belongs to a location ID in the intra system
 		const api = await getAPIClient();
-		const location: Location = await fetchSingleApiPage(api, `/locations/${req.params.id}`, {}) as Location;
-		if (location === null) {
-			console.error(`Failed to find location ${req.params.id}, cannot trigger location close webhook`);
-			return res.status(404).json({ error: 'Location not found' });
+		try {
+			const location: Location = await fetchSingleApiPage(api, `/locations/${req.params.id}`, {}) as Location;
+			if (location === null) {
+				console.error(`Failed to find location ${req.params.id}, cannot trigger location close webhook`);
+				return res.status(404).json({ error: 'Location not found' });
+			}
+			await handleLocationCloseWebhook(prisma, location);
+			return res.status(200).json({ status: 'ok' });
 		}
-		await handleLocationCloseWebhook(prisma, location);
-		return res.status(200).json({ status: 'ok' });
+		catch (err) {
+			console.error(`Failed to trigger location close webhook for location ${req.params.id}`, err);
+			return res.status(500).json({ error: err });
+		}
+	});
+
+	app.get('/admin/points/trigger/project/id/:id', async (req, res) => {
+		// Assume ID is a projects_user ID
+		return res.redirect(`/admin/points/trigger/project/projects_user_id/${req.params.id}`);
 	});
 
 	app.get('/admin/points/trigger/project/team_id/:id', async (req, res) => {
 		// ID belongs to a team ID in the intra system
 		const api = await getAPIClient();
-		const team = await fetchSingleApiPage(api, `/teams/${req.params.id}`, {});
-		if (team === null) {
-			console.error(`Failed to find team ${req.params.id}, cannot trigger projectsUser update webhook for team users`);
-			return res.status(404).json({ error: 'Team not found' });
+		try {
+			const team = await fetchSingleApiPage(api, `/teams/${req.params.id}`, {});
+			if (team === null) {
+				console.error(`Failed to find team ${req.params.id}, cannot trigger projectsUser update webhook for team users`);
+				return res.status(404).json({ error: 'Team not found' });
+			}
+
+			// Go over all user's projects_users in the team
+			for (const user of team.users) {
+				if (!user.projects_user_id) {
+					console.warn(`User ${user.id} in team ${team.id} has no projects_user ID, skipping projectsUser update webhook...`);
+				}
+				try {
+					const projectUser: ProjectUser = await fetchSingleApiPage(api, `/projects_users/${user.projects_user_id}`, {}) as ProjectUser;
+					await handleProjectsUserUpdateWebhook(prisma, projectUser);
+				}
+				catch (err) {
+					console.error(`Failed to trigger projects_user update ${user.projects_user_id} for team ${team.id}`, err);
+				}
+			}
+			return res.status(200).json({ status: 'ok' });
 		}
-		// Go over all user's projects_users in the team
-		for (const user of team.users) {
-			if (!user.projects_user_id) {
-				console.warn(`User ${user.id} in team ${team.id} has no projects_user ID, skipping projectsUser update webhook...`);
-			}
-			try {
-				const projectUser: ProjectUser = await fetchSingleApiPage(api, `/projects_users/${user.projects_user_id}`, {}) as ProjectUser;
-				await handleProjectsUserUpdateWebhook(prisma, projectUser);
-			}
-			catch (err) {
-				console.error(`Failed to trigger projects_user update ${user.projects_user_id} for team ${team.id}`, err);
-			}
+		catch (err) {
+			console.error(`Failed to trigger projects_user update for team ${req.params.id}`, err);
+			return res.status(500).json({ error: err });
 		}
-		return res.status(200).json({ status: 'ok' });
+	});
+
+	app.get('/admin/points/trigger/project/projects_user_id/:id', async (req, res) => {
+		// ID belongs to a projects_user ID in the intra system
+		const api = await getAPIClient();
+		try {
+			const projectUser: ProjectUser = await fetchSingleApiPage(api, `/projects_users/${req.params.id}`, {}) as ProjectUser;
+			if (projectUser === null) {
+				console.error(`Failed to find projects_user ${req.params.id}, cannot trigger projectsUser update webhook`);
+				return res.status(404).json({ error: 'Project user not found' });
+			}
+			await handleProjectsUserUpdateWebhook(prisma, projectUser);
+			return res.status(200).json({ status: 'ok' });
+		}
+		catch (err) {
+			console.error(`Failed to trigger projects_user update webhook for projects_user ${req.params.id}`, err);
+			return res.status(500).json({ error: err });
+		}
+	});
+
+	app.get('/admin/points/trigger/exam/id/:id', async (req, res) => {
+		// Assume ID is a projects_user ID
+		return res.redirect(`/admin/points/trigger/exam/projects_user_id/${req.params.id}`);
 	});
 
 	app.get('/admin/points/trigger/exam/team_id/:id', async (req, res) => {
 		// Redirect to project team ID trigger
-		res.redirect(`/admin/points/trigger/project/team_id/${req.params.id}`);
-	});
-
-	// Currently unused
-	app.get('/admin/points/trigger/project/projects_user_id/:id', async (req, res) => {
-		// ID belongs to a projects_user ID in the intra system
-		const api = await getAPIClient();
-		const projectUser: ProjectUser = await fetchSingleApiPage(api, `/projects_users/${req.params.id}`, {}) as ProjectUser;
-		if (projectUser === null) {
-			console.error(`Failed to find projects_user ${req.params.id}, cannot trigger projectsUser update webhook`);
-			return res.status(404).json({ error: 'Project user not found' });
-		}
-		await handleProjectsUserUpdateWebhook(prisma, projectUser);
-		return res.status(200).json({ status: 'ok' });
+		return res.redirect(`/admin/points/trigger/project/team_id/${req.params.id}`);
 	});
 
 	app.get('/admin/points/trigger/exam/projects_user_id/:id', async (req, res) => {
 		// Redirect to project projects_user ID trigger
-		res.redirect(`/admin/points/trigger/project/projects_user_id/${req.params.id}`);
+		return res.redirect(`/admin/points/trigger/project/projects_user_id/${req.params.id}`);
 	});
 
 	app.get('/admin/points/trigger/evaluation/id/:id', async (req, res) => {
 		// ID belongs to a scale_team ID in the intra system
 		const api = await getAPIClient();
-		const scaleTeam: ScaleTeam = await fetchSingleApiPage(api, `/scale_teams/${req.params.id}`, {}) as ScaleTeam;
-		if (scaleTeam === null) {
-			console.error(`Failed to find scale_team ${req.params.id}, cannot trigger scale_team update webhook`);
-			return res.status(404).json({ error: 'Scale team not found' });
+		try {
+			const scaleTeam: ScaleTeam = await fetchSingleApiPage(api, `/scale_teams/${req.params.id}`, {}) as ScaleTeam;
+			if (scaleTeam === null) {
+				console.error(`Failed to find scale_team ${req.params.id}, cannot trigger scale_team update webhook`);
+				return res.status(404).json({ error: 'Scale team not found' });
+			}
+			await handleScaleTeamUpdateWebhook(prisma, scaleTeam);
+			return res.status(200).json({ status: 'ok' });
 		}
-		await handleScaleTeamUpdateWebhook(prisma, scaleTeam);
-		return res.status(200).json({ status: 'ok' });
+		catch (err) {
+			console.error(`Failed to trigger scale_team update webhook for scale_team ${req.params.id}`, err);
+			return res.status(500).json({ error: err });
+		}
 	});
 };
