@@ -85,6 +85,13 @@ model CodamCoalitionScore {
 	intra_score      IntraScore?   @relation(fields: [intra_score_id], references: [id])
 }
 
+// Sorting hat quiz settings
+model CodamCoalitionTestSettings {
+	id               Int      @id // Only one of these should exist
+	start_at         DateTime // Schedule the start of quiz taking (before this the quiz is not available)
+	deadline_at      DateTime // Deadline for doing the quiz and selecting a coalition
+}
+
 // For the "sorting hat" quiz
 model CodamCoalitionTestQuestion {
 	id               Int      @id @default(autoincrement())

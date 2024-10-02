@@ -46,17 +46,36 @@ const areAllQuestionsAnswered = async function(prisma: PrismaClient, userSession
 	return userSession.quiz.questionsAnswered.length >= questionCount;
 }
 
+const isQuizAvailable = async function(prisma: PrismaClient): Promise<boolean> {
+	const settings = await prisma.codamCoalitionTestSettings.findFirstOrThrow({
+		where: {
+			id: 1,
+		},
+	});
+	const currentDate = new Date();
+	console.log(`Current date: ${currentDate}, start date: ${settings.start_at}, end date: ${settings.deadline_at}`);
+	console.log(`Quiz available: ${currentDate.getTime() >= settings.start_at.getTime()} && ${currentDate.getTime() < settings.deadline_at.getTime()}`);
+	return (currentDate.getTime() >= settings.start_at.getTime() && currentDate.getTime() < settings.deadline_at.getTime());
+}
+
 export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/quiz', passport.authenticate('session', {
 		keepSessionInfo: true,
 	}), async function(req, res) {
-		res.render('quiz.njk');
+		if (! await isQuizAvailable(prisma)) {
+			return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+		}
+		return res.render('quiz.njk');
 	});
 
 	app.get('/quiz/results', passport.authenticate('session', {
 		keepSessionInfo: true,
 	}), async function(req: Request, res: Response) {
 		try {
+			if (! await isQuizAvailable(prisma)) {
+				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+			}
+
 			const user = req.user as ExpressIntraUser;
 			console.log(`User ${user.login} requested quiz results`);
 			const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
@@ -105,6 +124,10 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		keepSessionInfo: true,
 	}), async function(req: Request, res: Response): Promise<Response<QuizSessionQuestion>> {
 		try {
+			if (! await isQuizAvailable(prisma)) {
+				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+			}
+
 			const user = req.user as ExpressIntraUser;
 			console.log(`User ${user.login} requested a new quiz question`);
 			const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
@@ -190,6 +213,10 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		keepSessionInfo: true,
 	}), async function(req: Request, res: Response) {
 		try {
+			if (! await isQuizAvailable(prisma)) {
+				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+			}
+
 			const user = req.user as ExpressIntraUser;
 			console.log(`User ${user.login} posted an answer to a quiz question`);
 			const userSession: CustomSessionData = req.session as unknown as CustomSessionData;

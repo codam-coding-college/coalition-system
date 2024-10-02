@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import Fast42 from "@codam/fast42";
+import { initCodamQuiz } from "./quiz";
 import { initCodamCoalitionFixedTypes } from "./fixed_point_types";
 import { syncUsers } from "./users";
 import { syncBlocs } from "./blocs";
@@ -165,6 +166,7 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 
 	console.info(`Starting Intra synchronization at ${now.toISOString()}...`);
 
+	await initCodamQuiz();
 	await initCodamCoalitionFixedTypes();
 	await syncProjects(api, now);
 	await syncUsers(api, now);

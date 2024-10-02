@@ -9,6 +9,52 @@
 	</ol>
 </nav>
 
+<h2 class="mt-4">Basic settings</h2>
+<div class="card w-100 mb-4">
+	<div class="card-header pe-2 d-flex align-items-center">
+		<div class="d-inline-block pe-3 lh-lg flex-grow-1">Questionnaire settings</div>
+	</div>
+	<div class="card-body">
+		<form action="/admin/quiz" method="post" class="row g-3 mb-3">
+			<div class="col-md-6">
+				<label for="quiz_start" class="form-label">Start date</label>
+				<input type="date" id="quiz_start" name="quiz_start" class="form-control" required value="{{ settings.start_at | dateInput }}">
+			</div>
+			<div class="col-md-6">
+				<label for="quiz_end" class="form-label">Deadline</label>
+				<input type="date" id="quiz_end" name="quiz_end" class="form-control" required value="{{ settings.deadline_at | dateInput }}">
+			</div>
+
+			<p class="text-muted">The questionnaire is only available from 0:00 on the start date until 0:00 on the deadline date (so the deadline date is <b>not</b> included).</p>
+
+			<div class="col-md-12">
+				<button type="submit" class="btn btn-primary w-100">Save settings</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script>
+// Make the quiz_start and quiz_end fields a daterange picker, limiting the min date of quiz_end to quiz_start and vice versa
+function plusOneDay(date) {
+	return new Date(date.getTime() + 24 * 60 * 60 * 1000);
+}
+
+function limitQuizDateRange() {
+	const quizStart = document.getElementById('quiz_start');
+	const quizEnd = document.getElementById('quiz_end');
+
+	const plusOne = plusOneDay(new Date(quizStart.value));
+	if (quizStart.value > quizEnd.value) {
+		quizEnd.value = plusOne.toISOString().split('T')[0];
+	}
+	quizEnd.min = plusOne.toISOString().split('T')[0];
+}
+
+limitQuizDateRange();
+document.getElementById('quiz_start').addEventListener('change', limitQuizDateRange);
+</script>
+
+<h2 class="mt-4">Questions &amp; Answers</h2>
 {% for question in questions %}
 <div class="card w-100 mb-4" id="question-{{ question.id }}">
 	<div class="card-header pe-2 d-flex align-items-center">

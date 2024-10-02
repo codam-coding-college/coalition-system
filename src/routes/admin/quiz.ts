@@ -3,6 +3,13 @@ import { PrismaClient } from '@prisma/client';
 
 export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/quiz', async (req, res) => {
+		// Fetch basic settings
+		const settings = await prisma.codamCoalitionTestSettings.findFirstOrThrow({
+			where: {
+				id: 1,
+			},
+		});
+
 		// Fetch all coalitions
 		const coalitions = await prisma.intraCoalition.findMany({
 			select: {
@@ -36,9 +43,40 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 		});
 
 		return res.render('admin/quiz/overview.njk', {
+			settings,
 			questions,
 			coalitions,
 		});
+	});
+
+	// Update settings for the quiz
+	app.post('/admin/quiz', async (req, res) => {
+		// Parse body
+		const quiz_start = req.body.quiz_start;
+		const quiz_end = req.body.quiz_end;
+		const quiz_start_date = new Date(quiz_start);
+		const quiz_end_date = new Date(quiz_end);
+
+		// Validate dates
+		if (isNaN(quiz_start_date.getTime()) || isNaN(quiz_end_date.getTime())) {
+			return res.status(400).send('Invalid date format');
+		}
+		if (quiz_start_date >= quiz_end_date) {
+			return res.status(400).send('Start date must be before end date');
+		}
+
+		// Update settings
+		await prisma.codamCoalitionTestSettings.update({
+			where: {
+				id: 1,
+			},
+			data: {
+				start_at: quiz_start_date,
+				deadline_at: quiz_end_date,
+			},
+		});
+
+		return res.redirect('/admin/quiz');
 	});
 
 	// Redirect to question in quiz settings

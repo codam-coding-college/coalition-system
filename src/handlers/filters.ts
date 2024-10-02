@@ -53,6 +53,14 @@ export const setupNunjucksFilters = function(app: Express): void {
 		return date.getTime();
 	});
 
+	// Add formatting filter to format a date as a HTML date input value
+	nunjucksEnv.addFilter('dateInput', (date: Date | null) => {
+		if (!date) {
+			return '';
+		}
+		return date.toISOString().split('T')[0];
+	});
+
 	// Add filter to replace hex color with RGBA color
 	nunjucksEnv.addFilter('rgba', (hex: string, alpha: number) => {
 		if (!hex || !hex.startsWith('#')) {
