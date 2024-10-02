@@ -31,15 +31,17 @@
 </form>
 
 {% if fixedPointType.type == "project" %}
-	<h2 class="mt-4">Amount of points per project based on a mark of a 100</h2>
-	<i>Points are calculated as follows: <code>score = Math.floor((mark * point_amount) + (difficulty * (mark / 100) / point_amount^1.25))</code></i>
+	<h2 class="mt-4">Amount of points per validated project</h2>
+	<i>Points are calculated as follows: <code>score = Math.floor((mark * point_amount) + (difficulty * (mark / 100) / point_amount^1.25))</code> (if not validated points = 0)</i>
 	<table class="table table-striped mt-4">
 		<thead>
 			<tr>
 				<th scope="col">Slug</th>
 				<th scope="col">Project</th>
 				<th scope="col">Difficulty</th>
-				<th scope="col">Points</th>
+				<th scope="col">Points 80</th>
+				<th scope="col">Points 100</th>
+				<th scope="col">Points 125</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -48,7 +50,9 @@
 					<td>{{ project.slug }}</td>
 					<td>{{ project.name }}</td>
 					<td class="projects-table-project-difficulty">{{ project.difficulty }}</td>
-					<td class="projects-table-project-points"></td>
+					<td class="projects-table-project-points-80"></td>
+					<td class="projects-table-project-points-100"></td>
+					<td class="projects-table-project-points-125"></td>
 				</tr>
 			{% endfor %}
 		</tbody>
@@ -56,13 +60,14 @@
 	<script>
 	function updateProjectPointsTable() {
 		// score = (mark * i) + (difficulty * (mark / 100) / i^1.25)
-		const mark = 100;
 		const fixedPointAmount = parseInt(document.getElementById('point_amount').value);
 		const projectsTableProjects = document.querySelectorAll('.projects-table-project');
 		for (const project of projectsTableProjects) {
 			const difficulty = parseInt(project.querySelector('.projects-table-project-difficulty').textContent);
-			const points = Math.floor((mark * fixedPointAmount) + (difficulty * (mark / 100) / Math.pow(fixedPointAmount, 1.25)));
-			project.querySelector('.projects-table-project-points').textContent = points;
+			for (const mark of [80, 100, 125]) {
+				const points = Math.floor((mark * fixedPointAmount) + (difficulty * (mark / 100) / Math.pow(fixedPointAmount, 1.25)));
+				project.querySelector('.projects-table-project-points-' + mark).textContent = points;
+			}
 		}
 	}
 	updateProjectPointsTable();

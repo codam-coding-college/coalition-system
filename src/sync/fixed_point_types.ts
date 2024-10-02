@@ -21,38 +21,38 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 	const fixedTypes = [
 		{
 			type: "project",
-			desc: "Each project validated will grant the student with this amount of points times the project's difficulty times their grade divided by 100",
+			desc: "Factor for each project completed; (mark * factor) + (difficulty * (mark / 100) / factor^1.25)",
 			// recommended point amount: 8
 		},
 		{
 			type: "evaluation",
 			desc: "Each evaluation given will grant the student with this amount of points",
-			// recommended point amount: 15
+			// recommended point amount: 20
 		},
 		{
 			type: "logtime",
 			desc: "Every logtime hour will grant the student with this amount of points",
-			// recommended point amount: 9
+			// recommended point amount: 10
 		},
 		{
 			type: "exam",
 			desc: "Each exam passed will grant the student with this amount of points",
-			// recommended point amount: 10 or 100
+			// recommended point amount: 1000
 		},
 		{
 			type: "event_basic",
 			desc: "Each basic event organized will grant the student with this amount of points. Refer to the Coalition 2024 Set-up to view event criteria",
-			// recommended point amount: 10
+			// recommended point amount: 1000
 		},
 		{
 			type: "event_intermediate",
 			desc: "Each intermediate event organized will grant the student with this amount of points. Refer to the Coalition 2024 Set-up to view event criteria",
-			// recommended point amount: 30
+			// recommended point amount: 3000
 		},
 		{
 			type: "event_advanced",
 			desc: "Each advanced event organized will grant the student with this amount of points. Refer to the Coalition 2024 Set-up to view event criteria",
-			// recommended point amount: 60
+			// recommended point amount: 6000
 		},
 	];
 
