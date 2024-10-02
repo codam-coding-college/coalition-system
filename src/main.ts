@@ -64,6 +64,10 @@ app.listen(4000, async () => {
 	process.on('exit', handleServerShutdown);
 	process.on('SIGINT', handleServerShutdown);
 	process.on('SIGTERM', handleServerShutdown);
+	process.on('uncaughtException', function(err, origin) {
+		console.error(`Caught exception: ${err}\nException origin: ${origin}`);
+		handleServerShutdown();
+	});
 
 	try {
 		const api = await new Fast42([{
