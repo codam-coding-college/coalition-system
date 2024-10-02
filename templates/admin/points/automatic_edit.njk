@@ -29,4 +29,44 @@
 	<button type="submit" class="btn btn-primary">Save</button>
 	<a href="/admin/points/automatic" class="btn btn-secondary">Back to overview</a>
 </form>
+
+{% if fixedPointType.type == "project" %}
+	<h2 class="mt-4">Amount of points per project based on a mark of a 100</h2>
+	<i>Points are calculated as follows: <code>score = Math.floor((mark * point_amount) + (difficulty * (mark / 100) / point_amount^1.25))</code></i>
+	<table class="table table-striped mt-4">
+		<thead>
+			<tr>
+				<th scope="col">Slug</th>
+				<th scope="col">Project</th>
+				<th scope="col">Difficulty</th>
+				<th scope="col">Points</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for project in projects %}
+				<tr class="projects-table-project">
+					<td>{{ project.slug }}</td>
+					<td>{{ project.name }}</td>
+					<td class="projects-table-project-difficulty">{{ project.difficulty }}</td>
+					<td class="projects-table-project-points"></td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	<script>
+	function updateProjectPointsTable() {
+		// score = (mark * i) + (difficulty * (mark / 100) / i^1.25)
+		const mark = 100;
+		const fixedPointAmount = parseInt(document.getElementById('point_amount').value);
+		const projectsTableProjects = document.querySelectorAll('.projects-table-project');
+		for (const project of projectsTableProjects) {
+			const difficulty = parseInt(project.querySelector('.projects-table-project-difficulty').textContent);
+			const points = Math.floor((mark * fixedPointAmount) + (difficulty * (mark / 100) / Math.pow(fixedPointAmount, 1.25)));
+			project.querySelector('.projects-table-project-points').textContent = points;
+		}
+	}
+	updateProjectPointsTable();
+	document.getElementById('point_amount').addEventListener('change', updateProjectPointsTable);
+	</script>
+{% endif %}
 {% endblock %}

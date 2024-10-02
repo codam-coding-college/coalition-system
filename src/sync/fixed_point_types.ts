@@ -22,7 +22,7 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 		{
 			type: "project",
 			desc: "Each project validated will grant the student with this amount of points times the project's difficulty times their grade divided by 100",
-			// recommended point amount: 1
+			// recommended point amount: 8
 		},
 		{
 			type: "evaluation",
