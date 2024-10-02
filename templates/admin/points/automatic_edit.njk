@@ -32,7 +32,7 @@
 
 {% if fixedPointType.type == "project" %}
 	<h2 class="mt-4">Amount of points per validated project</h2>
-	<i>Points are calculated as follows: <code>score = Math.floor((mark * point_amount) + (difficulty * (mark / 100) / point_amount^1.25))</code> (if not validated points = 0)</i>
+	<i>Points are calculated as follows: <code>points = Math.floor((mark * point_amount) + (difficulty * (mark / 100) / point_amount^1.25))</code> (exception: if difficulty is 0 the points will also be 0)</i>
 	<table class="table table-striped mt-4">
 		<thead>
 			<tr>

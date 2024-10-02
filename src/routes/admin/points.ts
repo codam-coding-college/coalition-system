@@ -140,6 +140,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 				where: {
 					difficulty: {
 						not: null,
+						gt: 0,
 					},
 					exam: {
 						not: true,

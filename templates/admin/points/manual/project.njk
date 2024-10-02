@@ -53,7 +53,7 @@ const apiSearcher = new ApiSearcher({
 	filterForm: '#searchfilterform',
 	pointsCalculator: function(data) {
 		try {
-			if (!data.final_mark || data['validated?'] === false) {
+			if (!data.final_mark || data['validated?'] === false || !data.project.difficulty) {
 				return 0;
 			}
 			const basePoints = {{ fixedPointType.point_amount }};
