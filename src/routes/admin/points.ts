@@ -77,9 +77,29 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			return res.status(404).send('Point type not found');
 		}
 
-		return res.render('admin/points/automatic_edit.njk', {
+		const data: any = {
 			fixedPointType,
-		});
+		};
+		if (fixedPointType.type === "project") {
+			data['projects'] = await prisma.intraProject.findMany({
+				where: {
+					difficulty: {
+						not: null,
+					},
+				},
+				select: {
+					id: true,
+					slug: true,
+					name: true,
+					difficulty: true,
+				},
+				orderBy: {
+					difficulty: 'asc',
+				},
+			});
+		}
+
+		return res.render('admin/points/automatic_edit.njk', data);
 	});
 
 	app.post('/admin/points/automatic/:type/edit', async (req, res) => {
