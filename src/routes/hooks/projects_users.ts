@@ -89,7 +89,8 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 			}
 
 			// Calculate the score based on the fixed point type for projects
-			points = Math.floor(projectUser.final_mark * project.difficulty * fixedPointType.point_amount / 100);
+			// score = (mark * i) + (difficulty * (mark / 100) / i^1.25)
+			points = (projectUser.final_mark * fixedPointType.point_amount) + (project.difficulty * (projectUser.final_mark / 100) / Math.pow(fixedPointType.point_amount, 1.25));
 		}
 
 		// Create a score
