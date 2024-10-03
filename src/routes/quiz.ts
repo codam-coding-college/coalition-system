@@ -4,6 +4,9 @@ import passport from 'passport';
 import { CustomSessionData } from '../handlers/session';
 import { CodamCoalition, CodamCoalitionTestAnswer, CodamCoalitionTestQuestion, PrismaClient } from '@prisma/client';
 import { ExpressIntraUser } from '../sync/oauth';
+import { getAPIClient } from '../utils';
+import { fetchSingle42ApiPage } from '../sync/base';
+import { syncCoalitionUser } from '../sync/coalitions_users';
 
 export interface QuizSessionQuestion {
 	question: CodamCoalitionTestQuestion;
@@ -56,6 +59,11 @@ const isQuizAvailable = async function(prisma: PrismaClient): Promise<boolean> {
 	console.log(`Current date: ${currentDate}, start date: ${settings.start_at}, end date: ${settings.deadline_at}`);
 	console.log(`Quiz available: ${currentDate.getTime() >= settings.start_at.getTime()} && ${currentDate.getTime() < settings.deadline_at.getTime()}`);
 	return (currentDate.getTime() >= settings.start_at.getTime() && currentDate.getTime() < settings.deadline_at.getTime());
+}
+
+const resetQuizSession = async function(req: Request, userSession: CustomSessionData): Promise<void> {
+	delete userSession.quiz;
+	await req.session.save();
 }
 
 export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): void {
@@ -321,5 +329,106 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 			console.error(err);
 			return res.status(500).send({ error: 'Internal server error' });
 		}
+	});
+
+	app.get('/quiz/reset', passport.authenticate('session', {
+		keepSessionInfo: true,
+	}), async function(req: Request, res: Response) {
+		if (! await isQuizAvailable(prisma)) {
+			return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+		}
+
+		const user = req.user as ExpressIntraUser;
+		console.log(`User ${user.login} requested a new quiz question`);
+		const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
+
+		// Delete the quiz session data
+		await resetQuizSession(req, userSession);
+		console.log(`User ${user.login} reset their quiz session`);
+		return res.redirect('/quiz');
+	});
+
+	app.post('/quiz/join', passport.authenticate('session', {
+		keepSessionInfo: true,
+	}), async function(req: Request, res: Response) {
+		if (! await isQuizAvailable(prisma)) {
+			return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+		}
+
+		const user = req.user as ExpressIntraUser;
+		console.log(`User ${user.login} requested a new quiz question`);
+		const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
+
+		// Check if all questions have been answered
+		if (! await areAllQuestionsAnswered(prisma, userSession)) {
+			return res.status(400).send({ error: 'Not all questions have been answered' });
+		}
+
+		// Get the coalition ID defined in the POST body
+		const coalitionId = parseInt(req.body.coalition_id);
+		console.log(`User ${user.login} requested to join coalition ${coalitionId}`);
+
+		// Get the user's Intra Coalition User
+		const intraCoalitionUser = await prisma.intraCoalitionUser.findFirst({
+			where: {
+				user_id: user.id
+			},
+		});
+
+		const api = await getAPIClient();
+		if (intraCoalitionUser) {
+			console.log(`Found existing IntraCoalitionUser ${intraCoalitionUser.id} for user ${user.login} (currently in coalition ${intraCoalitionUser.coalition_id}), patching using Intra API...`);
+			// Patch the user's coalition ID in Intra
+			const response = await api.patch(`/coalitions_users/${intraCoalitionUser.id}`, {
+				coalitions_user: {
+					coalition_id: coalitionId,
+				}
+			});
+			if (response.status === 204) {
+				await prisma.intraCoalitionUser.update({
+					where: {
+						id: intraCoalitionUser.id
+					},
+					data: {
+						coalition_id: coalitionId
+					}
+				});
+				console.log(`User ${user.login} joined coalition ${coalitionId} with an existing IntraCoalitionUser ${intraCoalitionUser.id}`);
+			}
+			else {
+				console.error(`Failed to patch coalition ID for user ${user.login}: ${response.status} ${response.statusText}`);
+				return res.status(500).send({ error: 'Failed to join coalition, try again later' });
+			}
+		}
+		else {
+			console.log(`Creating a new IntraCoalitionUser for user ${user.login} in coalition ${coalitionId}`);
+			const response = await api.post('/coalitions_users', {
+				coalitions_user: {
+					user_id: user.id,
+					coalition_id: coalitionId,
+					this_year_score: 0,
+				}
+			});
+			if (response.status === 201) {
+				if (!response.data.id) {
+					console.error(`Expected key 'id' in response data missing`, response.data);
+					return res.status(500).send({ error: 'Failed to join coalition, try again later' });
+				}
+				const coalitionUser = await fetchSingle42ApiPage(api, `/coalitions_users/${response.data.id}`);
+				if (!coalitionUser) {
+					console.error(`Failed to fetch coalition user ${response.data.id}, was probably not created?`);
+					return res.status(500).send({ error: 'Failed to join coalition, try again later' });
+				}
+				await syncCoalitionUser(coalitionUser);
+				console.log(`User ${user.login} joined coalition ${coalitionId} with a new IntraCoalitionUser ${coalitionUser.id}`);
+			}
+			else {
+				console.error(`Failed to create coalition user for user ${user.login}: ${response.status} ${response.statusText}`);
+				return res.status(500).send({ error: 'Failed to join coalition, try again later' });
+			}
+		}
+
+		await resetQuizSession(req, userSession);
+		return res.redirect('/');
 	});
 };
