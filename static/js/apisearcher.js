@@ -184,19 +184,18 @@ const ApiSearcher = function(options) {
 			for (const action of this.actions) {
 				if (action['background'] !== false) {
 					const button = document.createElement('button');
-					button.classList.add('btn', 'btn-sm', 'btn-secondary');
+					button.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
 					button.innerText = action.name;
 					button.addEventListener('click', async () => {
-						const url = new URL(this.concatUrlPaths(action.url, row.id));
-						const req = await fetch(url);
-						const result = await req.json();
-						console.log(result);
+						button.disabled = true;
+						await reactiveButtonHandler(button, action.name, this.concatUrlPaths(action.url, row.id));
+						button.disabled = false;
 					});
 					tdActions.appendChild(button);
 				}
 				else {
 					const button = document.createElement('a');
-					button.classList.add('btn', 'btn-sm', 'btn-secondary');
+					button.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
 					button.innerText = action.name;
 					button.href = this.concatUrlPaths(action.url, row.id);
 					button.target = '_self';

@@ -1,3 +1,21 @@
 .table.coalition-colored > :not(caption) > * > * {
 	background-color: transparent !important;
 }
+
+.reactive-btn-success {
+	background-color: #5cb85c !important;
+	border-color: #4cae4c !important;
+	color: #fff !important;
+}
+
+.reactive-btn-warning {
+	background-color: #f0ad4e !important;
+	border-color: #eea236 !important;
+	color: #fff !important;
+}
+
+.reactive-btn-danger {
+	background-color: #d9534f !important;
+	border-color: #d43f3a !important;
+	color: #fff !important;
+}
