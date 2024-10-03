@@ -7,6 +7,7 @@ A work in progress.
 ### Deployment
 - [ ] Finalize containerization
 - [ ] Switch to containerized postgres database
+- [ ] Automatically increase package.json version on new release using GitHub Action
 
 ### Questionnaire
 - [x] Code questionnaire
