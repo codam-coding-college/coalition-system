@@ -33,9 +33,9 @@
 				<td>{{ score.type_intra_id if score.type_intra_id else "" }}</td>
 				<td>{{ score.intra_score_id if score.intra_score_id else "not yet synced" }}</td>
 				<td class="text-end" style="white-space: nowrap;">
-					<a href="/admin/points/history/{{ score.id }}/sync" class="btn btn-sm btn-outline-secondary" title="Force synchronize with Intra" onclick="buttonHandler(event)">Sync</a>
-					<a href="/admin/points/history/{{ score.id }}/recalculate" class="btn btn-sm btn-outline-warning" title="Force recalculate this score with the current point system settings" onclick="buttonHandler(event)">Recalculate</a>
-					<a href="/admin/points/history/{{ score.id }}/delete" class="btn btn-sm btn-outline-danger" title="Remove this score and act like it never happened" onclick="buttonHandler(event)">Delete</a>
+					<a href="/admin/points/history/{{ score.id }}/sync" class="btn btn-sm btn-outline-secondary" title="Force synchronize with Intra" onclick="buttonHandler(event)" data-text="Sync">Sync</a>
+					<a href="/admin/points/history/{{ score.id }}/recalculate" class="btn btn-sm btn-outline-warning" title="Force recalculate this score with the current point system settings" onclick="buttonHandler(event)" data-text="Recalculate">Recalculate</a>
+					<a href="/admin/points/history/{{ score.id }}/delete" class="btn btn-sm btn-outline-danger" title="Remove this score and act like it never happened" onclick="buttonHandler(event)" data-text="Delete">Delete</a>
 				</td>
 			</tr>
 		{% endfor %}
@@ -44,7 +44,24 @@
 <script>
 function buttonHandler(event) {
 	event.preventDefault();
-	const href = event.target.href;
+
+	const button = event.target;
+
+	// add spinner to button
+	const originalText = event.target.getAttribute('data-text');
+	button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + originalText;
+	button.disabled = true;
+
+	// remove existing tooltip if one exists on the button
+	const tooltip = bootstrap.Tooltip.getInstance(button);
+	if (tooltip) {
+		tooltip.dispose();
+	}
+	button.setAttribute('data-bs-toggle', '');
+	button.setAttribute('data-bs-placement', '');
+	button.setAttribute('title', '');
+
+	const href = button.href;
 	fetch(href, {
 		method: 'GET',
 		headers: {
@@ -55,12 +72,41 @@ function buttonHandler(event) {
 	.then(data => {
 		if (data.error) {
 			console.error(`Error calling ${href}: `, data.error);
+
+			// restore button
+			button.innerText = `⚠ ${originalText}`;
+			button.disabled = false;
+			button.classList.add('btn-danger'); // add red inner color
+
+			// add tooltip with error message
+			button.setAttribute('data-bs-toggle', 'tooltip');
+			button.setAttribute('data-bs-placement', 'top');
+			button.setAttribute('title', `An error occurred: ${data.error}`);
+			new bootstrap.Tooltip(button);
+
 			return;
 		}
+
 		console.log(data);
+
+		// restore button
+		button.classList.add('btn-success'); // add green inner color
+		button.innerText = `✓ ${originalText}`;
+		button.disabled = false;
 	})
 	.catch((error) => {
 		console.error(`Error calling ${href}: `, error);
+
+		// restore button
+		button.innerText = `⚠ ${originalText}`;
+		button.disabled = false;
+		button.classList.add('btn-danger'); // add red inner color
+
+		// add tooltip with error message
+		button.setAttribute('data-bs-toggle', 'tooltip');
+		button.setAttribute('data-bs-placement', 'top');
+		button.setAttribute('title', `An error occurred: ${error}`);
+		new bootstrap.Tooltip(button);
 	});
 	return false;
 }
