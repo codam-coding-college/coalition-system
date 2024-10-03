@@ -170,8 +170,30 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			},
 		});
 
+		// Gather total scores for each type
+		const totalScores = await prisma.codamCoalitionScore.groupBy({
+			by: ['fixed_type_id'],
+			_sum: {
+				amount: true,
+			},
+			where: {
+				fixed_type_id: {
+					not: null
+				},
+			},
+		})
+
+		// TODO: also gather the total scores for each type in the current tournament
+
+		// Map the total scores to the fixed point types
+		const totalScoresMap: { [key: string]: number } = {};
+		for (const score of totalScores) {
+			totalScoresMap[score.fixed_type_id!] = score._sum.amount!;
+		}
+
 		return res.render('admin/points/automatic.njk', {
 			fixedPointTypes,
+			totalScoresMap,
 		});
 	});
 

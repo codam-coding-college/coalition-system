@@ -25,7 +25,7 @@
 				<td>{{ fixedPointType.description }}</td>
 				<td>{{ fixedPointType.point_amount }}</td>
 				<td><!-- TODO --></td>
-				<td><!-- TODO --></td>
+				<td>{{ totalScoresMap[fixedPointType.type] }}</td>
 				<td class="text-end">
 					<a href="/admin/points/automatic/{{ fixedPointType.type }}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
 				</td>
