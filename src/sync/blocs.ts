@@ -31,7 +31,7 @@ export const syncBloc = async function(bloc: any): Promise<void> {
 		}
 	}
 	catch (err) {
-		console.error(`Error syncing bloc ${bloc.name}: ${err}`);
+		console.error(`Error syncing bloc ${bloc.id}: ${err}`);
 	}
 };
 
@@ -49,7 +49,7 @@ export const syncBlocs = async function(api: Fast42, syncDate: Date): Promise<vo
 	let i = 0;
 	const total = blocs.length;
 	for (const bloc of blocs) {
-		console.debug(`Syncing bloc ${++i}/${total} (${bloc.name})...`);
+		console.debug(`Syncing bloc ${++i}/${total} (${bloc.id})...`);
 		await syncBloc(bloc);
 	}
 };
