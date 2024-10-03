@@ -11,7 +11,7 @@
 			<div class="card-header p-3">
 				<b id="quiz-question" class="card-title">Coalition questionnaire</b>
 			</div>
-			<div class="">
+			<div class="card-body p-0">
 				<ul id="quiz-answers" class="list-group list-group-flush">
 					<li class="list-group-item list-group-item-action">
 						<input class="form-check-input me-1" type="radio" name="answer" id="answer-1" value="1" required>
@@ -31,6 +31,36 @@
 				<button id="quiz-next" class="btn btn-primary">Next question</button>
 			</div>
 		</div>
+		<form class="card w-100 align-self-center p-0 mt-5 d-none" style="overflow: hidden; max-width: 500px;" id="results">
+			<!-- mimic the progress bar from the questions card -->
+			<div id="quiz-progress" class="progress" role="progressbar" aria-label="Questionnaire progress" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="border-radius: 0; height: 3px;">
+				<div class="progress-bar" style="width: 100%;"></div>
+			</div>
+			<div class="card-header p-3">
+				<b class="card-title">We recommend you join:</b><br>
+				<small class="card-text text-muted">Though you may also choose to join a different coalition.</small>
+			</div>
+			<div class="card-body row p-0" id="quiz-results-container">
+				{% for coalition in coalitions %}
+					<label class="quiz-result-coalition col text-center calculating" id="coalition-id-{{ coalition.id }}" style="background-color: {{ coalition.color | rgba(0.7) }};">
+						<div class="quiz-result-coalition-score-bg" style="background-color: {{ coalition.color }};"></div>
+						<div class="quiz-result-coalition-content">
+							<div>
+								<img class="quiz-result-coalition-img img-fluid" src="{{ coalition.image_url }}" alt="Failed to load coalition image">
+								<h4 class="quiz-result-coalition-name">{{ coalition.name }}</h4>
+							</div>
+							<div>
+								<p class="quiz-result-coalition-score"><span class="quiz-result-coalition-score-percentage">0</span>% fit</p>
+								<input type="radio" name="coalition" id="coalition-radio-{{ coalition.id }}" class="form-check-input" value="{{ coalition.id }}" disabled required>
+							</div>
+						</div>
+					</label>
+				{% endfor %}
+			</div>
+			<div class="card-footer text-end p-2">
+				<button id="quiz-join-coalition" class="btn btn-primary" type="submit" disabled>Join the selected coalition</button>
+			</div>
+		</form>
 	</div>
 </div>
 <script src="/js/quiz.js"></script>

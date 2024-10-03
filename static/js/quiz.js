@@ -1,14 +1,19 @@
-const Quiz = function(quizContainer) {
+const Quiz = function(quizContainer, resultsContainer) {
 	this.question = '';
 	this.answers = [];
 	this.progress = 0;
 	this.total = 0;
+	this.resultCalculatingTime = 3000; // milliseconds
 
 	this.dom = {
+		quizContainer: quizContainer,
 		progressBar: quizContainer.querySelector('#quiz-progress'),
 		question: quizContainer.querySelector('#quiz-question'),
 		answers: quizContainer.querySelector('#quiz-answers'),
 		nextButton: quizContainer.querySelector('#quiz-next'),
+
+		resultsContainer: resultsContainer,
+		joinButton: resultsContainer.querySelector('#quiz-join-coalition'),
 	};
 
 	this.dom.nextButton.addEventListener('click', this.post_next.bind(this));
@@ -80,6 +85,9 @@ Quiz.prototype.post_answer = async function() {
 };
 
 Quiz.prototype.results = async function() {
+	// Hide questions container
+	this.dom.quizContainer.classList.add('d-none');
+
 	const response = await fetch('/quiz/results', {
 		method: 'GET',
 		headers: {
@@ -88,7 +96,58 @@ Quiz.prototype.results = async function() {
 	});
 	const data = await response.json();
 	console.log("Quiz results:", data);
-	alert(`According to our quiz, you belong to the ${data.coalition.name} coalition!`);
+
+	// Show results container
+	this.dom.resultsContainer.classList.remove('d-none');
+
+	setTimeout(() => { // Timeout to make CSS animations work after display: block (and to make the user be able to react to the results appearing)
+		// Show quiz results
+		const totalPoints = data.coalitions.reduce((acc, coalition) => acc + coalition.score, 0);
+		for (const coalition of data.coalitions) {
+			const coalitionFitPercentage = Math.round((coalition.score / totalPoints) * 100);
+			const coalitionResultLabel = this.dom.resultsContainer.querySelector(`#coalition-id-${coalition.id}`);
+			coalitionResultLabel.classList.add('calculating');
+			if (!coalitionResultLabel) {
+				console.error(`No result label found for coalition ${coalition.id}`);
+				continue;
+			}
+			const coalitionScoreText = coalitionResultLabel.querySelector('.quiz-result-coalition-score-percentage');
+
+			// set text to reach the number in steps over 3 seconds
+			// TODO: add ease-out effect?
+			const steps = 100; // because a percentage is easily divided by 100
+			const stepDuration = this.resultCalculatingTime / steps;
+			const stepValue = coalitionFitPercentage / steps;
+			let currentPercentage = 0;
+			const interval = setInterval(() => {
+				currentPercentage += stepValue;
+				coalitionScoreText.textContent = currentPercentage.toFixed(0);
+				if (currentPercentage >= coalitionFitPercentage) {
+					clearInterval(interval);
+				}
+			}, stepDuration);
+			// coalitionScoreText.textContent = coalitionFitPercentage.toFixed(0);
+
+			const coalitionScoreBG = coalitionResultLabel.querySelector('.quiz-result-coalition-score-bg');
+			coalitionScoreBG.style.height = `${coalitionFitPercentage}%`;
+		}
+
+		// After 3 seconds + some extra time to react, select the best fit coalition
+		setTimeout(() => {
+			// remove calculating class
+			const calculatingCoalitions = this.dom.resultsContainer.querySelectorAll('.calculating');
+			for (const coalition of calculatingCoalitions) {
+				coalition.classList.remove('calculating');
+				// Enable radio button
+				coalition.querySelector('input[type=radio]').disabled = false;
+			}
+
+			const bestFitRadioInput = this.dom.resultsContainer.querySelector(`#coalition-radio-${data.best_fit.id}`);
+			bestFitRadioInput.checked = true;
+
+			this.dom.joinButton.disabled = false;
+		}, this.resultCalculatingTime + 500);
+	}, 600);
 };
 
 Quiz.prototype.update_quiz = function() {
@@ -135,7 +194,7 @@ Quiz.prototype.update_quiz = function() {
 	}
 };
 
-const quiz = new Quiz(document.getElementById('quiz'));
+const quiz = new Quiz(document.getElementById('quiz'), document.getElementById('results'));
 
 /*
 return res.status(200).send({

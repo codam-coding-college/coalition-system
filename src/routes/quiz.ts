@@ -65,7 +65,24 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		if (! await isQuizAvailable(prisma)) {
 			return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
 		}
-		return res.render('quiz.njk');
+
+		const coalitions = await prisma.intraCoalition.findMany({
+			select: {
+				id: true,
+				name: true,
+				image_url: true,
+				color: true,
+				codam_coalition: {
+					select: {
+						description: true
+					}
+				},
+			},
+		});
+
+		return res.render('quiz.njk', {
+			coalitions,
+		});
 	});
 
 	app.get('/quiz/results', passport.authenticate('session', {
@@ -86,10 +103,7 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 
 			const coalitionScores = userSession.quiz.coalitionScores;
 			const highestScoringCoalitionId = Object.keys(coalitionScores).reduce((a, b) => coalitionScores[parseInt(a)] > coalitionScores[parseInt(b)] ? a : b);
-			const coalition = await prisma.intraCoalition.findUnique({
-				where: {
-					id: parseInt(highestScoringCoalitionId)
-				},
+			const coalitions = await prisma.intraCoalition.findMany({
 				select: {
 					id: true,
 					name: true,
@@ -99,18 +113,31 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 						select: {
 							description: true
 						}
-					}
+					},
+					// Add score property to the coalition object
+					score: true,
 				},
 			});
-			if (!coalition) {
+
+			// add score to each of the coalitions to respond to the frontend
+			coalitions.forEach((c) => {
+				c.score = 0; // otherwise the total coalition score will overwrite the score of the questionnaire! Uses the same key
+				if (c.id in coalitionScores) {
+					c.score = coalitionScores[c.id];
+				}
+			});
+
+			const bestScoringCoalition = coalitions.find((c) => c.id === parseInt(highestScoringCoalitionId));
+			if (!bestScoringCoalition) {
 				console.error(`Coalition ${highestScoringCoalitionId} not found`);
 				return res.status(500).send({ error: 'Internal server error' });
 			}
 
-			console.log(`User ${user.login} scored highest with coalition ${coalition.name}`);
+			console.log(`User ${user.login} scored highest with coalition ${bestScoringCoalition.name}`);
 			console.log(userSession.quiz);
 			return res.status(200).send({
-				coalition
+				coalitions,
+				best_fit: bestScoringCoalition,
 			});
 		}
 		catch (err) {
