@@ -43,6 +43,9 @@ A work in progress.
 - [ ] Implement a way of averaging out the points on Intra too (bot user with minus points for each coalition?)
 - [ ] Implement a way of syncing existing Intra points including historical ones
 - [ ] Find a way of blocking Intra's coalitions_user creation
+- [ ] Re-implement old [coalition rank system](https://github.com/codam-coding-college/coalition-ranks)
+
+If you're a student and want to contribute to this project, talk to the staff about it first to figure out what is possible and discuss implementation ideas.
 
 ## Development
 1. Clone the repository
