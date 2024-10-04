@@ -1,0 +1,63 @@
+{% extends "base.njk" %}
+{% set title = "Points assigner" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Users overview</li>
+	</ol>
+</nav>
+
+<form class="row g-3 mb-3" id="searchfilterform">
+	<div class="col">
+		<select id="searchfilter" name="searchfilter" class="form-select" required>
+			<option value="" selected disabled hidden>Choose a filter</option>
+			<option value="none">No filter</option>
+			<option value="login">Login</option>
+			<option value="coalition">Coalition name</option>
+			<option value="id">User ID</option>
+			<option value="coalition_user_id">Coalition_user ID</option>
+		</select>
+	</div>
+	<div class="col">
+		<input type="text" id="searchfilterval" name="searchfilterval" class="form-control" placeholder="Filter value..." required>
+	</div>
+	<div class="col">
+		<button type="submit" class="btn btn-primary" id="searchfilterbtn">Search</button>
+	</div>
+</form>
+
+<table class="table table-striped" id="results">
+	<thead>
+		<tr>
+			<th scope="col" data-key="user.id">User ID</th>
+			<th scope="col" data-key="user.image" data-format="image">Photo</th>
+			<th scope="col" data-key="user.login">Login</th>
+			<th scope="col" data-key="user.usual_full_name">Name</th>
+			<th scope="col" data-key="coalition.name">Coalition</th>
+			<th scope="col" data-key="created_at" data-format="datetime">First coalition joined</th>
+			<th scope="col" data-key="updated_at" data-format="datetime">Last coalition update</th>
+		</tr>
+	</thead>
+	<tbody id="search-results">
+
+	</tbody>
+</table>
+
+<script src="/js/reactive-button.js"></script>
+<script src="/js/apisearcher.js"></script>
+<script>
+const apiSearcher = new ApiSearcher({
+	url: window.location.origin + '/admin/apisearch/users/',
+	results: '#results',
+	filterSelector: '#searchfilter',
+	filterValue: '#searchfilterval',
+	filterForm: '#searchfilterform',
+	noPoints: true,
+	actions: [
+		// TODO: add method of allowing specific user to redo the quiz
+	]
+});
+</script>
+{% endblock %}

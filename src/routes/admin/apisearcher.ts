@@ -1,5 +1,6 @@
 import { Express } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 import Fast42 from '@codam/fast42';
 import { CAMPUS_ID, CURSUS_ID } from '../../env';
 import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTeamInAPISearcher } from '../../utils';
@@ -302,5 +303,122 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			console.log(err);
 			return res.status(500).json({ error: err });
 		}
+	});
+
+	// USERS
+	// Actually not using API here! Use internal database.
+	const USER_QUERY_DEFAULTS: Prisma.IntraCoalitionUserFindManyArgs<DefaultArgs> = { // type is what the prisma.model.findMany() function expects as parameter
+		select: {
+			id: true,
+			created_at: true,
+			updated_at: true,
+			user: {
+				select: {
+					id: true,
+					login: true,
+					usual_full_name: true,
+					image: true,
+					created_at: true,
+				},
+			},
+			coalition: {
+				select: {
+					id: true,
+					slug: true,
+					name: true,
+					color: true,
+					image_url: true,
+				},
+			},
+		},
+		orderBy: {
+			user: {
+				created_at: 'desc',
+			},
+		},
+	};
+
+	// All users
+	app.get('/admin/apisearch/users', async (req, res) => {
+		const coalitionUsers = await prisma.intraCoalitionUser.findMany(USER_QUERY_DEFAULTS);
+		return res.json(coalitionUsers);
+	});
+
+	// Users by login
+	app.get('/admin/apisearch/users/login/:login', async (req, res) => {
+		const login = req.params.login;
+		const coalitionUsers = await prisma.intraCoalitionUser.findMany({
+			...USER_QUERY_DEFAULTS,
+			where: {
+				user: {
+					login: login,
+				},
+			},
+		});
+		return res.json(coalitionUsers);
+	});
+
+	// Users by ID
+	app.get('/admin/apisearch/users/id/:userId', async (req, res) => {
+		const userId = parseInt(req.params.userId);
+		if (isNaN(userId)) {
+			return res.status(400).json({ error: 'Invalid user ID' });
+		}
+		const coalitionUsers = await prisma.intraCoalitionUser.findMany({
+			...USER_QUERY_DEFAULTS,
+			where: {
+				user: {
+					id: userId,
+				},
+			},
+		});
+		return res.json(coalitionUsers);
+	});
+
+	// Users by coalition name / slug
+	app.get('/admin/apisearch/users/coalition/:name', async (req, res) => {
+		const name = req.params.name;
+		// Format name with first letter uppercase and rest lowercase (Intra coalitions are usually named like this)
+		const stylizedName = req.params.name.charAt(0).toUpperCase() + req.params.name.slice(1).toLowerCase();
+		const coalitionUsers = await prisma.intraCoalitionUser.findMany({
+			...USER_QUERY_DEFAULTS,
+			where: {
+				OR: [
+					{
+						coalition: {
+							name: stylizedName,
+						},
+					},
+					{
+						coalition: {
+							name: name,
+						},
+					},
+					{
+						coalition: {
+							slug: {
+								contains: name,
+							}
+						},
+					},
+				],
+			},
+		});
+		return res.json(coalitionUsers);
+	});
+
+	// Users by coalition_user ID
+	app.get('/admin/apisearch/users/coalition_user_id/:coalitionUserId', async (req, res) => {
+		const coalitionUserId = parseInt(req.params.coalitionUserId);
+		if (isNaN(coalitionUserId)) {
+			return res.status(400).json({ error: 'Invalid user coalition ID' });
+		}
+		const coalitionUsers = await prisma.intraCoalitionUser.findMany({
+			...USER_QUERY_DEFAULTS,
+			where: {
+				id: coalitionUserId,
+			},
+		});
+		return res.json(coalitionUsers);
 	});
 };

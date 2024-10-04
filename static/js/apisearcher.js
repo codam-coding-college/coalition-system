@@ -52,10 +52,12 @@ const ApiSearcher = function(options) {
 		}
 
 		// Add potential points column to table headers
-		const thPoints = document.createElement('th');
-		thPoints.setAttribute('scope', 'col');
-		thPoints.innerText = 'Potential points';
-		thead.querySelector("tr").appendChild(thPoints);
+		if (this.options['noPoints'] !== true) {
+			const thPoints = document.createElement('th');
+			thPoints.setAttribute('scope', 'col');
+			thPoints.innerText = 'Potential points';
+			thead.querySelector("tr").appendChild(thPoints);
+		}
 
 		// Add actions column to table headers
 		const thActions = document.createElement('th');
@@ -81,13 +83,18 @@ const ApiSearcher = function(options) {
 		this.filterForm.addEventListener('submit', this.search);
 
 		// Points calculator setup
-		if (!this.options['pointsCalculator']) {
-			throw new Error('Points calculator in options is required');
+		if (this.options['noPoints'] !== true) {
+			if (!this.options['pointsCalculator']) {
+				throw new Error('Points calculator in options is required if noPoints is not set to true');
+			}
+			if (!(typeof this.options['pointsCalculator'] === 'function')) {
+				throw new Error('Points calculator must be a function');
+			}
+			this.pointsCalculator = this.options['pointsCalculator'];
 		}
-		if (!(typeof this.options['pointsCalculator'] === 'function')) {
-			throw new Error('Points calculator must be a function');
+		else {
+			this.pointsCalculator = () => 0;
 		}
-		this.pointsCalculator = this.options['pointsCalculator'];
 
 		// Actions setup
 		if (!this.options['actions']) {
@@ -154,13 +161,36 @@ const ApiSearcher = function(options) {
 				const td = document.createElement('td');
 				try {
 					const value = header.dataKey.reduce((obj, key) => obj[key], row);
-					if (header.dataFormat === 'text') {
-						td.innerText = value;
-					} else if (header.dataFormat === 'datetime') {
-						td.innerText = new Date(value).toLocaleString();
-					} else {
-						td.innerText = value;
-						console.warn('Unknown data format', header.dataFormat);
+					switch (header.dataFormat) {
+						case 'text': {
+							td.innerText = value;
+							break;
+						}
+						case 'datetime': {
+							td.innerText = new Date(value).toLocaleString();
+							break;
+						}
+						case 'image': {
+							if (!value) {
+								td.innerText = 'No image';
+								td.classList.add('text-muted');
+							}
+							else {
+								const img = document.createElement('img');
+								img.src = value;
+								img.alt = "Image failed to load";
+								img.style.maxWidth = '100px';
+								img.style.maxHeight = '100px';
+								img.setAttribute('loading', 'lazy');
+								td.appendChild(img);
+							}
+							break;
+						}
+						default: {
+							console.warn('Unknown data format', header.dataFormat);
+							td.innerText = value;
+							break;
+						}
 					}
 				}
 				catch (err) {
@@ -172,10 +202,12 @@ const ApiSearcher = function(options) {
 			}
 
 			// Calculate points
-			const points = this.pointsCalculator(row);
-			const tdPoints = document.createElement('td');
-			tdPoints.innerText = points;
-			tr.appendChild(tdPoints);
+			if (this.options['noPoints'] !== true) {
+				const points = this.pointsCalculator(row);
+				const tdPoints = document.createElement('td');
+				tdPoints.innerText = points;
+				tr.appendChild(tdPoints);
+			}
 
 			// Add actions
 			const tdActions = document.createElement('td');
