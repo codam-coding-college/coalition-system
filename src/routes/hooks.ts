@@ -17,7 +17,7 @@ export enum WebhookHandledStatus {
 	Error = "error",
 };
 
-export const markWebhookAsHandled = async function(prisma: PrismaClient, webhookHeaders: WebhookHeaders, body: string): Promise<void> {
+export const addWebhookToDB = async function(prisma: PrismaClient, webhookHeaders: WebhookHeaders, body: string): Promise<void> {
 	await prisma.intraWebhook.create({
 		data: {
 			model: webhookHeaders.modelType,
@@ -57,7 +57,7 @@ export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): 
 		// Handle all Intra webhooks
 		const webhookHeaders = parseWebhookHeaders(req);
 		console.log(`Received ${webhookHeaders.modelType} ${webhookHeaders.eventType} webhook ${webhookHeaders.deliveryId}`, req.body);
-		await markWebhookAsHandled(prisma, webhookHeaders, req.body);
+		await addWebhookToDB(prisma, webhookHeaders, req.body);
 		try {
 			switch (webhookHeaders.modelType) {
 				case "location": // location close
