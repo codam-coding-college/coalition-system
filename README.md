@@ -6,7 +6,7 @@ A work in progress.
 
 ### Deployment
 - [ ] Finalize containerization
-- [ ] Switch to containerized postgres database
+- [x] Switch to containerized postgres database
 - [ ] Automatically increase package.json version on new release using GitHub Action
 
 ### Questionnaire
@@ -51,7 +51,7 @@ If you're a student and want to contribute to this project, talk to the staff ab
 1. Clone the repository
 2. Run `npm install` to install dependencies
 3. Run `npm run build` to build the project
-4. Run `npm run resetdb` (warning: this will destroy any existing database and recreate it if one exists. On new clones, none should exist)
+4. Start the PostgreSQL database using Docker: `docker-compose -f docker-compose.dev.yml up -d`
 5. Run `npm run start` to start the server and seed the initial database
 
 ### Reseed the database

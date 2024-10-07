@@ -1,5 +1,6 @@
 .env
 .shutdown-timestamp
+database/*
 build/*
 dist/*
 node_modules/*

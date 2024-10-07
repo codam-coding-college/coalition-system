@@ -1,5 +1,14 @@
 version: "3"
 services:
+  postgres:
+    image: "postgres:13"
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - ./database:/var/lib/postgresql/data
+
   codam-coalitions:
     build: .
     ports:

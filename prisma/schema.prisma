@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-	provider = "sqlite"
-	url      = "file:../coal.db?mode=memory&cache=shared&connection_limit=1"
+	provider = "postgresql"
+	url      = env("PRISMA_DB_URL")
 }
 
 // TODO: DO NOT COPY INTRA'S SYSTEM!
