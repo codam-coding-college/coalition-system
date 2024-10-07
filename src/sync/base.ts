@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { PrismaClient } from "@prisma/client";
 import Fast42 from "@codam/fast42";
 import { initCodamQuiz } from "./quiz";
@@ -161,6 +162,13 @@ export const syncDataCB = async function(api: Fast42, syncDate: Date, lastSyncDa
 	await fetchMultiple42ApiPagesCallback(api, path, params, callback);
 }
 
+const saveSyncTimestamp = async function(timestamp: Date): Promise<void> {
+	console.log('Saving timestamp of synchronization to ./.sync-timestamp...');
+	// Save to current folder in .sync-timestamp file
+	fs.writeFileSync('.sync-timestamp', timestamp.toString());
+	console.log('Timestamp saved to ./.sync-timestamp');
+}
+
 export const syncWithIntra = async function(api: Fast42): Promise<void> {
 	const now = new Date();
 
@@ -173,6 +181,8 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 	await syncBlocs(api, now); // also syncs coalitions
 	await syncCoalitionUsers(api, now);
 	await cleanupDB(api);
+
+	await saveSyncTimestamp(now);
 
 	console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);
 };

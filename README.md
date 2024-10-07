@@ -55,7 +55,7 @@ If you're a student and want to contribute to this project, talk to the staff ab
 5. Run `npm run start` to start the server and seed the initial database
 
 ### Reseed the database
-1. Delete the *.shutdown-timestamp* file in the root directory
+1. Delete the *.sync-timestamp* file in the root directory
 2. Run `npm run build && npm run start`
 
 ### Add initial questionnaire questions

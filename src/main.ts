@@ -4,7 +4,6 @@ dotenv.config({ path: '.env', debug: true });
 
 // Imports for the server
 import express from 'express';
-import { handleServerShutdown } from './handlers/shutdown';
 
 // Imports for the database connection
 import { PrismaClient } from "@prisma/client";
@@ -76,17 +75,12 @@ const main = async () => {
 	// Start the Express server
 	app.listen(4000, async () => {
 		console.log('Server is running on http://localhost:4000');
-
-		// Make sure to save the timestamp of when the server exits (to synchronize with missed events)
-		process.on('exit', handleServerShutdown);
-		process.on('SIGINT', handleServerShutdown);
-		process.on('SIGTERM', handleServerShutdown);
-		process.on('uncaughtException', function(err, origin) {
-			console.error(`Caught exception: ${err}\nException origin: ${origin}`);
-			handleServerShutdown();
-		});
 	});
 
+	// Schedule the Intra synchronization to run every 10 minutes
+	setInterval(async () => {
+		await syncWithIntra(api!);
+	}, 10 * 60 * 1000);
 };
 
 main(); // is async because of API synchronization

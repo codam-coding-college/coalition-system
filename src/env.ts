@@ -11,5 +11,5 @@ export const CURSUS_ID: number = parseInt(process.env.INTRA_CURSUS_ID!);
 // Not defined in .env but in regular shell environment variables
 export const DEV_DAYS_LIMIT: number = process.env.DEV_DAYS_LIMIT ? parseInt(process.env.DEV_DAYS_LIMIT) : 365;
 
-// Read from the .shutdown-timestamp file
-export const LAST_SHUTDOWN_TIMESTAMP: number = fs.existsSync('.shutdown-timestamp') ? parseInt(fs.readFileSync('.shutdown-timestamp', 'utf8')) : 0;
+// Read from the .sync-timestamp file
+export const LAST_SYNC_TIMESTAMP: number = fs.existsSync('.sync-timestamp') ? parseInt(fs.readFileSync('.sync-timestamp', 'utf8')) : 0;

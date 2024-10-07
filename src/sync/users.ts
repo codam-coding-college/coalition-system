@@ -1,6 +1,6 @@
 import Fast42 from '@codam/fast42';
 import { prisma, syncData } from './base';
-import { CAMPUS_ID, LAST_SHUTDOWN_TIMESTAMP } from '../env';
+import { CAMPUS_ID, LAST_SYNC_TIMESTAMP } from '../env';
 
 // User object can be an object returned by /v2/users/:id or the user object in /v2/cursus_users/:id !
 export const syncUser = async function(user: any): Promise<void> {
@@ -60,7 +60,7 @@ export const syncUser = async function(user: any): Promise<void> {
 
 export const syncUsers = async function(api: Fast42, syncDate: Date): Promise<void> {
 	// Fetch the time of the last shutdown
-	const syncSince = new Date(LAST_SHUTDOWN_TIMESTAMP);
+	const syncSince = new Date(LAST_SYNC_TIMESTAMP);
 
 	// Fetch all users from the API updated since the last shutdown
 	const users = await syncData(api, syncDate, syncSince, `/campus/${CAMPUS_ID}/users`, {});

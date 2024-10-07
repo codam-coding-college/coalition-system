@@ -1,5 +1,5 @@
 .env
-.shutdown-timestamp
+.sync-timestamp
 database/*
 build/*
 dist/*
