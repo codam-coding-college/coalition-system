@@ -1,6 +1,6 @@
 import Fast42 from '@codam/fast42';
 import { prisma, syncData } from './base';
-import { CURSUS_ID, LAST_SYNC_TIMESTAMP } from '../env';
+import { CURSUS_ID } from '../env';
 
 export const syncProject = async function(project: any): Promise<void> {
 	try {
@@ -33,10 +33,7 @@ export const syncProject = async function(project: any): Promise<void> {
 	}
 };
 
-export const syncProjects = async function(api: Fast42, syncDate: Date): Promise<void> {
-	// Fetch the time of the last shutdown
-	const syncSince = new Date(LAST_SYNC_TIMESTAMP);
-
+export const syncProjects = async function(api: Fast42, syncSince: Date, syncDate: Date): Promise<void> {
 	// Fetch all projects from the API updated since the last shutdown
 	const projects = await syncData(api, syncDate, syncSince, `/cursus/${CURSUS_ID}/projects`, {});
 

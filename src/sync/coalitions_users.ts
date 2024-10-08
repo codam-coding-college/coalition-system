@@ -1,6 +1,5 @@
 import Fast42 from '@codam/fast42';
 import { prisma, syncData } from './base';
-import { LAST_SYNC_TIMESTAMP } from '../env';
 import { getCoalitionIds } from '../utils';
 
 // User object can be an object returned by /v2/users/:id or the user object in /v2/cursus_users/:id !
@@ -68,10 +67,7 @@ export const syncCoalitionUser = async function(coalitionUser: any): Promise<voi
 	}
 };
 
-export const syncCoalitionUsers = async function(api: Fast42, syncDate: Date): Promise<void> {
-	// Fetch the time of the last shutdown
-	const syncSince = new Date(LAST_SYNC_TIMESTAMP);
-
+export const syncCoalitionUsers = async function(api: Fast42, syncSince: Date, syncDate: Date): Promise<void> {
 	// Fetch all of our coalition ids
 	const coalitionIds = await getCoalitionIds(prisma);
 

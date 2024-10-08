@@ -162,6 +162,18 @@ export const syncDataCB = async function(api: Fast42, syncDate: Date, lastSyncDa
 	await fetchMultiple42ApiPagesCallback(api, path, params, callback);
 }
 
+const getLastSyncTimestamp = async function(): Promise<Date> {
+	return new Promise((resolve, reject) => {
+		fs.readFile('.sync-timestamp', 'utf8', (err, data) => {
+			if (err) {
+				// return reject(err);
+				return resolve(new Date(0));
+			}
+			return resolve(new Date(parseInt(data)));
+		});
+	});
+}
+
 const saveSyncTimestamp = async function(timestamp: Date): Promise<void> {
 	console.log('Saving timestamp of synchronization to ./.sync-timestamp...');
 	// Save to current folder in .sync-timestamp file
@@ -173,13 +185,14 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 	const now = new Date();
 
 	console.info(`Starting Intra synchronization at ${now.toISOString()}...`);
+	const lastSync = await getLastSyncTimestamp();
 
 	await initCodamQuiz();
 	await initCodamCoalitionFixedTypes();
-	await syncProjects(api, now);
-	await syncUsers(api, now);
+	await syncProjects(api, lastSync, now);
+	await syncUsers(api, lastSync, now);
 	await syncBlocs(api, now); // also syncs coalitions
-	await syncCoalitionUsers(api, now);
+	await syncCoalitionUsers(api, lastSync, now);
 	await cleanupDB(api);
 
 	await saveSyncTimestamp(now);
