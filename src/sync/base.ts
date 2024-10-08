@@ -165,7 +165,7 @@ export const syncDataCB = async function(api: Fast42, syncDate: Date, lastSyncDa
 const saveSyncTimestamp = async function(timestamp: Date): Promise<void> {
 	console.log('Saving timestamp of synchronization to ./.sync-timestamp...');
 	// Save to current folder in .sync-timestamp file
-	fs.writeFileSync('.sync-timestamp', timestamp.toString());
+	fs.writeFileSync('.sync-timestamp', timestamp.getTime().toString());
 	console.log('Timestamp saved to ./.sync-timestamp');
 }
 
