@@ -100,7 +100,7 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
 		}
 		const score = await handleFixedPointScore(prisma, fixedPointType, projectUser.id, userId, points,
-			`Validated ${fixedPointType.type} ${project.name} with ${projectUser.final_mark}%`);
+			`Validated ${project.name} with ${projectUser.final_mark}%`);
 		if (!score) {
 			console.warn("Refused or failed to create score, skipping...");
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
