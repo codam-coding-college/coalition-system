@@ -185,17 +185,23 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 	const now = new Date();
 
 	console.info(`Starting Intra synchronization at ${now.toISOString()}...`);
-	const lastSync = await getLastSyncTimestamp();
+	try {
+		const lastSync = await getLastSyncTimestamp();
 
-	await initCodamQuiz();
-	await initCodamCoalitionFixedTypes();
-	await syncProjects(api, lastSync, now);
-	await syncUsers(api, lastSync, now);
-	await syncBlocs(api, now); // also syncs coalitions
-	await syncCoalitionUsers(api, lastSync, now);
-	await cleanupDB(api);
+		await initCodamQuiz();
+		await initCodamCoalitionFixedTypes();
+		await syncProjects(api, lastSync, now);
+		await syncUsers(api, lastSync, now);
+		await syncBlocs(api, now); // also syncs coalitions
+		await syncCoalitionUsers(api, lastSync, now);
+		await cleanupDB(api);
 
-	await saveSyncTimestamp(now);
+		await saveSyncTimestamp(now);
 
-	console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);
+		console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);
+	}
+	catch (err) {
+		console.error('Failed to synchronize with Intra:', err);
+		console.log('Future synchronization attempts will start from the last successful sync timestamp, so no data should be missing.');
+	}
 };
