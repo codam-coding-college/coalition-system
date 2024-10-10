@@ -22,6 +22,8 @@ import { setupExpressMiddleware } from './handlers/middleware';
 import { setupLoginRoutes } from './routes/login';
 import { setupQuizRoutes } from './routes/quiz';
 import { setupAdminRoutes } from './routes/admin';
+import { setupHomeRoutes } from './routes/home';
+import { setupWebhookRoutes } from './routes/hooks';
 
 export let api: Fast42 | null = null;
 
@@ -69,8 +71,10 @@ const main = async () => {
 
 	// Set up routes
 	setupLoginRoutes(app);
+	setupHomeRoutes(app, prisma);
 	setupQuizRoutes(app, prisma);
 	setupAdminRoutes(app, prisma);
+	setupWebhookRoutes(app, prisma);
 
 	// Start the Express server
 	app.listen(4000, async () => {

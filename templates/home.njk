@@ -1,0 +1,28 @@
+{% extends "base.njk" %}
+{% set title = "Dashboard" %}
+
+{% block content %}
+<div class="container-lg">
+	{% for coalition in coalitions %}
+	<div class="card w-100 mb-4" id="coalition-{{ coalition.id }}">
+		<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ coalition.intra_coalition.color }};">
+			<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">{{ coalition.intra_coalition.name }}</div>
+			<div class="d-inline-block">
+
+			</div>
+		</div>
+		<div class="card-body" style="background-color: {{ coalition.intra_coalition.color | rgba(0.3) }};">
+			<div class="row">
+				<div class="col-md-3">
+					<img src="{{ coalition.intra_coalition.image_url }}" style="filter: invert(1);"/>
+				</div>
+				<div class="col-md-9">
+					<h5 class="fw-bold">{{ coalition.intra_coalition.name | striptags(true) | escape }} - {{ coalition.tagline | striptags(true) | escape }}</h5>
+					<p>{{ coalition.description | striptags(true) | escape | nl2br }}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+</div>
+{% endblock %}
