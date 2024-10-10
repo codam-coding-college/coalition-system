@@ -1,7 +1,9 @@
 version: "3"
 services:
   postgres:
+    container_name: codam-coal-postgres
     image: "postgres:13"
+    restart: unless-stopped
     ports:
       - "5432:5432"
     env_file:
@@ -10,11 +12,13 @@ services:
       - ./database:/var/lib/postgresql/data
 
   codam-coalitions:
+    container_name: codam-coal-system
     build: .
+    restart: unless-stopped
     ports:
       - "4000:4000"
     volumes:
       - ./.env:/app/.env
-      - ./coal.db:/app/coal.db
+      - ./.sync-timestamp:/app/.sync-timestamp
     environment:
       - NODE_ENV=development
