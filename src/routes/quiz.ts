@@ -56,8 +56,6 @@ const isQuizAvailable = async function(prisma: PrismaClient): Promise<boolean> {
 		},
 	});
 	const currentDate = new Date();
-	console.log(`Current date: ${currentDate}, start date: ${settings.start_at}, end date: ${settings.deadline_at}`);
-	console.log(`Quiz available: ${currentDate.getTime() >= settings.start_at.getTime()} && ${currentDate.getTime() < settings.deadline_at.getTime()}`);
 	return (currentDate.getTime() >= settings.start_at.getTime() && currentDate.getTime() < settings.deadline_at.getTime());
 }
 
