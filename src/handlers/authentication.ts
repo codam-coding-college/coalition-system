@@ -61,6 +61,8 @@ export const setupPassport = function(prisma: PrismaClient): void {
 
 export const usePassport = function(app: any): void {
 	app.use(passport.initialize());
+	// TODO: Fix warning: connect.session() MemoryStore is not designed for a production environment, as it will leak memory, and will not scale past a single process.
+	// Use a session store: https://github.com/expressjs/session/blob/master/README.md#compatible-session-stores
 	app.use(session({
 		secret: SESSION_SECRET,
 		resave: false,
