@@ -170,7 +170,7 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 			const questionCount = await prisma.codamCoalitionTestQuestion.count();
 			if (questionCount === 0) {
 				console.warn('No quiz questions available');
-				res.status(501).send({ error: 'No quiz questions available' });
+				return res.status(501).send({ error: 'No quiz questions available' });
 			}
 
 			// Check if there is a current question in the session and if it was left unanswered
