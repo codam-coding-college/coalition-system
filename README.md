@@ -49,10 +49,11 @@ If you're a student and want to contribute to this project, talk to the staff ab
 
 ## Development
 1. Clone the repository
-2. Run `npm install` to install dependencies
-3. Run `npm run build` to build the project
-4. Start the PostgreSQL database using Docker: `docker-compose -f docker-compose.dev.yml up -d`
-5. Run `npm run start` to start the server and seed the initial database
+2. Fill the `.env` file with the necessary environment variables (don't forget to change the POSTGRES_HOST in the PRISMA_DB_URL variable to localhost)
+3. Run `npm install` to install dependencies
+4. Run `npm run build` to build the project
+5. Start the PostgreSQL database using Docker: `docker-compose -f docker-compose.dev.yml up -d`
+6. Run `npm run start` to start the server and seed the initial database
 
 ### Reseed the database
 1. Delete the *.sync-timestamp* file in the root directory
