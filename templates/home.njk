@@ -13,6 +13,11 @@
 		</div>
 		<div class="card-body">
 			<h4 class="fw-bold">It is currently possible to switch coalitions!</h4>
+			{% if my_coalition %}
+				<p>You are currently in the {{ my_coalition.coalition.name }} coalition.</p>
+			{% else %}
+				<p>You are not currently in a coalition.</p>
+			{% endif %}
 			<a href="/quiz" class="btn btn-primary">Go to the Questionnaire</a>
 		</div>
 	</div>
