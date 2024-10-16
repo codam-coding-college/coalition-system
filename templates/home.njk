@@ -3,6 +3,21 @@
 
 {% block content %}
 <div class="container-lg">
+	{% if quiz_available %}
+	<div class="card w-100 mb-4" id="quiz-availability">
+		<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+			<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Questionnaire is currently open</div>
+			<div class="d-inline-block">
+
+			</div>
+		</div>
+		<div class="card-body">
+			<h4 class="fw-bold">It is currently possible to switch coalitions!</h4>
+			<a href="/quiz" class="btn btn-primary">Go to the Questionnaire</a>
+		</div>
+	</div>
+	{% endif %}
+
 	{% for coalition in coalitions %}
 	<div class="card w-100 mb-4" id="coalition-{{ coalition.id }}">
 		<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ coalition.intra_coalition.color }};">

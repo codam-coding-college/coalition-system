@@ -49,7 +49,7 @@ const areAllQuestionsAnswered = async function(prisma: PrismaClient, userSession
 	return userSession.quiz.questionsAnswered.length >= questionCount;
 }
 
-const isQuizAvailable = async function(prisma: PrismaClient): Promise<boolean> {
+export const isQuizAvailable = async function(prisma: PrismaClient): Promise<boolean> {
 	const settings = await prisma.codamCoalitionTestSettings.findFirstOrThrow({
 		where: {
 			id: 1,

@@ -1,6 +1,7 @@
 import { Express } from 'express';
 import passport from 'passport';
 import { PrismaClient } from '@prisma/client';
+import { isQuizAvailable } from './quiz';
 
 export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/', passport.authenticate('session', {
@@ -23,8 +24,12 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			}
 		});
 
+		// Check if quiz is currently available
+		const quiz_available = await isQuizAvailable(prisma);
+
 		return res.render('home.njk', {
 			coalitions,
+			quiz_available,
 		});
 	});
 };
