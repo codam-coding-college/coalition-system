@@ -7,6 +7,7 @@ import { ExpressIntraUser } from '../sync/oauth';
 import { getAPIClient } from '../utils';
 import { fetchSingle42ApiPage } from '../sync/base';
 import { syncCoalitionUser } from '../sync/coalitions_users';
+import { CURSUS_ID } from '../env';
 
 export interface QuizSessionQuestion {
 	question: CodamCoalitionTestQuestion;
@@ -399,6 +400,25 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 			}
 		}
 		else {
+			// Make sure the 42cursus allows for a coalition
+			const cursus_users = await fetchSingle42ApiPage(api, `/cursus_users`, {
+				'filter[user_id]': user.id.toString(),
+				'filter[cursus_id]': CURSUS_ID.toString(),
+			});
+			if (cursus_users.length === 0) {
+				console.error(`User ${user.login} is not enrolled in the 42cursus with ID ${CURSUS_ID}`);
+				return res.status(412).send({ error: 'Failed to join coalition, try again later' });
+			}
+			if (cursus_users[0].has_coalition === false) {
+				console.log(`Patching user ${user.login}'s cursus_user to allow for a coalition in the 42cursus...`);
+				const response = await api.patch(`/cursus_users/${cursus_users[0].id}`, {
+					cursus_user: {
+						has_coalition: true,
+					}
+				});
+				console.log(`${user.login}'s cursus_user patch response: ${response.status} ${response.statusText}`);
+			}
+
 			console.log(`Creating a new IntraCoalitionUser for user ${user.login} in coalition ${coalitionId}`);
 			const response = await api.post('/coalitions_users', {
 				coalitions_user: {
