@@ -355,17 +355,17 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		}
 
 		const user = req.user as ExpressIntraUser;
-		console.log(`User ${user.login} requested a new quiz question`);
 		const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
-
-		// Check if all questions have been answered
-		if (! await areAllQuestionsAnswered(prisma, userSession)) {
-			return res.status(400).send({ error: 'Not all questions have been answered' });
-		}
 
 		// Get the coalition ID defined in the POST body
 		const coalitionId = parseInt(req.body.coalition_id);
 		console.log(`User ${user.login} requested to join coalition ${coalitionId}`);
+
+		// Check if all questions have been answered
+		if (! await areAllQuestionsAnswered(prisma, userSession)) {
+			console.log(`User ${user.login} tried to join a coalition without answering all questions`);
+			return res.status(400).send({ error: 'Not all questions have been answered' });
+		}
 
 		// Get the user's Intra Coalition User
 		const intraCoalitionUser = await prisma.intraCoalitionUser.findFirst({
