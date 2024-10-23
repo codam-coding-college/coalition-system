@@ -140,7 +140,8 @@ model IntraUser {
 	updated_at       DateTime
 
 	// Relations
-	coalition_users IntraCoalitionUser[]
+	coalition_users  IntraCoalitionUser[]
+	cursus_users     IntraCursusUser[]
 
 	// Codam
 	codam_user      CodamUser?
@@ -213,6 +214,22 @@ model IntraCoalitionUser {
 	user             IntraUser        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 	coalition        IntraCoalition   @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 	scores           IntraScore[]
+}
+
+model IntraCursusUser {
+	id               Int      @id
+	cursus_id        Int      @map("cursus_id")
+	user_id          Int      @map("user_id")
+	begin_at         DateTime
+	end_at           DateTime?
+	level            Float
+	grade            String?
+
+	created_at       DateTime
+	updated_at       DateTime
+
+	// Relations
+	user             IntraUser     @relation(fields: [user_id], references: [id])
 }
 
 // Intra Score

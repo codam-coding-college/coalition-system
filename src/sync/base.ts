@@ -9,6 +9,7 @@ import { syncCoalitionUsers } from "./coalitions_users";
 import { NODE_ENV, DEV_DAYS_LIMIT } from "../env";
 import { cleanupDB } from "./cleanup";
 import { syncProjects } from "./projects";
+import { syncCursusUsers } from './cursus_users';
 
 export const prisma = new PrismaClient();
 
@@ -192,6 +193,7 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 		await initCodamCoalitionFixedTypes();
 		await syncProjects(api, lastSync, now);
 		await syncUsers(api, lastSync, now);
+		await syncCursusUsers(api, lastSync, now);
 		await syncBlocs(api, now); // also syncs coalitions
 		await syncCoalitionUsers(api, lastSync, now);
 		await cleanupDB(api);
