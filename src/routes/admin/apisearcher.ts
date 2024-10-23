@@ -334,7 +334,6 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 		orderBy: {
 			user: {
 				updated_at: 'desc',
-				created_at: 'desc',
 			},
 		},
 	};
