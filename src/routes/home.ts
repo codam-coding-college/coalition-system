@@ -51,7 +51,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 		});
 
 		// Check if quiz is currently available
-		const quiz_available = await isQuizAvailable(prisma);
+		const quiz_available = await isQuizAvailable(user, prisma);
 
 		return res.render('home.njk', {
 			coalitions,

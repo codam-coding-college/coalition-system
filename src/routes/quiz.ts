@@ -2,7 +2,7 @@ import express from 'express';
 import { Express, Request, Response } from "express";
 import passport from 'passport';
 import { CustomSessionData } from '../handlers/session';
-import { CodamCoalition, CodamCoalitionTestAnswer, CodamCoalitionTestQuestion, PrismaClient } from '@prisma/client';
+import { CodamCoalition, CodamCoalitionTestAnswer, CodamCoalitionTestQuestion, IntraUser, PrismaClient } from '@prisma/client';
 import { ExpressIntraUser } from '../sync/oauth';
 import { getAPIClient } from '../utils';
 import { fetchSingle42ApiPage } from '../sync/base';
@@ -50,14 +50,29 @@ const areAllQuestionsAnswered = async function(prisma: PrismaClient, userSession
 	return userSession.quiz.questionsAnswered.length >= questionCount;
 }
 
-export const isQuizAvailable = async function(prisma: PrismaClient): Promise<boolean> {
+export const isQuizAvailable = async function(user: IntraUser | ExpressIntraUser, prisma: PrismaClient): Promise<boolean> {
+	// Check if the current settings allow taking the questionnaire
 	const settings = await prisma.codamCoalitionTestSettings.findFirstOrThrow({
 		where: {
 			id: 1,
 		},
 	});
 	const currentDate = new Date();
-	return (currentDate.getTime() >= settings.start_at.getTime() && currentDate.getTime() < settings.deadline_at.getTime());
+	const availableDueToTime = (currentDate.getTime() >= settings.start_at.getTime() && currentDate.getTime() < settings.deadline_at.getTime());
+	if (availableDueToTime) {
+		return true; // Skip any further database queries, the questionnaire is available for everyone!
+	}
+
+	// If the user is not part of any coalition currently, taking the questionnaire is always allowed
+	const coalitionUser = await prisma.intraCoalitionUser.findFirst({
+		select: {
+			id: true,
+		},
+		where: {
+			user_id: user.id,
+		},
+	});
+	return (!coalitionUser);
 }
 
 const resetQuizSession = async function(req: Request, userSession: CustomSessionData): Promise<void> {
@@ -69,7 +84,10 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 	app.get('/quiz', passport.authenticate('session', {
 		keepSessionInfo: true,
 	}), async function(req, res) {
-		if (! await isQuizAvailable(prisma)) {
+		const user = req.user as ExpressIntraUser;
+		console.log(`User ${user.login} requested access to the quiz`);
+
+		if (! await isQuizAvailable(user, prisma)) {
 			return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
 		}
 
@@ -96,13 +114,13 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		keepSessionInfo: true,
 	}), async function(req: Request, res: Response) {
 		try {
-			if (! await isQuizAvailable(prisma)) {
-				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
-			}
-
 			const user = req.user as ExpressIntraUser;
 			console.log(`User ${user.login} requested quiz results`);
 			const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
+
+			if (! await isQuizAvailable(user, prisma)) {
+				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+			}
 
 			if (!userSession.quiz || !userSession.quiz.coalitionScores || !areAllQuestionsAnswered(prisma, userSession)) {
 				return res.status(400).send({ error: 'Not all questions have been answered' });
@@ -158,13 +176,13 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		keepSessionInfo: true,
 	}), async function(req: Request, res: Response): Promise<Response<QuizSessionQuestion>> {
 		try {
-			if (! await isQuizAvailable(prisma)) {
-				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
-			}
-
 			const user = req.user as ExpressIntraUser;
 			console.log(`User ${user.login} requested a new quiz question`);
 			const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
+
+			if (! await isQuizAvailable(user, prisma)) {
+				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+			}
 
 			const questionCount = await prisma.codamCoalitionTestQuestion.count();
 			if (questionCount === 0) {
@@ -247,13 +265,14 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		keepSessionInfo: true,
 	}), async function(req: Request, res: Response) {
 		try {
-			if (! await isQuizAvailable(prisma)) {
-				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
-			}
-
 			const user = req.user as ExpressIntraUser;
 			console.log(`User ${user.login} posted an answer to a quiz question`);
 			const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
+
+			if (! await isQuizAvailable(user, prisma)) {
+				return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+			}
+
 			if (!userSession.quiz) {
 				return res.status(400).send({ error: 'No quiz session data, request a question first' });
 			}
@@ -333,10 +352,6 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 	app.get('/quiz/reset', passport.authenticate('session', {
 		keepSessionInfo: true,
 	}), async function(req: Request, res: Response) {
-		if (! await isQuizAvailable(prisma)) {
-			return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
-		}
-
 		const user = req.user as ExpressIntraUser;
 		console.log(`User ${user.login} requested a new quiz question`);
 		const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
@@ -350,12 +365,11 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 	app.post('/quiz/join', passport.authenticate('session', {
 		keepSessionInfo: true,
 	}), async function(req: Request, res: Response) {
-		if (! await isQuizAvailable(prisma)) {
-			return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
-		}
-
 		const user = req.user as ExpressIntraUser;
 		const userSession: CustomSessionData = req.session as unknown as CustomSessionData;
+		if (! await isQuizAvailable(user, prisma)) {
+			return res.status(403).send({ error: 'The questionnaire is currently unavailable' });
+		}
 
 		// Get the coalition ID defined in the POST body
 		const coalitionId = parseInt(req.body.coalition_id);
