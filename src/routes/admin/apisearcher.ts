@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { IntraCoalitionUser, Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import Fast42 from '@codam/fast42';
 import { CAMPUS_ID, CURSUS_ID } from '../../env';
@@ -376,33 +376,61 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	// Users by coalition name / slug
 	app.get('/admin/apisearch/users/coalition/:name', async (req, res) => {
 		const name = req.params.name;
-		// Format name with first letter uppercase and rest lowercase (Intra coalitions are usually named like this)
-		const stylizedName = req.params.name.charAt(0).toUpperCase() + req.params.name.slice(1).toLowerCase();
-		const coalitionUsers = await prisma.intraCoalitionUser.findMany({
-			...USER_QUERY_DEFAULTS,
-			where: {
-				OR: [
-					{
-						coalition: {
-							name: stylizedName,
+		if (name.toLowerCase() === 'none' || name.toLowerCase() === 'null') {
+			console.log("Fetching users without coalition");
+			const nonExistingCoalitionUsers = [];
+			console.log(USER_QUERY_DEFAULTS);
+			const usersWithoutCoalition = await prisma.intraUser.findMany({
+				// @ts-ignore
+				select: (USER_QUERY_DEFAULTS.select?.user)?.select,
+				where: {
+					coalition_users: {
+						none: {},
+					}
+				}
+			});
+			for (const user of usersWithoutCoalition) {
+				console.log(user);
+				// Should be similar to an IntraCoalitionUser object, but then with null values.
+				nonExistingCoalitionUsers.push({
+					id: null,
+					created_at: null,
+					updated_at: null,
+					user: user,
+					coalition: null,
+				});
+			}
+			return res.json(nonExistingCoalitionUsers);
+		}
+		else {
+			// Format name with first letter uppercase and rest lowercase (Intra coalitions are usually named like this)
+			const stylizedName = req.params.name.charAt(0).toUpperCase() + req.params.name.slice(1).toLowerCase();
+			const coalitionUsers = await prisma.intraCoalitionUser.findMany({
+				...USER_QUERY_DEFAULTS,
+				where: {
+					OR: [
+						{
+							coalition: {
+								name: stylizedName,
+							},
 						},
-					},
-					{
-						coalition: {
-							name: name,
+						{
+							coalition: {
+								name: name,
+							},
 						},
-					},
-					{
-						coalition: {
-							slug: {
-								contains: name,
-							}
+						{
+							coalition: {
+								slug: {
+									contains: name,
+								}
+							},
 						},
-					},
-				],
-			},
-		});
-		return res.json(coalitionUsers);
+					],
+				},
+			});
+			return res.json(coalitionUsers);
+		}
 	});
 
 	// Users by coalition_user ID
