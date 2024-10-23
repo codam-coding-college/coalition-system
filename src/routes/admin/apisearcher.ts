@@ -334,6 +334,16 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 		orderBy: {
 			updated_at: 'desc',
 		},
+		where: {
+			user: {
+				cursus_users: {
+					some: {
+						cursus_id: CURSUS_ID,
+						end_at: null,
+					},
+				},
+			},
+		}
 	};
 
 	// All users
@@ -384,13 +394,16 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				// @ts-ignore
 				select: (USER_QUERY_DEFAULTS.select?.user)?.select,
 				where: {
+					...(USER_QUERY_DEFAULTS.where?.user),
 					coalition_users: {
 						none: {},
-					}
+					},
+				},
+				orderBy: {
+					created_at: 'desc',
 				}
 			});
 			for (const user of usersWithoutCoalition) {
-				console.log(user);
 				// Should be similar to an IntraCoalitionUser object, but then with null values.
 				nonExistingCoalitionUsers.push({
 					id: null,
