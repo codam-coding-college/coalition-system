@@ -361,6 +361,18 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		const coalitionId = parseInt(req.body.coalition_id);
 		console.log(`User ${user.login} requested to join coalition ${coalitionId}`);
 
+
+		// Check if coalitionId is actually in our database
+		const coalition = await prisma.intraCoalition.findFirst({
+			where: {
+				id: coalitionId
+			}
+		});
+		if (!coalition) {
+			console.warn(`User ${user.login} tried to join a non-existing coalition ${coalitionId}`);
+			return res.status(400).send({ error: 'Whatever you\'re trying to do, stop' });
+		}
+
 		// Check if all questions have been answered
 		if (! await areAllQuestionsAnswered(prisma, userSession)) {
 			console.log(`User ${user.login} tried to join a coalition without answering all questions`);
