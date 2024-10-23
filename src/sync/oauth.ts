@@ -1,6 +1,7 @@
 import https from 'https';
 import { CAMPUS_ID } from '../env';
 import { isStudent, isStaff } from '../utils';
+import { prisma } from './base';
 
 export interface ExpressIntraUser extends Express.User {
 	id: number;
@@ -62,7 +63,7 @@ export const getIntraUser = async function(accessToken: string): Promise<Express
 			usual_full_name: me.usual_full_name,
 			display_name: me.displayname,
 			kind: me.kind,
-			isStudent: await isStudent(me),
+			isStudent: await isStudent(prisma, me),
 			isStaff: await isStaff(me),
 			image_url: (me.image && me.image.link ? me.image.versions.medium : null),
 		};

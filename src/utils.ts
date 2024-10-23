@@ -2,7 +2,7 @@ import { PrismaClient, IntraUser } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { api } from "./main";
-import { INTRA_API_UID, INTRA_API_SECRET } from "./env";
+import { INTRA_API_UID, INTRA_API_SECRET, CURSUS_ID } from "./env";
 
 export const getAPIClient = async function(): Promise<Fast42> {
 	if (!api) {
@@ -26,28 +26,28 @@ export const fetchSingleApiPage = async function(api: Fast42, endpoint: string, 
 	}
 };
 
-export const isStudentOrStaff = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
+export const isStudentOrStaff = async function(prisma: PrismaClient, intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
 	if (await isStaff(intraUser)) {
 		return true;
 	}
-	if (await isStudent(intraUser)) {
+	if (await isStudent(prisma, intraUser)) {
 		return true;
 	}
 	return false;
 };
 
-export const isStudent = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
-	return true;
-	// TODO: if the student has an ongoing 42cursus, let them continue
+export const isStudent = async function(prisma: PrismaClient, intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
 	const userId = intraUser.id;
-	// const cursusUser = await prisma.cursusUser.findFirst({
-	// 	where: {
-	// 		user_id: userId,
-	// 		cursus_id: 21,
-	// 		end_at: null,
-	// 	},
-	// });
-	// return (cursusUser !== null);
+	// If the cursus_user does not exist, the student is not enrolled in the cursus the coalition system runs on.
+	// Or the student is not a part of the campus the coalition system is part of.
+	const cursusUser = await prisma.intraCursusUser.findFirst({
+		where: {
+			user_id: userId,
+			cursus_id: CURSUS_ID,
+			end_at: null,
+		},
+	});
+	return (cursusUser !== null);
 };
 
 export const isStaff = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {

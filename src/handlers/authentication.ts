@@ -50,7 +50,7 @@ export const setupPassport = function(prisma: PrismaClient): void {
 				usual_full_name: user.usual_full_name,
 				display_name: user.display_name,
 				kind: user.kind,
-				isStudent: await isStudent(user),
+				isStudent: await isStudent(prisma, user),
 				isStaff: await isStaff(user),
 				image_url: user.image,
 			};
