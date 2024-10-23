@@ -7,6 +7,7 @@ import { setupAPISearchRoutes } from './admin/apisearcher';
 import { setupWebhookTriggerRoutes } from './hooks/triggers';
 import { setupAdminUserRoutes } from './admin/users';
 import { setupAdminCoalitionRoutes } from './admin/coalitions';
+import { setupAdminChartsRoutes } from './admin/charts';
 
 export const setupAdminRoutes = function(app: Express, prisma: PrismaClient): void {
 	setupAdminDashboardRoutes(app, prisma);
@@ -16,6 +17,7 @@ export const setupAdminRoutes = function(app: Express, prisma: PrismaClient): vo
 	setupWebhookTriggerRoutes(app, prisma);
 	setupAdminUserRoutes(app, prisma);
 	setupAdminCoalitionRoutes(app, prisma);
+	setupAdminChartsRoutes(app, prisma);
 
 	app.get('/admin', async (req, res) => {
 		return res.render('admin/dashboard.njk');
