@@ -454,13 +454,13 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 				}
 			});
 			if (response.status === 201) {
-				if (!response.data.id) {
-					console.error(`Expected key 'id' in response data missing`, response.data);
+				if (!response.id) {
+					console.error(`Expected key 'id' in response data missing`, response);
 					return res.status(500).send({ error: 'Failed to join coalition, try again later' });
 				}
-				const coalitionUser = await fetchSingle42ApiPage(api, `/coalitions_users/${response.data.id}`);
+				const coalitionUser = await fetchSingle42ApiPage(api, `/coalitions_users/${response.id}`);
 				if (!coalitionUser) {
-					console.error(`Failed to fetch coalition user ${response.data.id}, was probably not created?`);
+					console.error(`Failed to fetch coalition user ${response.id}, was probably not created?`);
 					return res.status(500).send({ error: 'Failed to join coalition, try again later' });
 				}
 				await syncCoalitionUser(coalitionUser);
