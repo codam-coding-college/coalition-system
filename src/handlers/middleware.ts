@@ -8,7 +8,10 @@ import { isStaff } from '../utils';
 
 const checkIfAuthenticated = function(req: Request, res: Response, next: NextFunction) {
 	if (req.path.startsWith('/login') || req.path.startsWith('/logout') || res.statusCode === 503) {
-		return next();
+		return next(); // Don't require authentication for login/logout
+	}
+	if (req.path.startsWith('/hooks/')) {
+		return next(); // Don't require authentication for webhooks
 	}
 	if (req.isAuthenticated()) {
 		return next();
