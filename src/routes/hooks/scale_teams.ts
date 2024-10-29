@@ -88,7 +88,7 @@ export const handleScaleTeamUpdateWebhook = async function(prisma: PrismaClient,
 		const points = fixedPointType.point_amount;
 
 		// Create reason
-		let reason = `${user.login} evaluated`;
+		let reason = `Evaluated`;
 		if (scaleTeam.team) {
 			// Get the project
 			const project = await prisma.intraProject.findFirst({
