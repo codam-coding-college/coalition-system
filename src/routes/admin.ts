@@ -18,8 +18,5 @@ export const setupAdminRoutes = function(app: Express, prisma: PrismaClient): vo
 	setupAdminUserRoutes(app, prisma);
 	setupAdminCoalitionRoutes(app, prisma);
 	setupAdminChartsRoutes(app, prisma);
-
-	app.get('/admin', async (req, res) => {
-		return res.render('admin/dashboard.njk');
-	});
+	setupAdminDashboardRoutes(app, prisma);
 };

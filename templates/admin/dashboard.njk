@@ -3,7 +3,7 @@
 
 {% block content %}
 <h1>Admin Dashboard</h1>
-<div class="row">
+<div class="row ms-0 me-0">
 	<div class="col-md-6">
 		<div class="card">
 			<div class="card-header">
@@ -11,6 +11,17 @@
 			</div>
 			<div class="card-body">
 				<canvas class="codam-chart" data-url="/admin/charts/coalitions/users/distribution" id="coalition-user-distribution"></canvas>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card">
+			<div class="card-header">
+				<h5 class="card-title mb-0">Season deadlines</h5>
+			</div>
+			<div class="card-body">
+				<p>Start: <span id="season-start" data-date="{{ blocDeadline.begin_at | timestamp }}">{{ blocDeadline.begin_at | timeAgo }}</span></p>
+				<p>End: <span id="season-end" data-date="{{ blocDeadline.end_at | timestamp }}">{{ blocDeadline.end_at | timeFromNow }}</span></p>
 			</div>
 		</div>
 	</div>

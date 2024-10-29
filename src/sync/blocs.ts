@@ -2,6 +2,8 @@ import Fast42 from '@codam/fast42';
 import { prisma, syncData } from './base';
 import { syncCoalition } from './coalitions';
 import { CAMPUS_ID, CURSUS_ID } from '../env';
+import { IntraBlocDeadline, Prisma } from '@prisma/client';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 
 // Bloc object can be an object returned by /v2/bloc/:id !
 export const syncBloc = async function(bloc: any): Promise<void> {
@@ -35,6 +37,34 @@ export const syncBloc = async function(bloc: any): Promise<void> {
 	}
 };
 
+export const syncBlocDeadline = async function(blocDeadline: any) {
+	try {
+		await prisma.intraBlocDeadline.upsert({
+			where: {
+				id: blocDeadline.id,
+			},
+			update: {
+				begin_at: new Date(blocDeadline.begin_at),
+				end_at: new Date(blocDeadline.end_at),
+				updated_at: new Date(blocDeadline.updated_at),
+				coalition_id: blocDeadline.coalition_id,
+			},
+			create: {
+				id: blocDeadline.id,
+				begin_at: new Date(blocDeadline.begin_at),
+				end_at: new Date(blocDeadline.end_at),
+				updated_at: new Date(blocDeadline.updated_at),
+				created_at: new Date(blocDeadline.created_at),
+				bloc_id: blocDeadline.bloc_id,
+				coalition_id: blocDeadline.coalition_id,
+			},
+		});
+	}
+	catch (err) {
+		console.error(`Error syncing bloc deadline ${blocDeadline.id}: ${err}`);
+	}
+};
+
 export const syncBlocs = async function(api: Fast42, syncDate: Date): Promise<void> {
 	// Always sync all blocs
 	const syncSince = new Date(0);
@@ -51,5 +81,14 @@ export const syncBlocs = async function(api: Fast42, syncDate: Date): Promise<vo
 	for (const bloc of blocs) {
 		console.debug(`Syncing bloc ${++i}/${total} (${bloc.id})...`);
 		await syncBloc(bloc);
+
+		// Fetch all bloc deadlines from the API updated since the last shutdown
+		const blocDeadlines = await syncData(api, syncDate, syncSince, `/blocs/${bloc.id}/bloc_deadlines`, {});
+		let j = 0;
+		const totalDeadlines = blocDeadlines.length;
+		for (const blocDeadline of blocDeadlines) {
+			console.debug(`Syncing bloc ${bloc.id} deadline ${++j}/${totalDeadlines} (${blocDeadline.id})...`);
+			await syncBlocDeadline(blocDeadline);
+		}
 	}
 };

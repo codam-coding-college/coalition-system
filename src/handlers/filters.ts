@@ -1,5 +1,6 @@
 import { Express } from 'express';
 import nunjucks from 'nunjucks';
+import { timeAgo, timeFromNow } from '../utils';
 
 export const setupNunjucksFilters = function(app: Express): void {
 	const nunjucksEnv = nunjucks.configure('templates', {
@@ -16,33 +17,12 @@ export const setupNunjucksFilters = function(app: Express): void {
 
 	// Add formatting filter to format a date as "... minutes/hours/days ago"
 	nunjucksEnv.addFilter('timeAgo', (date: Date | null) => {
-		if (!date) {
-			return 'never';
-		}
+		return timeAgo(date);
+	});
 
-		const now = new Date();
-		const diff = now.getTime() - date.getTime();
-		const seconds = Math.floor(diff / 1000);
-		const minutes = Math.floor(seconds / 60);
-		const hours = Math.floor(minutes / 60);
-		const days = Math.floor(hours / 24);
-		const years = Math.floor(days / 365);
-
-		if (years > 2) {
-			return `${years} years ago`;
-		}
-		else if (days > 2) { // < 3 days we want to see the hours
-			return `${days} days ago`;
-		}
-		else if (hours > 1) {
-			return `${hours} hours ago`;
-		}
-		else if (minutes > 10) { // > 10 because we synchronize every 10 minutes, otherwise we'll show "just now"
-			return `${minutes} minutes ago`;
-		}
-		else {
-			return `just now`;
-		}
+	// Add formatting filter to format a date as "in ... minutes/hours/days"
+	nunjucksEnv.addFilter('timeFromNow', (date: Date | null) => {
+		return timeFromNow(date);
 	});
 
 	// Add formatting filter to format a date as a timestamp
