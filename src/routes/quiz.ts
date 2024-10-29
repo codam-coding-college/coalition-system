@@ -77,7 +77,6 @@ export const isQuizAvailable = async function(user: IntraUser | ExpressIntraUser
 
 const resetQuizSession = async function(req: Request, userSession: CustomSessionData): Promise<void> {
 	delete userSession.quiz;
-	await req.session.save();
 }
 
 export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): void {
@@ -243,7 +242,6 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 
 			// Store the question ID in the session
 			userSession.quiz.currentQuestionId = question.id;
-			await req.session.save();
 			console.log(userSession.quiz);
 
 			// Return the question and answers in JSON format
@@ -337,7 +335,6 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 				userSession.quiz.coalitionScores[answer.coalition_id] = 0;
 			}
 			userSession.quiz.coalitionScores[answer.coalition_id] += answer.weight;
-			await req.session.save();
 			console.log(userSession.quiz);
 
 			// Let the client know the answer was accepted and that they can request a new question
