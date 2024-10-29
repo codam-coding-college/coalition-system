@@ -460,4 +460,84 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 		});
 		return res.json(coalitionUsers);
 	});
+
+	// WEBHOOKS
+	// All webhooks
+	app.get('/admin/apisearch/hooks', async (req, res) => {
+		const webhooks = await prisma.intraWebhook.findMany({
+			orderBy: {
+				received_at: 'desc',
+			},
+		});
+		return res.json(webhooks);
+	});
+
+	// Webhooks by delivery ID
+	app.get('/admin/apisearch/hooks/id/:deliveryId', async (req, res) => {
+		const deliveryId = req.params.deliveryId;
+		const webhooks = await prisma.intraWebhook.findMany({
+			where: {
+				delivery_id: deliveryId,
+			},
+		});
+		return res.json(webhooks);
+	});
+
+	// Webhooks by status
+	app.get('/admin/apisearch/hooks/status/:status', async (req, res) => {
+		const status = req.params.status;
+		const webhooks = await prisma.intraWebhook.findMany({
+			where: {
+				status: status,
+			},
+			orderBy: {
+				received_at: 'desc',
+			},
+		});
+		return res.json(webhooks);
+	});
+
+	// Webhooks by model type
+	app.get('/admin/apisearch/hooks/model/:modelType', async (req, res) => {
+		const modelType = req.params.modelType;
+		const webhooks = await prisma.intraWebhook.findMany({
+			where: {
+				model: modelType,
+			},
+			orderBy: {
+				received_at: 'desc',
+			},
+		});
+		return res.json(webhooks);
+	});
+
+	// Webhooks by event type
+	app.get('/admin/apisearch/hooks/event/:eventType', async (req, res) => {
+		const eventType = req.params.eventType;
+		const webhooks = await prisma.intraWebhook.findMany({
+			where: {
+				event: eventType,
+			},
+			orderBy: {
+				received_at: 'desc',
+			},
+		});
+		return res.json(webhooks);
+	});
+
+	// Webhooks by (part of) the body
+	app.get('/admin/apisearch/hooks/body/:body', async (req, res) => {
+		const body = req.params.body;
+		const webhooks = await prisma.intraWebhook.findMany({
+			where: {
+				body: {
+					contains: body,
+				},
+			},
+			orderBy: {
+				received_at: 'desc',
+			},
+		});
+		return res.json(webhooks);
+	});
 };

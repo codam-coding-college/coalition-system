@@ -1,0 +1,64 @@
+{% extends "base.njk" %}
+{% set title = "Points assigner" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Webhooks History</li>
+	</ol>
+</nav>
+
+<form class="row g-3 mb-3" id="searchfilterform">
+	<div class="col">
+		<select id="searchfilter" name="searchfilter" class="form-select" required>
+			<option value="" selected disabled hidden>Choose a filter</option>
+			<option value="none">No filter</option>
+			<option value="status">Status</option>
+			<option value="model">Model type</option>
+			<option value="event">Event type</option>
+			<option value="body">Body (part)</option>
+			<option value="id">Delivery ID</option>
+		</select>
+	</div>
+	<div class="col">
+		<input type="text" id="searchfilterval" name="searchfilterval" class="form-control" placeholder="Filter value..." required>
+	</div>
+	<div class="col">
+		<button type="submit" class="btn btn-primary" id="searchfilterbtn">Search</button>
+	</div>
+</form>
+
+<table class="table table-striped" id="results">
+	<thead>
+		<tr>
+			<th scope="col" data-key="delivery_id">Delivery ID</th>
+			<th scope="col" data-key="received_at" data-format="datetime">Received at</th>
+			<th scope="col" data-key="handled_at" data-format="datetime">Handled at</th>
+			<th scope="col" data-key="model">Model</th>
+			<th scope="col" data-key="event">Event</th>
+			<th scope="col" data-key="status">Status</th>
+			<th scope="col" data-key="body">Body</th>
+		</tr>
+	</thead>
+	<tbody id="search-results">
+
+	</tbody>
+</table>
+
+<script src="/js/reactive-button.js"></script>
+<script src="/js/apisearcher.js"></script>
+<script>
+const apiSearcher = new ApiSearcher({
+	url: window.location.origin + '/admin/apisearch/hooks/',
+	results: '#results',
+	filterSelector: '#searchfilter',
+	filterValue: '#searchfilterval',
+	filterForm: '#searchfilterform',
+	noPoints: true,
+	actions: [
+		// TODO: add option to retrigger the webhook
+	]
+});
+</script>
+{% endblock %}
