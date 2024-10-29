@@ -17,13 +17,13 @@ export enum WebhookHandledStatus {
 	Error = "error",
 };
 
-export const addWebhookToDB = async function(prisma: PrismaClient, webhookHeaders: WebhookHeaders, body: string): Promise<void> {
+export const addWebhookToDB = async function(prisma: PrismaClient, webhookHeaders: WebhookHeaders, body: any): Promise<void> {
 	await prisma.intraWebhook.create({
 		data: {
 			model: webhookHeaders.modelType,
 			event: webhookHeaders.eventType,
 			delivery_id: webhookHeaders.deliveryId,
-			body: body,
+			body: JSON.stringify(body),
 			received_at: new Date(),
 			status: WebhookHandledStatus.Unhandled,
 		},
