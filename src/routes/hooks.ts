@@ -57,11 +57,12 @@ export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): 
 		// Handle all Intra webhooks
 		const webhookHeaders = parseWebhookHeaders(req);
 		console.log(`Received ${webhookHeaders.modelType} ${webhookHeaders.eventType} webhook ${webhookHeaders.deliveryId}`, req.body);
+		if (!webhookHeaders.deliveryId || !webhookHeaders.modelType || !webhookHeaders.eventType) {
+			console.warn('One or more required webhook headers is missing');
+			return res.status(400).json({ status: 'error', message: 'One or more required webhook headers is missing' });
+		}
 		await addWebhookToDB(prisma, webhookHeaders, req.body);
 		try {
-			if (!webhookHeaders.deliveryId || !webhookHeaders.modelType || !webhookHeaders.eventType) {
-				throw new Error("Missing required headers");
-			}
 			if (!req.body) {
 				throw new Error("Missing body");
 			}
