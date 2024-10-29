@@ -66,15 +66,18 @@ export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): 
 			if (!req.body) {
 				throw new Error("Missing body");
 			}
+			if (typeof req.body !== 'object') {
+				throw new Error("Invalid body");
+			}
 			switch (webhookHeaders.modelType) {
 				case "location": // location close
-					const location: Location = JSON.parse(req.body) as Location;
+					const location: Location = req.body as Location;
 					return await handleLocationCloseWebhook(prisma, location, res, webhookHeaders.deliveryId);
 				case "projects_user": // project or exam validation
-					const projectUser: ProjectUser = JSON.parse(req.body) as ProjectUser;
+					const projectUser: ProjectUser = req.body as ProjectUser;
 					return await handleProjectsUserUpdateWebhook(prisma, projectUser, res, webhookHeaders.deliveryId);
 				case "scale_team": // scale team (evaluation) update
-					const scaleTeam: ScaleTeam = JSON.parse(req.body) as ScaleTeam;
+					const scaleTeam: ScaleTeam = req.body as ScaleTeam;
 					return await handleScaleTeamUpdateWebhook(prisma, scaleTeam, res, webhookHeaders.deliveryId);
 				default:
 					console.warn("Unknown model type", webhookHeaders.modelType);
