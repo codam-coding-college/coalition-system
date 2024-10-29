@@ -1,6 +1,6 @@
 import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@prisma/client';
 
-export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number, userId: number, points: number, reason: string): Promise<CodamCoalitionScore | null> {
+export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string): Promise<CodamCoalitionScore | null> {
 	// Get the user's coalition
 	const coalitionUser = await prisma.intraCoalitionUser.findFirst({
 		where: {
@@ -50,20 +50,23 @@ export const updateScore = async function(prisma: PrismaClient, score: CodamCoal
 	});
 }
 
-export const handleFixedPointScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number, userId: number, points: number, reason: string): Promise<CodamCoalitionScore | null> {
-	// Check if a score already exists for this type and typeIntraId
-	const existingScore = await prisma.codamCoalitionScore.findFirst({
-		where: {
-			fixed_type_id: type.type,
-			type_intra_id: typeIntraId,
-		},
-	});
+export const handleFixedPointScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string): Promise<CodamCoalitionScore | null> {
+	if (typeIntraId) {
+		// Check if a score already exists for this type and typeIntraId
+		const existingScore = await prisma.codamCoalitionScore.findFirst({
+			where: {
+				fixed_type_id: type.type,
+				type_intra_id: typeIntraId,
+			},
+		});
 
-	if (existingScore) {
-		// Update the existing score
-		console.warn(`Score already exists for type ${type.type} and typeIntraId ${typeIntraId}, updating CodamScore ${existingScore.id} with IntraScore ${existingScore.intra_score_id}...`);
-		// TODO: delete the score if the new amount is 0 or if the coalitionsUser does not exist
-		return await updateScore(prisma, existingScore, points, reason);
+		if (existingScore) {
+			// Update the existing score
+			console.warn(`Score already exists for type ${type.type} and typeIntraId ${typeIntraId}, updating CodamScore ${existingScore.id} with IntraScore ${existingScore.intra_score_id}...`);
+			// TODO: delete the score if the coalitionsUser does not exist
+			// Do not delete if the score is 0, or you can no longer recalculate the score later on!
+			return await updateScore(prisma, existingScore, points, reason);
+		}
 	}
 
 	// Create a new score

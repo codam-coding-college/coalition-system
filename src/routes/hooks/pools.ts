@@ -44,7 +44,7 @@ export const handlePointGivenWebhook = async function(prisma: PrismaClient, poin
 		const points = actualPointsGiven * fixedPointType.point_amount;
 
 		// Create a score
-		const score = await handleFixedPointScore(prisma, fixedPointType, pointGiven.id, pointGiven.given_by.id, points,
+		const score = await handleFixedPointScore(prisma, fixedPointType, null, pointGiven.given_by.id, points,
 			`Donated ${actualPointsGiven} points to the pool`);
 		if (!score) {
 			console.warn("Refused or failed to create score, skipping...");
