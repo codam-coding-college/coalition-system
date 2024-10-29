@@ -170,6 +170,25 @@ const ApiSearcher = function(options) {
 							td.innerText = new Date(value).toLocaleString();
 							break;
 						}
+						case 'code': {
+							const code = document.createElement('code');
+							code.innerText = value;
+							td.appendChild(code);
+							break;
+						}
+						case 'json': {
+							try {
+								renderjson.set_show_to_level(2);
+								renderjson.set_max_string_length(64);
+								td.appendChild(renderjson(JSON.parse(value)));
+							}
+							catch (err) {
+								console.error('An error occurred while parsing JSON', row, err);
+								td.innerText = '⚠ JSON PARSING ERROR';
+								td.classList.add('text-danger');
+							}
+							break;
+						}
 						case 'image': {
 							if (!value) {
 								td.innerText = 'No image';

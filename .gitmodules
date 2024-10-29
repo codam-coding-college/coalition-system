@@ -1,0 +1,3 @@
+[submodule "static/js/renderjson"]
+	path = static/js/renderjson
+	url = https://github.com/caldwell/renderjson
