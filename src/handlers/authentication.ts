@@ -2,9 +2,10 @@ import session from 'express-session';
 import passport from 'passport';
 import OAuth2Strategy from 'passport-oauth2';
 import { PrismaClient } from '@prisma/client';
-import { INTRA_API_UID, INTRA_API_SECRET, URL_ORIGIN, SESSION_SECRET } from '../env';
+import { INTRA_API_UID, INTRA_API_SECRET, URL_ORIGIN, SESSION_SECRET, NODE_ENV } from '../env';
 import { getIntraUser, ExpressIntraUser } from '../sync/oauth';
 import { isStudent, isStaff } from '../utils';
+import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 
 export const setupPassport = function(prisma: PrismaClient): void {
 	passport.use(new OAuth2Strategy({
@@ -59,17 +60,29 @@ export const setupPassport = function(prisma: PrismaClient): void {
 	});
 };
 
-export const usePassport = function(app: any): void {
+export const usePassport = function(app: any, prisma: PrismaClient): void {
+	if (NODE_ENV === 'production') {
+		app.set('trust proxy', 1) // Trust first proxy
+	}
 	app.use(passport.initialize());
-	// TODO: Fix warning: connect.session() MemoryStore is not designed for a production environment, as it will leak memory, and will not scale past a single process.
-	// Use a session store: https://github.com/expressjs/session/blob/master/README.md#compatible-session-stores
 	app.use(session({
-		secret: SESSION_SECRET,
-		resave: false,
-		saveUninitialized: false,
 		cookie: {
-			secure: false
+			maxAge: 1000 * 60 * 60 * 24 * 7, // ms
+			secure: (NODE_ENV === 'production'), // Secure HTTPS cookies only in production
 		},
+		name: 'nl.codam.coalitions.session',
+		proxy: (NODE_ENV === 'production'), // Trust the X-Forwarded-Proto header
+		secret: SESSION_SECRET,
+		resave: false, // should not be set to true: deprecated!
+		saveUninitialized: false, // should not be set to true: GDPR
+		store: new PrismaSessionStore(
+			prisma,
+			{
+				checkPeriod: 2 * 60 * 1000, // ms
+				dbRecordIdIsSessionId: true,
+				dbRecordIdFunction: undefined,
+			},
+		),
 	}));
 	app.use(passport.session());
 };

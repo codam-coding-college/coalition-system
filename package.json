@@ -17,8 +17,8 @@
 	"dependencies": {
 		"@codam/fast42": "^2.1.6",
 		"@prisma/client": "^5.20.0",
+		"@quixo3/prisma-session-store": "^3.1.13",
 		"body-parser": "^1.20.3",
-		"cookie-session": "^2.1.0",
 		"dotenv": "^16.4.5",
 		"express": "^4.19.2",
 		"express-session": "^1.18.0",

@@ -279,3 +279,12 @@ model IntraWebhook {
 	received_at      DateTime @default(now())
 	handled_at       DateTime?
 }
+
+// Session management
+// https://www.npmjs.com/package/@quixo3/prisma-session-store
+model Session {
+	id               String   @id
+	sid              String   @unique
+	data             String
+	expiresAt        DateTime
+}

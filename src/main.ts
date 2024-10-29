@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 
 // Imports for the Intra API
 import Fast42 from '@codam/fast42';
-import { INTRA_API_UID, INTRA_API_SECRET } from './env';
+import { INTRA_API_UID, INTRA_API_SECRET, NODE_ENV } from './env';
 import { syncWithIntra } from './sync/base';
 let initSyncComplete = false;
 
@@ -52,7 +52,7 @@ const main = async () => {
 	setupNunjucksFilters(app);
 
 	// Configure Express to use passport for authentication
-	usePassport(app);
+	usePassport(app, prisma);
 
 	// Wait for the Intra synchronization to finish before showing any pages on startup
 	app.use(async function(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -78,7 +78,7 @@ const main = async () => {
 
 	// Start the Express server
 	app.listen(4000, async () => {
-		console.log('Server is running on http://localhost:4000');
+		console.log('Server is running on http://localhost:4000 in ' + NODE_ENV + ' mode');
 	});
 
 	// Schedule the Intra synchronization to run every 10 minutes
