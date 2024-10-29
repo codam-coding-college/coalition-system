@@ -53,12 +53,18 @@ export const respondWebHookHandledStatus = async function(prisma: PrismaClient, 
 };
 
 export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): void {
-	app.get('/hooks/intra', async (req, res) => {
+	app.post('/hooks/intra', async (req, res) => {
 		// Handle all Intra webhooks
 		const webhookHeaders = parseWebhookHeaders(req);
 		console.log(`Received ${webhookHeaders.modelType} ${webhookHeaders.eventType} webhook ${webhookHeaders.deliveryId}`, req.body);
 		await addWebhookToDB(prisma, webhookHeaders, req.body);
 		try {
+			if (!webhookHeaders.deliveryId || !webhookHeaders.modelType || !webhookHeaders.eventType) {
+				throw new Error("Missing required headers");
+			}
+			if (!req.body) {
+				throw new Error("Missing body");
+			}
 			switch (webhookHeaders.modelType) {
 				case "location": // location close
 					const location: Location = JSON.parse(req.body) as Location;
