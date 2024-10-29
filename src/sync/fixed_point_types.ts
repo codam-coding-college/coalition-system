@@ -15,6 +15,21 @@ const createFixedTypeIfNotExists = async function(type: string, desc: string, po
 			},
 		});
 	}
+	else { // Update the description if needed
+		if (fixedPointType.description !== desc) {
+			await prisma.codamCoalitionFixedType.update({
+				where: {
+					type: type,
+				},
+				data: {
+					description: desc,
+				},
+			});
+		}
+		if (fixedPointType.point_amount !== points) {
+			console.warn(`Fixed point type ${type} has a different point amount (${fixedPointType.point_amount} instead of the recommended ${points})`);
+		}
+	}
 };
 
 export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
@@ -26,13 +41,13 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 		},
 		{
 			type: "evaluation",
-			desc: "Each evaluation given will grant the student with this amount of points",
-			points: 20, // recommended
+			desc: "Every expected 15 minutes of an evaluation given will grant the evaluator with this amount of points",
+			points: 10, // recommended
 		},
 		{
 			type: "point_donated",
 			desc: "Each point donated to the pool will grant the student with this amount of points",
-			points: 20, // recommended (to be the same as evaluation)
+			points: 20, // recommended
 		},
 		{
 			type: "logtime",

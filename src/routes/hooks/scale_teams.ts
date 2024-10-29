@@ -43,7 +43,10 @@ export interface ScaleTeam {
 	filled_at: string | null;
 	created_at: string;
 	updated_at: string;
-	// scale: {} // don't care about this
+	scale: {
+		duration: number; // in the API this is specified in seconds, in the webhook it's in 15 minutes blocks
+		// don't care about the rest
+	};
 };
 
 export const handleScaleTeamUpdateWebhook = async function(prisma: PrismaClient, scaleTeam: ScaleTeam, res: Response | null = null, webhookDeliveryId: string | null = null): Promise<Response | null> {
@@ -85,7 +88,10 @@ export const handleScaleTeamUpdateWebhook = async function(prisma: PrismaClient,
 		}
 
 		// Calculate the score
-		const points = fixedPointType.point_amount;
+		// Make sure the duration is defined in blocks of 15 minutes (like in the webhook, in the API it's in seconds...)
+		const EVALUATION_DEFAULT_DURATION = 900;
+		const duration = (scaleTeam.scale.duration > 16 ? scaleTeam.scale.duration / EVALUATION_DEFAULT_DURATION : scaleTeam.scale.duration);
+		const points = fixedPointType.point_amount * duration;
 
 		// Create reason
 		let reason = `Evaluated`;
