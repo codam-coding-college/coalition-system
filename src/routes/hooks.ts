@@ -3,6 +3,7 @@ import { Express, Response } from 'express';
 import { handleLocationCloseWebhook, Location } from './hooks/locations';
 import { handleProjectsUserUpdateWebhook, ProjectUser } from './hooks/projects_users';
 import { handleScaleTeamUpdateWebhook, ScaleTeam } from './hooks/scale_teams';
+import { handlePointGivenWebhook, PointGiven } from './hooks/pools';
 
 export interface WebhookHeaders {
 	modelType: string;
@@ -79,6 +80,9 @@ export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): 
 				case "scale_team": // scale team (evaluation) update
 					const scaleTeam: ScaleTeam = req.body as ScaleTeam;
 					return await handleScaleTeamUpdateWebhook(prisma, scaleTeam, res, webhookHeaders.deliveryId);
+				case "pool": // pool point_given
+					const pointGiven: PointGiven = req.body as PointGiven;
+					return await handlePointGivenWebhook(prisma, pointGiven, res, webhookHeaders.deliveryId);
 				default:
 					console.warn("Unknown model type", webhookHeaders.modelType);
 					return await respondWebHookHandledStatus(prisma, webhookHeaders.deliveryId, res, WebhookHandledStatus.Error);

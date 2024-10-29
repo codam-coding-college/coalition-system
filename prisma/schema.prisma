@@ -53,7 +53,7 @@ model CodamCoalition {
 
 // Fixed type of score for the coalition system
 model CodamCoalitionFixedType {
-	type             String   @id // should not contain spaces. e.g. "project", "eval", "logtime", "exam", "basic_event", "intermediate_event", "advanced_event"
+	type             String   @id // should not contain spaces. e.g. "project", "eval", "point_donated", "logtime", "exam", "basic_event", "intermediate_event", "advanced_event"
 	description      String
 	point_amount     Int
 

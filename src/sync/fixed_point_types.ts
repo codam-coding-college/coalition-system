@@ -30,6 +30,11 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 			points: 20, // recommended
 		},
 		{
+			type: "point_donated",
+			desc: "Each point donated to the pool will grant the student with this amount of points",
+			points: 20, // recommended (to be the same as evaluation)
+		},
+		{
 			type: "logtime",
 			desc: "Every logtime hour will grant the student with this amount of points",
 			points: 10, // recommended
