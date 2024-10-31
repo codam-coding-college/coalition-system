@@ -33,7 +33,7 @@ export interface ProjectUser {
 export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClient, projectUser: ProjectUser, res: Response | null = null, webhookDeliveryId: string | null = null): Promise<Response | null> {
 	try {
 
-		if (projectUser.status !== 'finished' || !projectUser['validated?'] || projectUser.final_mark === null) {
+		if (projectUser.status !== 'finished' || !projectUser['validated?'] || projectUser.final_mark === null || projectUser.final_mark < 0 || projectUser.marked_at === null) {
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
 		}
 
@@ -99,8 +99,9 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 			console.warn("No user ID found in the projectUser data, skipping score creation...", projectUser);
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
 		}
+		const markedAt = new Date(projectUser.marked_at);
 		const score = await handleFixedPointScore(prisma, fixedPointType, projectUser.id, userId, points,
-			`Validated ${project.name} with ${projectUser.final_mark}%`);
+			`Validated ${project.name} with ${projectUser.final_mark}%`, markedAt);
 		if (!score) {
 			console.warn("Refused or failed to create score, skipping...");
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);

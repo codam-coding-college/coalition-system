@@ -59,7 +59,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
  * @param callback A callback function to call for each page fetched
  * @returns A promise that resolves to an array containing all items from all pages of the API responses
  */
-export const fetchMultiple42ApiPagesCallback = async function(api: Fast42, path: string, params: { [key: string]: string } = {}, callback: (data: any) => void): Promise<void> {
+export const fetchMultiple42ApiPagesCallback = async function(api: Fast42, path: string, params: { [key: string]: string } = {}, callback: (data: any, xPage: number, xTotal: number) => void): Promise<void> {
 	return new Promise(async (resolve, reject) => {
 		try {
 			const pages = await api.getAllPages(path, params);
@@ -71,9 +71,11 @@ export const fetchMultiple42ApiPagesCallback = async function(api: Fast42, path:
 					throw new Error('Intra API rate limit exceeded');
 				}
 				if (p.ok) {
+					const xPage = parseInt(p.headers.get('X-Page'));
+					const xTotal = parseInt(p.headers.get('X-Total'));
 					const data = await p.json();
 					console.debug(`Fetched page ${++i} of ${pages.length} on ${path}...`);
-					callback(data);
+					callback(data, xPage, xTotal);
 				}
 				else {
 					throw new Error(`Intra API error: ${p.status} ${p.statusText} on ${p.url}`);

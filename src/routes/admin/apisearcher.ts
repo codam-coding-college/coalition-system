@@ -7,6 +7,34 @@ import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTea
 
 const EXAM_PROJECT_IDS = [1320, 1321, 1322, 1323, 1324];
 
+// Filters applied to locations
+export const API_DEFAULT_FILTERS_LOCATIONS = {
+	'filter[inactive]': 'true',
+};
+
+// Filters applied to teams
+export const API_DEFAULT_FILTERS_PROJECTS = {
+	'filter[primary_campus]': CAMPUS_ID.toString(),
+	'filter[active_cursus]': CURSUS_ID.toString(),
+	'filter[with_mark]': 'true',
+	'sort': '-updated_at',
+};
+
+// Filters applied to teams
+export const API_DEFAULT_FILTERS_EXAMS = {
+	...API_DEFAULT_FILTERS_PROJECTS,
+	'filter[project_id]': EXAM_PROJECT_IDS.join(','),
+};
+
+// Filters applied to scale_teams
+export const API_DEFAULT_FILTERS_SCALE_TEAMS = {
+	'filter[campus_id]': CAMPUS_ID.toString(),
+	'filter[cursus_id]': CURSUS_ID.toString(),
+	'filter[future]': 'false',
+	'range[filled_at]': `2024-01-01T00:00:00,${new Date().toISOString()}`, // filled_at was only added later
+	'sort': '-filled_at',
+};
+
 export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient): void {
 
 	// LOCATIONS
@@ -15,8 +43,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 		try {
 			const api = await getAPIClient();
 			const locations = await fetchSingleApiPage(api, `/campus/${CAMPUS_ID}/locations`, {
+				...API_DEFAULT_FILTERS_LOCATIONS,
 				'page[size]': '50',
-				'filter[inactive]': 'true',
 			});
 			return res.json(locations);
 		}
@@ -43,8 +71,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			}
 			const api = await getAPIClient();
 			const locations = await fetchSingleApiPage(api, `/users/${user.id}/locations`, {
+				...API_DEFAULT_FILTERS_LOCATIONS,
 				'page[size]': '50',
-				'filter[inactive]': 'true',
 			});
 			return res.json(locations);
 		}
@@ -76,11 +104,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 		try {
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, `/teams`, {
-				'filter[primary_campus]': CAMPUS_ID.toString(),
-				'filter[active_cursus]': CURSUS_ID.toString(),
-				'filter[with_mark]': 'true',
+				...API_DEFAULT_FILTERS_PROJECTS,
 				'page[size]': '100',
-				'sort': '-updated_at'
 			});
 			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
@@ -108,9 +133,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			}
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, `/users/${user.id}/teams`, {
-				'filter[with_mark]': 'true',
+				...API_DEFAULT_FILTERS_PROJECTS,
 				'page[size]': '100',
-				'sort': '-updated_at'
 			});
 			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
@@ -144,12 +168,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 		try {
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, `/teams`, {
-				'filter[primary_campus]': CAMPUS_ID.toString(),
-				'filter[active_cursus]': CURSUS_ID.toString(),
-				'filter[with_mark]': 'true',
-				'filter[project_id]': EXAM_PROJECT_IDS.join(','),
+				...API_DEFAULT_FILTERS_EXAMS,
 				'page[size]': '100',
-				'sort': '-updated_at'
 			});
 			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
@@ -177,10 +197,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			}
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, `/users/${user.id}/teams`, {
-				'filter[with_mark]': 'true',
-				'filter[project_id]': EXAM_PROJECT_IDS.join(','),
+				...API_DEFAULT_FILTERS_EXAMS,
 				'page[size]': '100',
-				'sort': '-updated_at'
 			});
 			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
 			return res.json(modifiedTeams);
@@ -215,12 +233,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 		try {
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
-				'filter[campus_id]': CAMPUS_ID.toString(),
-				'filter[cursus_id]': CURSUS_ID.toString(),
-				'filter[future]': 'false',
-				'range[filled_at]': `2024-01-01T00:00:00,${new Date().toISOString()}`, // filled_at was only added later
+				...API_DEFAULT_FILTERS_SCALE_TEAMS,
 				'page[size]': '25',
-				'sort': '-filled_at'
 			});
 			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
 			return res.json(modifiedScaleTeams);
@@ -248,13 +262,9 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			}
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
-				'filter[campus_id]': CAMPUS_ID.toString(),
-				'filter[cursus_id]': CURSUS_ID.toString(),
-				'filter[user_id]': user.id.toString(),
-				'filter[future]': 'false',
-				'range[filled_at]': `2024-01-01T00:00:00,${new Date().toISOString()}`, // filled_at was only added later
+				...API_DEFAULT_FILTERS_SCALE_TEAMS,
 				'page[size]': '25',
-				'sort': '-filled_at'
+				'filter[user_id]': user.id.toString(),
 			});
 			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
 			return res.json(modifiedScaleTeams);

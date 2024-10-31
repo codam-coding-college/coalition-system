@@ -1,0 +1,88 @@
+{% extends "base.njk" %}
+{% set title = "Webhook Catchup" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Webhook Catchup</li>
+	</ol>
+</nav>
+
+{% if catchupOperation.ongoing %}
+	<div class="mt-4 alert alert-info" role="alert">
+		<p>A catch-up operation is currently ongoing to fetch data between {{ catchupOperation.startDate | dateInput }} and {{ catchupOperation.endDate | dateInput }}.</p>
+		<p>It is currently at {{ catchupOperation.progress }}%. A new catch-up cannot be started until this one has finished.</p>
+	</div>
+	<script>
+		// Refresh every 5 seconds
+		setTimeout(() => window.location.reload(), 5000);
+	</script>
+{% else %}
+	<form method="post">
+		<p>Use this tool to catch up on missed points or recalculate all already handled points between to specific dates. It will use the current point system settings for calculation.</p>
+
+		<fieldset class="row">
+			<div class="col-md-6">
+				<label for="catchup_start" class="form-label">Start date</label>
+				<input type="date" id="catchup_start" name="catchup_start" class="form-control" required value="{{ catchupOperation.startDate | dateInput }}" min="2024-01-01">
+			</div>
+			<div class="col-md-6">
+				<label for="catchup_end" class="form-label">End date (including)</label>
+				<input type="date" id="catchup_end" name="catchup_end" class="form-control" required value="{{ catchupOperation.endDate | dateInput }}">
+			</div>
+		</fieldset>
+
+		<script>
+		// Make the catchup_start and catchup_end fields a daterange picker, limiting the min date of catchup_end to catchup_start and vice versa
+		function plusOneDay(date) {
+			return new Date(date.getTime() + 24 * 60 * 60 * 1000);
+		}
+
+		function limitCatchupDateRange() {
+			const catchupStart = document.getElementById('catchup_start');
+			const catchupEnd = document.getElementById('catchup_end');
+
+			const plusOne = plusOneDay(new Date(catchupStart.value));
+			if (catchupStart.value > catchupEnd.value) {
+				catchupEnd.value = plusOne.toISOString().split('T')[0];
+			}
+			catchupEnd.min = plusOne.toISOString().split('T')[0];
+		}
+
+		limitCatchupDateRange();
+		document.getElementById('catchup_start').addEventListener('change', limitCatchupDateRange);
+		</script>
+
+		<fieldset class="mt-4">
+			<legend>Filter</legend>
+
+			<div class="mt-2">
+				<input type="checkbox" id="catchup_locations" name="catchup_locations" value="true" checked>
+				<label for="catchup_locations">Locations</label>
+			</div>
+
+			<div class="mt-2">
+				<input type="checkbox" id="catchup_projects" name="catchup_projects" value="true" checked>
+				<label for="catchup_projects">Projects &amp; Exams</label>
+			</div>
+
+			<div class="mt-2">
+				<input type="checkbox" id="catchup_evaluations" name="catchup_evaluations" value="true" checked>
+				<label for="catchup_evaluations">Evaluations</label>
+			</div>
+
+			<div class="mt-2">
+				<input type="checkbox" id="catchup_pool_donations" name="catchup_pool_donations" value="true" disabled>
+				<label for="catchup_pool_donations"><s>Pool donations</s></label>
+			</div>
+		</fieldset>
+
+		<div class="mt-4 alert alert-warning" role="alert">
+			Warning: this operation can take a long time and will not be cancellable. During the operation, a new catch-up cannot be started.
+		</div>
+
+		<button type="submit" class="btn btn-warning">Start data catch-up</button>
+	</form>
+{% endif %}
+{% endblock %}

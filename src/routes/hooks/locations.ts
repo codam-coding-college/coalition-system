@@ -38,7 +38,7 @@ export const handleLocationCloseWebhook = async function(prisma: PrismaClient, l
 
 		// Create a score
 		const score = await handleFixedPointScore(prisma, fixedPointType, location.id, location.user.id, points,
-			`Logged ${duration.toFixed(1)} hours at ${location.host}`);
+			`Logged ${duration.toFixed(1)} hours at ${location.host}`, endAt);
 		if (!score) {
 			console.warn("Refused or failed to create score, skipping...");
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);

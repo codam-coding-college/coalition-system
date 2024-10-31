@@ -1,6 +1,6 @@
 import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@prisma/client';
 
-export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string): Promise<CodamCoalitionScore | null> {
+export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
 	// Get the user's coalition
 	const coalitionUser = await prisma.intraCoalitionUser.findFirst({
 		where: {
@@ -22,6 +22,7 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 			user_id: userId,
 			coalition_id: coalitionUser.coalition_id,
 			reason: reason,
+			created_at: scoreDate,
 		},
 	});
 
@@ -50,7 +51,7 @@ export const updateScore = async function(prisma: PrismaClient, score: CodamCoal
 	});
 }
 
-export const handleFixedPointScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string): Promise<CodamCoalitionScore | null> {
+export const handleFixedPointScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
 	if (typeIntraId) {
 		// Check if a score already exists for this type and typeIntraId
 		const existingScore = await prisma.codamCoalitionScore.findFirst({
@@ -70,5 +71,5 @@ export const handleFixedPointScore = async function(prisma: PrismaClient, type: 
 	}
 
 	// Create a new score
-	return await createScore(prisma, type, typeIntraId, userId, points, reason);
+	return await createScore(prisma, type, typeIntraId, userId, points, reason, scoreDate);
 };

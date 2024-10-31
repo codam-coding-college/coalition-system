@@ -114,7 +114,8 @@ export const handleScaleTeamUpdateWebhook = async function(prisma: PrismaClient,
 		}
 
 		// Create a score
-		const score = await handleFixedPointScore(prisma, fixedPointType, scaleTeam.id, user.id, points, reason);
+		const filledAt = new Date(scaleTeam.filled_at);
+		const score = await handleFixedPointScore(prisma, fixedPointType, scaleTeam.id, user.id, points, reason, filledAt);
 		if (!score) {
 			console.warn("Refused or failed to create score, skipping...");
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
