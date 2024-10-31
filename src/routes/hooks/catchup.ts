@@ -170,7 +170,7 @@ export const startCatchupOperation = async (catchupOperation: CatchupOperation, 
 
 	if (catchupOperation.filter.evaluations) {
 		console.log('Starting evaluations catch-up...');
-		catchupEvaluations(catchupOperation, currentStep, prisma);
+		await catchupEvaluations(catchupOperation, currentStep, prisma);
 		console.log('Evaluations catch-up completed.');
 		currentStep++;
 	}
