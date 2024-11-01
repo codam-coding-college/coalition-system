@@ -34,16 +34,46 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
-						<h5 class="card-title mb-0">Scores for {{ coalition.intra_coalition.name }} </h5>
+						<h5 class="card-title mb-0">Scores for {{ coalition.intra_coalition.name }}</h5>
 					</div>
 					<div class="card-body">
 						<ul>
 							<li>Score: {{ coalitionScores[coalition.id].score }}</li>
 							<li>Total points: {{ coalitionScores[coalition.id].totalPoints }}</li>
+							<li>Total contributor count: {{ coalitionScores[coalition.id].totalContributors }}</li>
 							<li>Minimum contrition: {{ coalitionScores[coalition.id].minActivePoints }}</li>
+							<li>Active contributor count: {{ coalitionScores[coalition.id].activeContributors }}</li>
 							<li>Average points: {{ coalitionScores[coalition.id].avgPoints | toFixed(2) }}</li>
 							<li>Standard deviation points: {{ coalitionScores[coalition.id].stdDevPoints | toFixed(2) }}</li>
 						</ul>
+					</div>
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+
+	<div class="row ms-0 me-0 mb-4">
+		<div class="col">
+			<div class="card h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">Coalitions score history</h5>
+				</div>
+				<div class="card-body">
+					<canvas height="500" class="codam-chart" data-url="/admin/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row ms-0 me-0 mb-4">
+		{% for coalition in coalitions %}
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h5 class="card-title mb-0">Score history for {{ coalition.intra_coalition.name }}</h5>
+					</div>
+					<div class="card-body">
+						<canvas height="500" class="codam-chart" data-url="/admin/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
 					</div>
 				</div>
 			</div>
@@ -55,10 +85,10 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
-						<h5 class="card-title mb-0">Score Distributions for {{ coalition.intra_coalition.name }} </h5>
+						<h5 class="card-title mb-0">Current score distribution for {{ coalition.intra_coalition.name }}</h5>
 					</div>
 					<div class="card-body">
-						<canvas class="codam-chart" data-url="/admin/charts/coalitions/{{ coalition.id }}/scores/distribution" id="coalition-{{ coalition.id }}-scores-distribution"></canvas>
+						<canvas height="500" class="codam-chart" data-url="/admin/charts/coalitions/{{ coalition.id }}/scores/distribution" id="coalition-{{ coalition.id }}-scores-distribution"></canvas>
 					</div>
 				</div>
 			</div>

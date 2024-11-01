@@ -202,6 +202,7 @@ export interface NormalDistribution {
 };
 
 export const getScoresNormalDistribution = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<NormalDistribution> {
+	// TODO: calculate based on tournament deadlines
 	const scores = await prisma.codamCoalitionScore.groupBy({
 		by: ['user_id'],
 		where: {
@@ -238,6 +239,8 @@ export interface CoalitionScore {
 	avgPoints: number;
 	stdDevPoints: number;
 	minActivePoints: number; // Minimum score for a user to be considered active
+	totalContributors: number;
+	activeContributors: number;
 }
 
 export const getCoalitionScore = async function(prisma: PrismaClient, coalitionId: number, atDateTime: Date = new Date()): Promise<CoalitionScore> {
@@ -252,5 +255,7 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		stdDevPoints: normalDist.stdDev,
 		minActivePoints: minScore,
 		score: fairScore,
+		totalContributors: normalDist.dataPoints.length,
+		activeContributors: activeScores.length,
 	};
 };
