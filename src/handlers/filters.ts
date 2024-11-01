@@ -8,6 +8,11 @@ export const setupNunjucksFilters = function(app: Express): void {
 		express: app,
 	});
 
+	// Add formatting for floats to fixed
+	nunjucksEnv.addFilter('toFixed', (num: number, digits: number) => {
+		return num.toFixed(digits);
+	});
+
 	// Add formatting filter for seconds to hh:mm format
 	nunjucksEnv.addFilter('formatSeconds', (seconds: number) => {
 		const hours = Math.floor(seconds / 3600);

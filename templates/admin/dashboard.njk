@@ -2,28 +2,67 @@
 {% set title = "Admin Dashboard" %}
 
 {% block content %}
-<h1>Admin Dashboard</h1>
-<div class="row ms-0 me-0">
-	<div class="col-md-6">
-		<div class="card">
-			<div class="card-header">
-				<h5 class="card-title mb-0">User distribution</h5>
+<div class="container-lg">
+	<h1 class="mb-4">Admin Dashboard</h1>
+
+	<div class="row ms-0 me-0 mb-4">
+		<div class="col-md-6">
+			<div class="card h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">User distribution</h5>
+				</div>
+				<div class="card-body">
+					<canvas class="codam-chart" data-url="/admin/charts/coalitions/users/distribution" id="coalition-user-distribution"></canvas>
+				</div>
 			</div>
-			<div class="card-body">
-				<canvas class="codam-chart" data-url="/admin/charts/coalitions/users/distribution" id="coalition-user-distribution"></canvas>
+		</div>
+		<div class="col-md-6">
+			<div class="card h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">Season deadlines</h5>
+				</div>
+				<div class="card-body">
+					<p>Start: <span id="season-start" data-date="{{ blocDeadline.begin_at | timestamp }}">{{ blocDeadline.begin_at | timeAgo }}</span></p>
+					<p>End: <span id="season-end" data-date="{{ blocDeadline.end_at | timestamp }}">{{ blocDeadline.end_at | timeFromNow }}</span></p>
+				</div>
 			</div>
 		</div>
 	</div>
-	<div class="col-md-6">
-		<div class="card">
-			<div class="card-header">
-				<h5 class="card-title mb-0">Season deadlines</h5>
+
+	<div class="row ms-0 me-0 mb-4">
+		{% for coalition in coalitions %}
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h5 class="card-title mb-0">Scores for {{ coalition.intra_coalition.name }} </h5>
+					</div>
+					<div class="card-body">
+						<ul>
+							<li>Score: {{ coalitionScores[coalition.id].score }}</li>
+							<li>Total points: {{ coalitionScores[coalition.id].totalPoints }}</li>
+							<li>Minimum contrition: {{ coalitionScores[coalition.id].minActivePoints }}</li>
+							<li>Average points: {{ coalitionScores[coalition.id].avgPoints | toFixed(2) }}</li>
+							<li>Standard deviation points: {{ coalitionScores[coalition.id].stdDevPoints | toFixed(2) }}</li>
+						</ul>
+					</div>
+				</div>
 			</div>
-			<div class="card-body">
-				<p>Start: <span id="season-start" data-date="{{ blocDeadline.begin_at | timestamp }}">{{ blocDeadline.begin_at | timeAgo }}</span></p>
-				<p>End: <span id="season-end" data-date="{{ blocDeadline.end_at | timestamp }}">{{ blocDeadline.end_at | timeFromNow }}</span></p>
+		{% endfor %}
+	</div>
+
+	<div class="row ms-0 me-0 mb-4">
+		{% for coalition in coalitions %}
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h5 class="card-title mb-0">Score Distributions for {{ coalition.intra_coalition.name }} </h5>
+					</div>
+					<div class="card-body">
+						<canvas class="codam-chart" data-url="/admin/charts/coalitions/{{ coalition.id }}/scores/distribution" id="coalition-{{ coalition.id }}-scores-distribution"></canvas>
+					</div>
+				</div>
 			</div>
-		</div>
+		{% endfor %}
 	</div>
 </div>
 {% endblock %}

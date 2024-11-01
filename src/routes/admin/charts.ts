@@ -74,8 +74,104 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 						display: false,
 					}
 				},
-			}
+			},
 		}
 		return res.json(chartJSData);
+	});
+
+	app.get('/admin/charts/coalitions/:coalitionId/scores/distribution', async (req, res) => {
+		try {
+			const coalitionId = parseInt(req.params.coalitionId);
+			const coalition = await prisma.intraCoalition.findFirst({
+				where: {
+					id: coalitionId,
+				},
+				select: {
+					id: true,
+					name: true,
+					color: true,
+				}
+			});
+			if (!coalition) {
+				throw new Error('Invalid coalition ID');
+			}
+			const scores = await prisma.codamCoalitionScore.groupBy({
+				by: ['user_id'],
+				where: {
+					coalition_id: coalitionId,
+				},
+				_sum: {
+					amount: true,
+				},
+				_count: {
+					id: true,
+				},
+			});
+			const coalitionUsers = await prisma.intraCoalitionUser.findMany({
+				where: {
+					coalition_id: coalitionId,
+				},
+				select: {
+					user_id: true,
+					user: {
+						select: {
+							login: true,
+						},
+					},
+				},
+			});
+
+			const scoresPerUser = coalitionUsers.map((user) => {
+				const score = scores.find((score) => score.user_id === user.user_id) || { _sum: { amount: 0 }, _count: { id: 0 } };
+				return {
+					login: user.user.login,
+					amount: score._sum.amount,
+					count: score._count.id,
+				};
+			});
+
+			// Compose the returnable data (in a format Chart.js can understand)
+			const chartJSData: ChartConfiguration = {
+				type: 'scatter',
+				data: {
+					labels: scoresPerUser.map((score) => score.login),
+					datasets: [
+						{
+							label: 'Scores',
+							data: scoresPerUser.map((score) => ({ x: score.amount, y: score.count })) as Chart.ChartPoint[],
+							backgroundColor: coalition.color ? coalition.color : '#808080',
+							borderWidth: 1,
+						},
+					],
+				},
+				options: {
+					scales: {
+						// @ts-ignore
+						x: {
+							title: {
+								display: true,
+								text: 'Amount of points',
+							},
+						},
+						y: {
+							title: {
+								display: true,
+								text: 'Amount of scores',
+							},
+						},
+					},
+					plugins: {
+						legend: {
+							display: false,
+						}
+					},
+				}
+			};
+
+			return res.json(chartJSData);
+		}
+		catch (err) {
+			return res.status(400).json({ error: err });
+		}
 	});
 }

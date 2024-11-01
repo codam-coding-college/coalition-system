@@ -192,3 +192,65 @@ export const timeFromNow = function(date: Date | null): string {
 	}
 	return `within a minute`; // don't specify: otherwise it's weird when the amount of seconds does not go down
 };
+
+export interface NormalDistribution {
+	dataPoints: number[];
+	mean: number;
+	stdDev: number;
+	min: number;
+	max: number;
+};
+
+export const getScoresNormalDistribution = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<NormalDistribution> {
+	const scores = await prisma.codamCoalitionScore.groupBy({
+		by: ['user_id'],
+		where: {
+			coalition_id: coalitionId,
+			created_at: {
+				lte: untilDate,
+			},
+		},
+		_sum: {
+			amount: true,
+		},
+	});
+	// console.log(scores);
+	const scoresArray = scores.map(s => s._sum.amount ? s._sum.amount : 0);
+	const scoresSum = scoresArray.reduce((a, b) => a + b, 0);
+	const scoresMean = scoresSum / scoresArray.length;
+	const scoresVariance = scoresArray.reduce((a, b) => a + Math.pow(b - scoresMean, 2), 0) / scoresArray.length;
+	const scoresStdDev = Math.sqrt(scoresVariance);
+	const scoresMin = Math.min(...scoresArray);
+	const scoresMax = Math.max(...scoresArray);
+	return {
+		dataPoints: scoresArray,
+		mean: scoresMean,
+		stdDev: scoresStdDev,
+		min: scoresMin,
+		max: scoresMax,
+	};
+};
+
+export interface CoalitionScore {
+	coalition_id: number;
+	score: number;
+	totalPoints: number;
+	avgPoints: number;
+	stdDevPoints: number;
+	minActivePoints: number; // Minimum score for a user to be considered active
+}
+
+export const getCoalitionScore = async function(prisma: PrismaClient, coalitionId: number, atDateTime: Date = new Date()): Promise<CoalitionScore> {
+	const normalDist = await getScoresNormalDistribution(prisma, coalitionId, atDateTime);
+	const minScore = Math.floor(normalDist.mean - normalDist.stdDev);
+	const activeScores = normalDist.dataPoints.filter(s => s >= minScore);
+	const fairScore = Math.floor(activeScores.reduce((a, b) => a + b, 0) / activeScores.length);
+	return {
+		coalition_id: coalitionId,
+		totalPoints: normalDist.dataPoints.reduce((a, b) => a + b, 0),
+		avgPoints: normalDist.mean,
+		stdDevPoints: normalDist.stdDev,
+		minActivePoints: minScore,
+		score: fairScore,
+	};
+};
