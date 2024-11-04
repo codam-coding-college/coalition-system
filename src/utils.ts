@@ -366,6 +366,8 @@ export const getRanking = async function(prisma: PrismaClient, rankingType: stri
 	});
 
 	const rankings: SingleRanking[] = [];
+	let currentRank = 0;
+	let lastScore = Infinity;
 	for (const score of scores) {
 		if (score._sum.amount === null || score._sum.amount <= 0) {
 			continue;
@@ -385,11 +387,15 @@ export const getRanking = async function(prisma: PrismaClient, rankingType: stri
 		if (!user) {
 			continue;
 		}
+		if (lastScore > score._sum.amount) { // Only increase rank if the score is lower than the previous one, otherwise it's a tie
+			currentRank = rankings.length + 1;
+			lastScore = score._sum.amount;
+		}
 		rankings.push({
 			rankingName: ranking.name,
 			user: user,
 			score: score._sum.amount ? score._sum.amount : 0,
-			rank: rankings.length + 1,
+			rank: currentRank,
 			coalition: (user.coalition_users.length > 0 ? user.coalition_users[0].coalition : null),
 		});
 	}
