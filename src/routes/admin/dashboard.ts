@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { CoalitionScore, getCoalitionScore } from '../../utils';
+import { CoalitionScore, getCoalitionScore, getScoresPerType } from '../../utils';
 
 export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin', async (req, res) => {
@@ -34,10 +34,17 @@ export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaCl
 			coalitionScores[coalition.id] = await getCoalitionScore(prisma, coalition.id);
 		}
 
+		// Get scores per type per coalition
+		const coalitionScoresPerFixedType: { [key: number]: { [key: string]: number } } = {};
+		for (const coalition of coalitions) {
+			coalitionScoresPerFixedType[coalition.id] = await getScoresPerType(prisma, coalition.id);
+		}
+
 		return res.render('admin/dashboard.njk', {
 			blocDeadline,
 			coalitions,
 			coalitionScores,
+			coalitionScoresPerFixedType,
 		});
 	});
 };

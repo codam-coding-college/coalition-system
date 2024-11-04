@@ -2,7 +2,7 @@ import { PrismaClient, IntraUser } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { api } from "./main";
-import { INTRA_API_UID, INTRA_API_SECRET, CURSUS_ID } from "./env";
+import { CURSUS_ID } from "./env";
 
 export const getAPIClient = async function(): Promise<Fast42> {
 	if (!api) {
@@ -200,6 +200,36 @@ export interface NormalDistribution {
 	min: number;
 	max: number;
 };
+
+export const getScoresPerType = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<{ [key: string]: number }> {
+	// TODO: calculate based on tournament deadlines
+	const fixedTypes = await prisma.codamCoalitionFixedType.findMany({
+		orderBy: {
+			type: 'asc',
+		},
+	});
+	const scores = await prisma.codamCoalitionScore.groupBy({
+		by: ['fixed_type_id'],
+		where: {
+			coalition_id: coalitionId,
+			created_at: {
+				lte: untilDate,
+			},
+		},
+		_sum: {
+			amount: true,
+		},
+	});
+	const scoresPerType: { [key: string]: number } = {};
+	for (const fixedType of fixedTypes) {
+		const score = scores.find(s => s.fixed_type_id === fixedType.type);
+		scoresPerType[fixedType.type] = score && score._sum.amount ? score._sum.amount : 0;
+	}
+	// Fallback for fixed_type_id null
+	const score = scores.find(s => s.fixed_type_id === null);
+	scoresPerType['unknown'] = score && score._sum.amount ? score._sum.amount : 0;
+	return scoresPerType;
+}
 
 export const getScoresNormalDistribution = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<NormalDistribution> {
 	// TODO: calculate based on tournament deadlines

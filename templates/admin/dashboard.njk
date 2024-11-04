@@ -38,13 +38,18 @@
 					</div>
 					<div class="card-body">
 						<ul>
-							<li>Score: {{ coalitionScores[coalition.id].score }}</li>
-							<li>Total points: {{ coalitionScores[coalition.id].totalPoints }}</li>
-							<li>Total contributor count: {{ coalitionScores[coalition.id].totalContributors }}</li>
-							<li>Minimum contrition: {{ coalitionScores[coalition.id].minActivePoints }}</li>
-							<li>Active contributor count: {{ coalitionScores[coalition.id].activeContributors }}</li>
-							<li>Average points: {{ coalitionScores[coalition.id].avgPoints | toFixed(2) }}</li>
-							<li>Standard deviation points: {{ coalitionScores[coalition.id].stdDevPoints | toFixed(2) }}</li>
+							<li>Score: {{ coalitionScores[coalition.id].score | thousands }}</li>
+							<li>Total points: {{ coalitionScores[coalition.id].totalPoints | thousands }}</li>
+							<li>Total contributor count: {{ coalitionScores[coalition.id].totalContributors | thousands }}</li>
+							<li>Minimum contrition: {{ coalitionScores[coalition.id].minActivePoints | thousands }}</li>
+							<li>Active contributor count: {{ coalitionScores[coalition.id].activeContributors | thousands }}</li>
+							<li>Average points: {{ coalitionScores[coalition.id].avgPoints | toFixed(2) | thousands }}</li>
+							<li>Standard deviation points: {{ coalitionScores[coalition.id].stdDevPoints | toFixed(2) | thousands }}</li>
+						</ul>
+						<ul>
+							{% for fixedType, score in coalitionScoresPerFixedType[coalition.id] %}
+								<li>Points for {{ fixedType }}s: {{ score | thousands }}</li>
+							{% endfor %}
 						</ul>
 					</div>
 				</div>
@@ -59,7 +64,7 @@
 					<h5 class="card-title mb-0">Coalitions score history</h5>
 				</div>
 				<div class="card-body">
-					<canvas height="500" class="codam-chart" data-url="/admin/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
+					<canvas height="250" class="codam-chart" data-url="/admin/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
 				</div>
 			</div>
 		</div>

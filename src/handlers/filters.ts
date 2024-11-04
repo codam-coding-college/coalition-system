@@ -13,6 +13,11 @@ export const setupNunjucksFilters = function(app: Express): void {
 		return num.toFixed(digits);
 	});
 
+	// Add formatting for numbers to thousands separator
+	nunjucksEnv.addFilter('thousands', (num: number | string) => {
+		return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	});
+
 	// Add formatting filter for seconds to hh:mm format
 	nunjucksEnv.addFilter('formatSeconds', (seconds: number) => {
 		const hours = Math.floor(seconds / 3600);
