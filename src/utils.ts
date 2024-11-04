@@ -323,6 +323,7 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 };
 
 export interface SingleRanking {
+	rankingName: string;
 	user: IntraUser;
 	coalition: IntraCoalition | null;
 	score: number;
@@ -361,7 +362,7 @@ export const getRanking = async function(prisma: PrismaClient, rankingType: stri
 				amount: 'desc',
 			},
 		},
-		take: topAmount,
+		take: (topAmount === Infinity ? undefined : topAmount),
 	});
 
 	const rankings: SingleRanking[] = [];
@@ -385,6 +386,7 @@ export const getRanking = async function(prisma: PrismaClient, rankingType: stri
 			continue;
 		}
 		rankings.push({
+			rankingName: ranking.name,
 			user: user,
 			score: score._sum.amount ? score._sum.amount : 0,
 			rank: rankings.length + 1,
@@ -393,4 +395,24 @@ export const getRanking = async function(prisma: PrismaClient, rankingType: stri
 	}
 
 	return rankings;
+};
+
+export const getUserRanking = async function(prisma: PrismaClient, rankingType: string, userId: number, atDateTime: Date = new Date()): Promise<SingleRanking | null> {
+	const ranking = await getRanking(prisma, rankingType, atDateTime, 100); // Don't care if the user is not in the top 100
+	const userRanking = ranking.find(r => r.user.id === userId);
+	return (userRanking ? userRanking : null);
+}
+
+export const getUserRankingAcrossAllRankings = async function(prisma: PrismaClient, userId: number, atDateTime: Date = new Date()): Promise<{ [key: string]: SingleRanking | null; }> {
+	const rankings = await prisma.codamCoalitionRanking.findMany({
+		select: {
+			type: true,
+		}
+	});
+	const userRankings: { [key: string]: SingleRanking | null } = {};
+	for (const ranking of rankings) {
+		const userRanking = await getUserRanking(prisma, ranking.type, userId, atDateTime);
+		userRankings[ranking.type] = userRanking;
+	}
+	return userRankings;
 };

@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getUserTournamentRanking } from '../utils';
+import { getUserRankingAcrossAllRankings, getUserTournamentRanking } from '../utils';
 
 export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/profile/:login', async (req, res) => {
@@ -64,12 +64,16 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 			},
 		});
 
+		// Get user ranking across all rankings
+		const userRankings = await getUserRankingAcrossAllRankings(prisma, profileUser.id);
+
 		return res.render('profile.njk', {
 			profileUser,
 			latestScores,
 			totalScores,
 			totalScore,
 			ranking,
+			userRankings,
 		});
 	});
 };
