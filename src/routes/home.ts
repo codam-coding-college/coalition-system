@@ -72,7 +72,10 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 				type: true,
 				name: true,
 				description: true,
-			}
+			},
+			orderBy: {
+				type: 'asc',
+			},
 		});
 		const rankings: { [key: string]: SingleRanking[] } = {};
 		for (const rankingType of rankingTypes) {
