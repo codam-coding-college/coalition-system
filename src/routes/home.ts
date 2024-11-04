@@ -3,7 +3,7 @@ import passport from 'passport';
 import { CodamCoalition, PrismaClient } from '@prisma/client';
 import { isQuizAvailable } from './quiz';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getCoalitionScore, CoalitionScore } from '../utils';
+import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking } from '../utils';
 
 export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/', passport.authenticate('session', {
@@ -66,6 +66,19 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			},
 		});
 
+		// Get rankings
+		const rankingTypes = await prisma.codamCoalitionRanking.findMany({
+			select: {
+				type: true,
+				name: true,
+				description: true,
+			}
+		});
+		const rankings: { [key: string]: SingleRanking[] } = {};
+		for (const rankingType of rankingTypes) {
+			rankings[rankingType.type] = await getRanking(prisma, rankingType.type);
+		}
+
 		// Check if quiz is currently available
 		const quiz_available = await isQuizAvailable(user, prisma);
 
@@ -75,6 +88,8 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			my_coalition,
 			quiz_available,
 			sortedCoalitionScores,
+			rankingTypes,
+			rankings,
 		});
 	});
 };

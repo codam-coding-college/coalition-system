@@ -1,0 +1,50 @@
+{% extends "base.njk" %}
+{% set title = "Edit ranking " + ranking.name %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/rankings">Edit ranking system</a></li>
+		<li class="breadcrumb-item active" aria-current="page">{{ ranking.type }}</li>
+	</ol>
+</nav>
+
+<form action="/admin/rankings/{{ ranking.type }}/edit" method="post">
+	<div class="mb-2">
+		<label for="name" class="form-label">Name</label>
+		<input type="text" id="name" name="name" class="form-control" placeholder="Name" value="{{ ranking.name }}" required readonly>
+	</div>
+
+	<div class="mb-2">
+		<label for="description" class="form-label">Description</label>
+		<input type="text" id="description" name="description" class="form-control" placeholder="Description" value="{{ ranking.description }}" required>
+	</div>
+
+	<div class="mb-2">
+		<label for="top_title" class="form-label">Title for #1</label>
+		<input type="text" id="top_title" name="top_title" class="form-control" placeholder="#1 Name" value="{{ ranking.top_title }}" required>
+	</div>
+
+	<div class="mb-2">
+		<label for="bonus_points" class="form-label">Bonus points</label>
+		<input type="number" id="bonus_points" name="bonus_points" class="form-control" placeholder="Point amount" value="{{ ranking.bonus_points }}" required min="0">
+	</div>
+
+	<div class="mb-2 mt-3">
+		<input type="checkbox" id="disabled" name="disabled" class="form-check-input mr-2" value="true" {{ "checked" if ranking.disabled else "" }}>
+		<label for="disabled" class="form-label">Disabled</label>
+	</div>
+
+	<div class="mb-2 mt-3">
+		<label for="fixed_types" class="form-label">Linked to fixed point types</label>
+		<select id="fixed_types" name="fixed_types" class="form-select" multiple required>
+			{% for fixedPointType in fixedPointTypes %}
+				<option value="{{ fixedPointType.type }}" {{ "selected" if fixedPointType.type in selectedFixedPointTypes else "" }}>{{ fixedPointType.type }}</option>
+			{% endfor %}
+		</select>
+
+	<button type="submit" class="btn btn-primary">Save</button>
+	<a href="/admin/rankings" class="btn btn-secondary">Back to overview</a>
+</form>
+{% endblock %}

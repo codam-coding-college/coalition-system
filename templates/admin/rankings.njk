@@ -1,0 +1,77 @@
+{% extends "base.njk" %}
+{% set title = "Edit rankings system" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Edit rankings system</li>
+	</ol>
+</nav>
+
+<p>Here you can edit the rankings system. Rankings are leaderboards spanning all coalitions. At the end of a tournament (not a season - these rankings span across all seasons), each #1 of each ranking will receive a bonus amount of points.</p>
+<p>Rankings are automatically calculated based on fixed point types. These fixed point types are the same as the ones used in the coalition scores. The students with the most points to a specified collection of fixed point types becomes #1 of a ranking.</p>
+
+<table class="table table-striped">
+	<thead>
+		<th scope="col">Type</th>
+		<th scope="col">Name</th>
+		<th scope="col">Description</th>
+		<th scope="col">Bonus points</th>
+		<th scope="col">Disabled</th>
+		<th scope="col">Linked to fixed point types</th>
+		<th scope="col text-end" style="text-align: end;">Options</th> <!-- for some reason the text-end class doesn't work here -->
+	</thead>
+	<tbody>
+		{% for ranking in rankings %}
+			<tr>
+				<td>{{ ranking.type }}</td>
+				<td>{{ ranking.name }}</td>
+				<td>{{ ranking.description }}</td>
+				<td>{{ ranking.bonus_points }}</td>
+				<td>{{ ranking.disabled | bool }}</td>
+				<td>{{ ranking.fixed_types | keyjoin('type', ', ') }}</td>
+				<td class="text-end">
+					<a href="/admin/rankings/{{ ranking.type }}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
+				</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+<div class="card w-100 mt-4 mb-4" id="ranking-new">
+	<div class="card-header pe-2 d-flex align-items-center">
+		<div class="d-inline-block pe-3 lh-lg flex-grow-1">Create a new ranking</div>
+		<div class="d-inline-block">
+
+		</div>
+	</div>
+	<div class="card-body">
+		<form action="/admin/rankings/new" method="post" class="mb-3">
+			<div class="mb-2">
+				<label for="name" class="form-label">Name</label>
+				<input type="text" id="name" name="name" class="form-control" placeholder="Name" required>
+			</div>
+
+			<div class="mb-2">
+				<label for="top_title" class="form-label">Title of #1</label>
+				<input type="text" id="top_title" name="top_title" class="form-control" placeholder="#1 Name" required>
+			</div>
+
+			<div class="mb-2">
+				<label for="description" class="form-label">Description</label>
+				<input type="text" id="description" name="description" class="form-control" placeholder="Description" required>
+			</div>
+
+			<div class="mb-2">
+				<label for="bonus_points" class="form-label">Bonus points</label>
+				<input type="number" id="bonus_points" name="bonus_points" class="form-control" placeholder="Bonus point amount" required min="1">
+			</div>
+
+			<div class="mt-4">
+				<button type="submit" class="btn btn-primary w-100">Create ranking</button>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

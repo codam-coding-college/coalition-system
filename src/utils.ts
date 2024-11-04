@@ -1,4 +1,4 @@
-import { PrismaClient, IntraUser } from "@prisma/client";
+import { PrismaClient, IntraUser, IntraCoalition } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { api } from "./main";
@@ -320,4 +320,77 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		totalContributors: normalDist.dataPoints.length,
 		activeContributors: activeScores.length,
 	};
+};
+
+export interface SingleRanking {
+	user: IntraUser;
+	coalition: IntraCoalition | null;
+	score: number;
+	rank: number;
+}
+
+export const getRanking = async function(prisma: PrismaClient, rankingType: string, atDateTime: Date = new Date(), topAmount: number = 10): Promise<SingleRanking[]> {
+	const ranking = await prisma.codamCoalitionRanking.findFirst({
+		where: {
+			type: rankingType,
+		},
+		include: {
+			fixed_types: true,
+		},
+	});
+	if (!ranking) {
+		throw new Error(`Ranking type ${rankingType} not found`);
+	}
+
+	// TODO: take into account the TOURNAMENT (not SEASONS!)
+	const scores = await prisma.codamCoalitionScore.groupBy({
+		by: ['user_id'],
+		where: {
+			created_at: {
+				lte: atDateTime,
+			},
+			fixed_type_id: {
+				in: ranking.fixed_types.map(t => t.type),
+			},
+		},
+		_sum: {
+			amount: true,
+		},
+		orderBy: {
+			_sum: {
+				amount: 'desc',
+			},
+		},
+		take: topAmount,
+	});
+
+	const rankings: SingleRanking[] = [];
+	for (const score of scores) {
+		if (score._sum.amount === null || score._sum.amount <= 0) {
+			continue;
+		}
+		const user = await prisma.intraUser.findFirst({
+			where: {
+				id: score.user_id,
+			},
+			include: {
+				coalition_users: {
+					include: {
+						coalition: true,
+					}
+				}
+			}
+		});
+		if (!user) {
+			continue;
+		}
+		rankings.push({
+			user: user,
+			score: score._sum.amount ? score._sum.amount : 0,
+			rank: rankings.length + 1,
+			coalition: (user.coalition_users.length > 0 ? user.coalition_users[0].coalition : null),
+		});
+	}
+
+	return rankings;
 };

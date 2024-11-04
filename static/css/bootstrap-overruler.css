@@ -93,11 +93,9 @@
 	background-clip: border-box;
 }
 
-.user-header .user-picture {
+.user-picture {
 	max-width: 100%;
 	aspect-ratio: 1 / 1;
-	height: auto;
-	max-height: 200px;
 	object-fit: cover;
 }
 

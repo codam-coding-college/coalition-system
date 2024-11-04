@@ -5,7 +5,7 @@
 {% if not quiz_available %}
 {# This section is only displayed when the quiz is not available. #}
 	<div class="container-lg">
-		<div class="card w-100 mb-4" id="help-development">
+		<div class="card w-100 mb-4" id="leaderboards">
 			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
 				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Leaderboards</div>
 				<div class="d-inline-block">
@@ -22,7 +22,7 @@
 			</div>
 		</div>
 
-		<div class="card w-100 mb-4" id="help-development">
+		<div class="card w-100 mb-4" id="score-history">
 			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
 				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Score History</div>
 				<div class="d-inline-block">
@@ -33,6 +33,42 @@
 				<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
 			</div>
 		</div>
+
+		{% for rankingType in rankingTypes %}
+			<div class="card w-100 mb-4" id="ranking-{{ rankingType.type }}">
+				<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+					<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">{{ rankingType.name }}</div>
+					<div class="d-inline-block">
+
+					</div>
+				</div>
+				<div class="card-body p-0">
+					<p class="p-4 pb-2">{{ rankingType.description }}</p>
+					<table class="table coalition-colored mb-0">
+						<tbody>
+							{% for ranking in rankings[rankingType.type] %}
+								<tr style="background: {{ ranking.coalition.color | rgba(0.25) }}; vertical-align: middle;">
+									<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
+									<td class="p-0">
+										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
+											<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light" style="text-decoration: none;">
+												<img src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+												<span>{{ ranking.user.usual_full_name }}</span>
+											</a>
+										</div>
+									</td>
+									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score }}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					{# if no rankings, display a message #}
+					{% if rankings[rankingType.type] | length == 0 %}
+						<p class="text-muted p-4"><i>No rankings available (yet).</i></p>
+					{% endif %}
+				</div>
+			</div>
+		{% endfor %}
 	</div>
 {% else %}
 {# This section is only displayed when the quiz is available. #}

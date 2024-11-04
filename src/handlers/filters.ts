@@ -61,4 +61,28 @@ export const setupNunjucksFilters = function(app: Express): void {
 		const b = parseInt(hex.substring(5, 7), 16);
 		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 	});
+
+	// Add filter to join an array of strings with a separator
+	nunjucksEnv.addFilter('join', (arr: string[] | undefined | null | string, separator: string) => {
+		if (typeof arr === 'string') {
+			return arr;
+		}
+		if (!arr || typeof arr !== 'object' || !Array.isArray(arr)) {
+			return '';
+		}
+		return arr.join(separator);
+	});
+
+	// Add filter to join an array of objects with a separator, of a specific key
+	nunjucksEnv.addFilter('keyjoin', (arr: any[] | undefined | null, key: string, separator: string) => {
+		if (!arr || typeof arr !== 'object' || !Array.isArray(arr)) {
+			return '';
+		}
+		return arr.map((obj) => obj[key]).join(separator);
+	});
+
+	// Add filter to transform a boolean to a string
+	nunjucksEnv.addFilter('bool', (value: boolean) => {
+		return value ? 'true' : 'false';
+	});
 };

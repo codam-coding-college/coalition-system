@@ -51,17 +51,32 @@ model CodamCoalition {
 	intra_coalition  IntraCoalition   @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
+// A cross-coalition ranking for each fixed-point type.
+// At the end of the yearly tournament the #1 in each ranking will gain all ranking_bonus points towards their coalition, spicing up the last season.
+model CodamCoalitionRanking {
+	type             String   @id
+	name             String   // The name of the cross-coalition ranking that this type of score contributes to (e.g. Guiding Stars)
+	description      String   @default("")
+	top_title        String   // The title of the top of the ranking (e.g. #1 Guiding Star)
+	bonus_points     Int?     // Bonus points for the #1 spot in the ranking at the end of the full tournament (not a season)
+	disabled         Boolean  @default(false) // If disabled, this ranking will not be calculated at the end of a tournament
+
+	fixed_types      CodamCoalitionFixedType[] // The #1 is calculated by the sum of all fixed types of the same ranking type
+}
+
 // Fixed type of score for the coalition system
 model CodamCoalitionFixedType {
 	type             String   @id // should not contain spaces. e.g. "project", "eval", "point_donated", "logtime", "exam", "basic_event", "intermediate_event", "advanced_event"
 	description      String
 	point_amount     Int
+	ranking_type     String?  // The ranking type that this fixed type of score contributes to (leave empty to disable ranking, does not need to be unique)
 
 	created_at       DateTime @default(now())
 	updated_at       DateTime @default(now()) @updatedAt
 
 	// Relations
 	scores           CodamCoalitionScore[]
+	ranking          CodamCoalitionRanking? @relation(fields: [ranking_type], references: [type], onDelete: SetNull, onUpdate: Cascade)
 }
 
 model CodamCoalitionScore {
