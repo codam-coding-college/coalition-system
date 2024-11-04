@@ -7,6 +7,9 @@ export const setupAdminRankingRoutes = function(app: Express, prisma: PrismaClie
 			include: {
 				fixed_types: true,
 			},
+			orderBy: {
+				type: 'asc',
+			},
 		});
 		res.render('admin/rankings.njk', {
 			rankings,
