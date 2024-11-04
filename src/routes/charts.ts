@@ -1,8 +1,198 @@
 import { PrismaClient } from '@prisma/client';
 import { ChartConfiguration } from 'chart.js';
 import { Express } from 'express';
+import { CoalitionScore, getCoalitionScore } from '../utils';
 
 export const setupChartRoutes = function(app: Express, prisma: PrismaClient): void {
+	app.get('/charts/coalitions/scores/history', async (req, res) => {
+		// TODO: change this to the full overview of a tournament deadline instead of past 30 days
+		try {
+			const coalitions = await prisma.intraCoalition.findMany({
+				select: {
+					id: true,
+					name: true,
+					color: true,
+				}
+			});
+			if (coalitions.length === 0) {
+				throw new Error('No coalitions found');
+			}
+			// Get the score for the past 30 days per day, 2 points per day (00:00 and 12:00)
+			const dates = [];
+			const now = new Date();
+			now.setHours((now.getHours() > 12) ? 12 : 0, 0, 0, 0);
+			const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+			for (let i = 0; i <= 60; i++) {
+				dates.push(new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000));
+			}
+
+			// Get the scores for each coalition
+			const coalitionDataPoints: { [key: number]: CoalitionScore[] } = {};
+			for (const coalition of coalitions) {
+				const dataPoints: CoalitionScore[] = [];
+				for (const date of dates) {
+					dataPoints[date.getTime()] = await getCoalitionScore(prisma, coalition.id, date);
+				}
+				coalitionDataPoints[coalition.id] = dataPoints;
+			}
+
+			// Compose the returnable data (in a format Chart.js can understand)
+			const chartJSData: ChartConfiguration = {
+				type: 'line',
+				data: {
+					labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:00`),
+					datasets: [],
+				},
+				options: {
+					showLines: true,
+					scales: {
+						// @ts-ignore
+						x: {
+							title: {
+								display: false,
+								text: 'Date',
+							},
+							// hide x-xaxis labels
+							ticks: {
+								display: false,
+							},
+						},
+						y: {
+							title: {
+								display: true,
+								text: 'Amount of points',
+							},
+						},
+					},
+				}
+			};
+			for (const coalition of coalitions) {
+				chartJSData.data!.datasets!.push({
+					label: coalition.name,
+					data: Object.values(coalitionDataPoints[coalition.id]).map((score) => score.score),
+					borderColor: coalition.color ? coalition.color : '#808080',
+					backgroundColor: coalition.color ? coalition.color : '#808080',
+					fill: false,
+					// @ts-ignore
+					tension: 0.25,
+				});
+			}
+
+			return res.json(chartJSData);
+		}
+		catch (err) {
+			console.error(err);
+			return res.status(400).json({ error: err });
+		}
+	});
+
+	app.get('/charts/coalitions/:coalitionId/scores/history', async (req, res) => {
+		try {
+			const coalitionId = parseInt(req.params.coalitionId);
+			const coalition = await prisma.intraCoalition.findFirst({
+				where: {
+					id: coalitionId,
+				},
+				select: {
+					id: true,
+					name: true,
+					color: true,
+				}
+			});
+			if (!coalition) {
+				throw new Error('Invalid coalition ID');
+			}
+			// Get the score for the past 30 days per day, 2 points per day (00:00 and 12:00)
+			const dataPoints: CoalitionScore[] = [];
+			const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+			monthAgo.setHours(0, 0, 0, 0);
+			for (let i = 0; i < 60; i++) {
+				const date = new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000);
+				dataPoints[date.getTime()] = await getCoalitionScore(prisma, coalitionId, date);
+			}
+
+			// Compose the returnable data (in a format Chart.js can understand)
+			const chartJSData: ChartConfiguration = {
+				type: 'line',
+				data: {
+					labels: Object.keys(dataPoints).map((timestamp) => new Date(parseInt(timestamp)).toLocaleDateString()),
+					datasets: [
+						{
+							label: 'Score',
+							data: Object.values(dataPoints).map((score) => score.score),
+							// borderColor: coalition.color ? coalition.color : '#808080',
+							// backgroundColor: coalition.color ? coalition.color : '#808080',
+							fill: false,
+							// @ts-ignore
+							tension: 0.25,
+						},
+						{
+							label: 'Average points',
+							data: Object.values(dataPoints).map((score) => score.avgPoints),
+							// borderColor: coalition.color ? coalition.color : '#808080',
+							// backgroundColor: coalition.color ? coalition.color : '#808080',
+							fill: false,
+							// @ts-ignore
+							tension: 0.25,
+						},
+						{
+							label: 'Standard deviation',
+							data: Object.values(dataPoints).map((score) => score.stdDevPoints),
+							// borderColor: coalition.color ? coalition.color : '#808080',
+							// backgroundColor: coalition.color ? coalition.color : '#808080',
+							fill: false,
+							// @ts-ignore
+							tension: 0.25,
+						},
+						{
+							label: 'Min active points',
+							data: Object.values(dataPoints).map((score) => score.minActivePoints),
+							// borderColor: coalition.color ? coalition.color : '#808080',
+							// backgroundColor: coalition.color ? coalition.color : '#808080',
+							fill: false,
+							// @ts-ignore
+							tension: 0.25,
+						},
+					],
+				},
+				options: {
+					showLines: true,
+					scales: {
+						// @ts-ignore
+						x: {
+							title: {
+								display: true,
+								text: 'Date',
+							},
+							// hide x-xaxis labels
+							ticks: {
+								display: false,
+							},
+						},
+						y: {
+							title: {
+								display: true,
+								text: 'Amount of points',
+							},
+							min: 0,
+						},
+					},
+					plugins: {
+						legend: {
+							display: true,
+						}
+					},
+				}
+			};
+
+			return res.json(chartJSData);
+		}
+		catch (err) {
+			console.error(err);
+			return res.status(400).json({ error: err });
+		}
+	});
+
 	app.get('/charts/users/:login/points/total', async (req, res) => {
 		try {
 			const user = await prisma.intraUser.findFirst({
@@ -67,6 +257,8 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 					datasets: [{
 						label: 'Total points',
 						data: dates.map(date => scoreSumsPerDate[date.getTime()] || 0),
+						// @ts-ignore
+						tension: 0.25,
 					}],
 				},
 				options: {
@@ -187,6 +379,8 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 						return {
 							label: fixedPointType.type || 'custom',
 							data: dates.map(date => scoreSumsPerTypePerDate[fixedPointType.type || 'null'][date.getTime()] || 0),
+							// @ts-ignore
+							tension: 0.25,
 						};
 					}),
 				},

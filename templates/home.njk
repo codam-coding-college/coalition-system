@@ -2,68 +2,103 @@
 {% set title = "Dashboard" %}
 
 {% block content %}
-<div class="container-lg">
-	{% if quiz_available %}
-	<div class="card w-100 mb-4" id="quiz-availability">
-		<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-			<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Questionnaire is currently open</div>
-			<div class="d-inline-block">
+{% if not quiz_available %}
+{# This section is only displayed when the quiz is not available. #}
+	<div class="container-lg">
+		<div class="card w-100 mb-4" id="help-development">
+			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Leaderboards</div>
+				<div class="d-inline-block">
 
+				</div>
+			</div>
+			<div class="card-body">
+				<p>This is a very basic leaderboard. It will be expanded in the near future. For now we just want to see some scores ;)</p>
+				<ol>
+					{% for coalitionId, sortedCoalitionScore in sortedCoalitionScores %}
+						<li style="color: {{ coalitionsObject[coalitionId].intra_coalition.color }};"><b>{{ coalitionsObject[coalitionId].intra_coalition.name }}</b>: {{ sortedCoalitionScore.score }} points</li>
+					{% endfor %}
+				</ol>
 			</div>
 		</div>
-		<div class="card-body">
-			<h4 class="fw-bold">You may join a {{ "different " if my_coalition else "" }}coalition!</h4>
-			{% if my_coalition %}
-				<p>You are currently in the {{ my_coalition.coalition.name }} coalition.</p>
-			{% else %}
-				<p>You are currently not part of any coalition.</p>
-			{% endif %}
-			<a href="/quiz" class="btn btn-primary">Go to the Questionnaire</a>
-		</div>
-	</div>
-	{% endif %}
 
-	{% for coalition in coalitions %}
-	<div class="card w-100 mb-4" id="coalition-{{ coalition.id }}">
-		<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ coalition.intra_coalition.color }};">
-			<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">{{ coalition.intra_coalition.name }}</div>
-			<div class="d-inline-block">
+		<div class="card w-100 mb-4" id="help-development">
+			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Score History</div>
+				<div class="d-inline-block">
 
+				</div>
 			</div>
-		</div>
-		<div class="card-body" style="background-color: {{ coalition.intra_coalition.color | rgba(0.3) }};">
-			<div class="row">
-				<div class="col-md-3">
-					<img src="{{ coalition.intra_coalition.image_url }}" style="filter: invert(1);"/>
-				</div>
-				<div class="col-md-9">
-					<h5 class="fw-bold">{{ coalition.intra_coalition.name | striptags(true) | escape }} - {{ coalition.tagline | striptags(true) | escape }}</h5>
-					<p>{{ coalition.description | striptags(true) | escape | nl2br }}</p>
-				</div>
+			<div class="card-body">
+				<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
 			</div>
 		</div>
 	</div>
-	{% endfor %}
+{% else %}
+{# This section is only displayed when the quiz is available. #}
+	<div class="container-lg">
+		<div class="card w-100 mb-4" id="quiz-availability">
+			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Questionnaire is currently open</div>
+				<div class="d-inline-block">
 
-	<div class="card w-100 mb-4" id="help-development">
-		<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-			<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Contribute to the coalition system</div>
-			<div class="d-inline-block">
-
+				</div>
+			</div>
+			<div class="card-body">
+				<h4 class="fw-bold">You may join a {{ "different " if my_coalition else "" }}coalition!</h4>
+				{% if my_coalition %}
+					<p>You are currently in the {{ my_coalition.coalition.name }} coalition.</p>
+				{% else %}
+					<p>You are currently not part of any coalition.</p>
+				{% endif %}
+				<a href="/quiz" class="btn btn-primary">Go to the Questionnaire</a>
 			</div>
 		</div>
-		<div class="card-body">
-			<p>The reworked coalition system's <a href="https://github.com/codam-coding-college/coalition-system" target="_blank">code repository</a> is fully open sourced on Codam's GitHub organization. Feel free to contribute and make pages like this one look nicer!</p>
-			<p>Do keep the following in mind:</p>
-			<ul>
-				<li>Fork the repository and create a new branch for every fix or feature you work on. Create a separate pull request for every fix or feature.</li>
-				<li>Please read the README.</li>
-				<li>Try to limit introducing new frameworks, especially for small features. Try to stick to vanilla Javascript/Typescript where possible.</li>
-				<li>Make sure to test your changes on both desktop and mobile.</li>
-				<li>Changes to how points are distributed should always first be discussed with Codam staff, preferably also with the Student Council.</li>
-				<li>Don't abuse the Intra API.</li>
-				<li>If something is unclear, please speak to a member of staff who has contributed to the project before.</li>
-			</ul>
+
+		{% for coalition in coalitions %}
+		<div class="card w-100 mb-4" id="coalition-{{ coalition.id }}">
+			<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ coalition.intra_coalition.color }};">
+				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">{{ coalition.intra_coalition.name }}</div>
+				<div class="d-inline-block">
+
+				</div>
+			</div>
+			<div class="card-body" style="background-color: {{ coalition.intra_coalition.color | rgba(0.3) }};">
+				<div class="row">
+					<div class="col-md-3">
+						<img src="{{ coalition.intra_coalition.image_url }}" style="filter: invert(1);"/>
+					</div>
+					<div class="col-md-9">
+						<h5 class="fw-bold">{{ coalition.intra_coalition.name | striptags(true) | escape }} - {{ coalition.tagline | striptags(true) | escape }}</h5>
+						<p>{{ coalition.description | striptags(true) | escape | nl2br }}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+{% endif %}
+	<div class="container-lg">
+		<div class="card w-100 mb-4" id="help-development">
+			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Contribute to the coalition system</div>
+				<div class="d-inline-block">
+
+				</div>
+			</div>
+			<div class="card-body">
+				<p>The reworked coalition system's <a href="https://github.com/codam-coding-college/coalition-system" target="_blank">code repository</a> is fully open sourced on Codam's GitHub organization. Feel free to contribute and make pages like this one look nicer!</p>
+				<p>Do keep the following in mind:</p>
+				<ul>
+					<li>Fork the repository and create a new branch for every fix or feature you work on. Create a separate pull request for every fix or feature.</li>
+					<li>Please read the README.</li>
+					<li>Try to limit introducing new frameworks, especially for small features. Try to stick to vanilla Javascript/Typescript where possible.</li>
+					<li>Make sure to test your changes on both desktop and mobile.</li>
+					<li>Changes to how points are distributed should always first be discussed with Codam staff, preferably also with the Student Council.</li>
+					<li>Don't abuse the Intra API.</li>
+					<li>If something is unclear, please speak to a member of staff who has contributed to the project before.</li>
+				</ul>
+			</div>
 		</div>
 	</div>
 </div>

@@ -1,8 +1,9 @@
 import { Express } from 'express';
 import passport from 'passport';
-import { PrismaClient } from '@prisma/client';
+import { CodamCoalition, PrismaClient } from '@prisma/client';
 import { isQuizAvailable } from './quiz';
 import { ExpressIntraUser } from '../sync/oauth';
+import { getCoalitionScore, CoalitionScore } from '../utils';
 
 export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/', passport.authenticate('session', {
@@ -26,6 +27,21 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 				}
 			}
 		});
+
+		// Map all coalitions to their id
+		const coalitionsObject: { [key: number]: CodamCoalition } = {};
+		for (const coalition of coalitions) {
+			coalitionsObject[coalition.id] = coalition;
+		}
+
+		// Get current scores per coalition
+		const coalitionScores: { [key: number]: CoalitionScore } = {};
+		for (const coalition of coalitions) {
+			coalitionScores[coalition.id] = await getCoalitionScore(prisma, coalition.id);
+		}
+
+		// Sort the coalitions by score
+		const sortedCoalitionScores = Object.entries(coalitionScores).sort((a, b) => b[1].score - a[1].score);
 
 		// Get the coalition of the current user
 		const my_coalition = await prisma.intraCoalitionUser.findFirst({
@@ -55,8 +71,10 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 
 		return res.render('home.njk', {
 			coalitions,
+			coalitionsObject,
 			my_coalition,
 			quiz_available,
+			sortedCoalitionScores,
 		});
 	});
 };

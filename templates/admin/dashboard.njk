@@ -64,7 +64,7 @@
 					<h5 class="card-title mb-0">Coalitions score history</h5>
 				</div>
 				<div class="card-body">
-					<canvas class="codam-chart" data-url="/admin/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
+					<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
 				</div>
 			</div>
 		</div>
@@ -78,7 +78,7 @@
 						<h5 class="card-title mb-0">Score history for {{ coalition.intra_coalition.name }}</h5>
 					</div>
 					<div class="card-body">
-						<canvas height="500" class="codam-chart" data-url="/admin/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
+						<canvas height="500" class="codam-chart" data-url="/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
 					</div>
 				</div>
 			</div>
