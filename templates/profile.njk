@@ -18,7 +18,7 @@
 			<ul class="list-unstyled">
 				<li>Coalition: {{ profileUser.coalition_users[0].coalition.name }}</li>
 				<li>Total score: {{ totalScore | thousands }}</li>
-				<li>Coalition ranking: #{{ ranking }}</li>
+				<li>{{ profileUser.coalition_users[0].coalition.name }} ranking: #{{ ranking }}</li>
 				{% for userRanking in userRankings %}
 					<li>{{ userRanking.rankingName }} ranking: #{{ userRanking.rank }}</li>
 				{% endfor %}
