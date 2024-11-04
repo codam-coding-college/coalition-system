@@ -403,16 +403,18 @@ export const getUserRanking = async function(prisma: PrismaClient, rankingType: 
 	return (userRanking ? userRanking : null);
 }
 
-export const getUserRankingAcrossAllRankings = async function(prisma: PrismaClient, userId: number, atDateTime: Date = new Date()): Promise<{ [key: string]: SingleRanking | null; }> {
+export const getUserRankingAcrossAllRankings = async function(prisma: PrismaClient, userId: number, atDateTime: Date = new Date()): Promise<SingleRanking[]> {
 	const rankings = await prisma.codamCoalitionRanking.findMany({
 		select: {
 			type: true,
 		}
 	});
-	const userRankings: { [key: string]: SingleRanking | null } = {};
+	const userRankings: SingleRanking[] = [];
 	for (const ranking of rankings) {
 		const userRanking = await getUserRanking(prisma, ranking.type, userId, atDateTime);
-		userRankings[ranking.type] = userRanking;
+		if (userRanking) {
+			userRankings.push(userRanking);
+		}
 	}
-	return userRankings;
+	return userRankings.sort((a, b) => a.rank - b.rank);
 };
