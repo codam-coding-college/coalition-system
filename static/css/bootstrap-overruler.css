@@ -98,6 +98,7 @@
 	aspect-ratio: 1 / 1;
 	height: auto;
 	max-height: 200px;
+	object-fit: cover;
 }
 
 .mw-500 {
