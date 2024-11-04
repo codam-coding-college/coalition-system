@@ -5,15 +5,14 @@ A work in progress.
 ## To-do list
 
 ### Deployment
-- [ ] Finalize containerization
+- [x] Finalize containerization
 - [x] Switch to containerized postgres database
-- [ ] Automatically increase package.json version on new release using GitHub Action
 
 ### Questionnaire
 - [x] Code questionnaire
 - [x] Code questionnaire results
 - [x] Only make questionnaire available between specific dates set by admin
-- [ ] Allow specific users to fill in the quiz on admin approval
+- [x] Allow users without an assigned coalition to always fill in the questionnaire
 
 ### Points system & tournament
 - [x] Implement Codam's new point system
@@ -22,16 +21,16 @@ A work in progress.
 - [ ] Implement Intra's bloc tournament system
 
 ### Student interface
-- [ ] Create dashboard
-- [ ] Create graphs
-- [ ] Create various leaderboard statistics
+- [x] Create basic dashboard
+- [x] Create basic graphs
+- [x] Create various rankings
 - [ ] Create tournament history overview with historical wins
 
 ### Admin / staff interface
-- [ ] Create dashboard
+- [x] Create dashboard
 - [x] Create interface for editing the questionnaire
 - [x] Create interface to manually trigger webhooks (manually re-assign automated points)
-- [ ] Create interface to fetch potentially missed webhooks between specific dates
+- [x] Create interface to fetch potentially missed webhooks between specific dates
 - [x] Create point history interface where admin can delete, recalculate and synchronize points with Intra
 - [x] Create interface to edit automated point system
 - [x] Implement method to recalculate already given points
@@ -54,6 +53,10 @@ If you're a student and want to contribute to this project, talk to the staff ab
 4. Run `npm run build` to build the project
 5. Start the PostgreSQL database using Docker: `docker-compose -f docker-compose.dev.yml up -d`
 6. Run `npm run start` to start the server and seed the initial database
+7. Optional:
+	- run `node build/dev/create_quiz_questions.js` to seed the database with initial questionnaire questions
+	- run `node build/dev/create_rankings.js` to seed the database with initial rankings
+	- synchronize some data from Intra using the Webhook Catch-up tool in the Admin interface
 
 ### Reseed the database
 1. Delete the *.sync-timestamp* file in the root directory
