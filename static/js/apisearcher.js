@@ -176,6 +176,27 @@ const ApiSearcher = function(options) {
 							td.appendChild(code);
 							break;
 						}
+						case 'login': {
+							const a = document.createElement('a');
+							a.href = '/profile/' + value;
+							a.innerText = value;
+							td.appendChild(a);
+							break;
+						}
+						case 'logins': {
+							const splitLogins = value.split(',');
+							for (let i = 0; i < splitLogins.length; i++) {
+								const login = splitLogins[i].trim();
+								const a = document.createElement('a');
+								a.href = '/profile/' + login;
+								a.innerText = login;
+								td.appendChild(a);
+								if (i < splitLogins.length - 1) {
+									td.appendChild(document.createTextNode(', '));
+								}
+							}
+							break;
+						}
 						case 'json': {
 							try {
 								renderjson.set_show_to_level(2);

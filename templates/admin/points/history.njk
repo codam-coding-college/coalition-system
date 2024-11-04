@@ -27,7 +27,7 @@
 				<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
 				<td>{{ coalitions[score.coalition_id].intra_coalition.name }}</td>
 				<td>{{ score.amount }}</td>
-				<td>{{ score.user.intra_user.login }}</td>
+				<td><a href="/profile/{{ score.user.intra_user.login }}">{{ score.user.intra_user.login }}</a></td>
 				<td style="white-space: normal; word-wrap: break-word;">{{ score.reason }}</td>
 				<td>{{ score.fixed_type_id if score.fixed_type_id else "" }}</td>
 				<td>{{ score.type_intra_id if score.type_intra_id else "" }}</td>

@@ -193,6 +193,38 @@ export const timeFromNow = function(date: Date | null): string {
 	return `within a minute`; // don't specify: otherwise it's weird when the amount of seconds does not go down
 };
 
+export const getUserTournamentRanking = async function(prisma: PrismaClient, userId: number, date: Date = new Date()): Promise<number> {
+	// TODO: calculate based on tournament deadlines
+	const userCoalition = await prisma.intraCoalitionUser.findFirst({
+		where: {
+			user_id: userId,
+		},
+	});
+	if (!userCoalition) {
+		return 0;
+	}
+
+	const scores = await prisma.codamCoalitionScore.groupBy({
+		by: ['user_id'],
+		_sum: {
+			amount: true,
+		},
+		where: {
+			created_at: {
+				lte: date,
+			},
+			coalition_id: userCoalition.coalition_id, // Only get scores for the user's coalition to get the position within the coalition
+		},
+		orderBy: {
+			_sum: {
+				amount: 'desc',
+			},
+		}
+	});
+	const userRanking = scores.findIndex(s => s.user_id === userId);
+	return userRanking + 1;
+};
+
 export interface NormalDistribution {
 	dataPoints: number[];
 	mean: number;

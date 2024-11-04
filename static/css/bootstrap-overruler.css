@@ -85,3 +85,25 @@
 #search-results tr > td > code {
 	color: inherit !important;
 }
+
+.coalition-cover {
+	background-position: center center;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-clip: border-box;
+}
+
+.user-header .user-picture {
+	max-width: 100%;
+	aspect-ratio: 1 / 1;
+	height: auto;
+	max-height: 200px;
+}
+
+.mw-500 {
+	max-width: 500px;
+}
+
+.mw-700 {
+	max-width: 700px;
+}

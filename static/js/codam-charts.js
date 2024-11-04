@@ -10,7 +10,14 @@ window.addEventListener('DOMContentLoaded', async function() {
 		}
 		try {
 			const fetcher = await fetch(dataUrl);
+			if (!fetcher.ok) {
+				throw new Error(`Failed to load data from ${dataUrl}`);
+			}
 			const data = await fetcher.json();
+			// // Always resize charts
+			// data.options = data.options || {};
+			// data.options.responsive = true;
+			// data.options.maintainAspectRatio = false;
 			new Chart(chart, data); // Using Chart.js
 		}
 		catch (err) {

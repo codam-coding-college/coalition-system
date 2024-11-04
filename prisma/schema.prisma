@@ -184,6 +184,7 @@ model IntraCoalition {
 	name             String
 	slug             String
 	image_url        String?
+	cover_url        String?
 	color            String?
 	score            Int
 	user_id          Int?    // Coalition leader user id
