@@ -22,7 +22,7 @@ export enum WebhookHandledStatus {
 	IncorrectSecret = "incorrect_secret",
 };
 
-export const addWebhookToDB = async function(prisma: PrismaClient, webhookHeaders: WebhookHeaders, body: any): Promise<boolean> {
+export const addWebhookToDB = async function(prisma: PrismaClient, webhookHeaders: WebhookHeaders, body: any): Promise<WebhookHandledStatus> {
 	// Check if the webhook already exists in our DB
 	const existingWebhook = await prisma.intraWebhook.findUnique({
 		where: {
@@ -31,7 +31,7 @@ export const addWebhookToDB = async function(prisma: PrismaClient, webhookHeader
 	});
 	if (existingWebhook) {
 		console.warn(`Webhook ${webhookHeaders.deliveryId} already exists in our database`);
-		return false;
+		return existingWebhook.status as WebhookHandledStatus;
 	}
 	await prisma.intraWebhook.create({
 		data: {
@@ -43,7 +43,7 @@ export const addWebhookToDB = async function(prisma: PrismaClient, webhookHeader
 			status: WebhookHandledStatus.Unhandled,
 		},
 	});
-	return true;
+	return WebhookHandledStatus.Unhandled;
 };
 
 export const parseWebhookHeaders = function(req: any): WebhookHeaders {
@@ -80,8 +80,8 @@ export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): 
 		}
 
 		// Add the webhook to our database to keep track of how the webhook was handled
-		const alreadyHandled = ! await addWebhookToDB(prisma, webhookHeaders, req.body);
-		if (alreadyHandled) {
+		const webhookHandledStatus = await addWebhookToDB(prisma, webhookHeaders, req.body);
+		if (webhookHandledStatus == WebhookHandledStatus.Ok || webhookHandledStatus == WebhookHandledStatus.Skipped) {
 			console.log(`Webhook ${webhookHeaders.deliveryId} already handled, skipping...`);
 			return res.status(200).json({ status: WebhookHandledStatus.AlreadyHandled });
 		}
