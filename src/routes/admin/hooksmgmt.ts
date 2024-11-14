@@ -20,6 +20,92 @@ export const setupWebhookManagementRoutes = function(app: Express, prisma: Prism
 		return res.render('admin/hooks/history.njk');
 	});
 
+	app.get('/admin/hooks/secrets', async (req, res) => {
+		const secrets = await prisma.intraWebhookSecret.findMany();
+		return res.render('admin/hooks/secrets.njk', { secrets });
+	});
+
+	app.post('/admin/hooks/secrets/:model/:event/edit', async (req, res) => {
+		const model = req.params.model;
+		const event = req.params.event;
+		const secret = req.body.secret;
+		const newModel = req.body.new_model;
+		const newEvent = req.body.new_event;
+
+		if (!model || !event || !secret || !newModel || !newEvent) {
+			return res.status(400).json({ error: 'Missing parameters' });
+		}
+
+		await prisma.intraWebhookSecret.update({
+			where: {
+				model_event: {
+					model: model,
+					event: event,
+				},
+			},
+			data: {
+				model: newModel,
+				event: newEvent,
+				secret: secret,
+			},
+		});
+
+		return res.redirect(`/admin/hooks/secrets#secret-${newModel}-${newEvent}`);
+	});
+
+	app.post('/admin/hooks/secrets/:model/:event/delete', async (req, res) => {
+		const model = req.params.model;
+		const event = req.params.event;
+
+		if (!model || !event) {
+			return res.status(400).json({ error: 'Missing parameters' });
+		}
+
+		const secret = await prisma.intraWebhookSecret.findUnique({
+			where: {
+				model_event: {
+					model: model,
+					event: event,
+				},
+			},
+		});
+
+		if (!secret) {
+			return res.status(404).json({ error: 'Secret not found' });
+		}
+
+		await prisma.intraWebhookSecret.delete({
+			where: {
+				model_event: {
+					model: model,
+					event: event,
+				},
+			},
+		});
+
+		return res.redirect('/admin/hooks/secrets');
+	});
+
+	app.post('/admin/hooks/secrets/new', async (req, res) => {
+		const model = req.body.model;
+		const event = req.body.event;
+		const secret = req.body.secret;
+
+		if (!model || !event || !secret) {
+			return res.status(400).json({ error: 'Missing parameters' });
+		}
+
+		await prisma.intraWebhookSecret.create({
+			data: {
+				event: event,
+				model: model,
+				secret: secret,
+			},
+		});
+
+		return res.redirect(`/admin/hooks/secrets#secret-${model}-${event}`);
+	});
+
 	app.get('/admin/hooks/catchup', async (req, res) => {
 		return res.render('admin/hooks/catchup.njk', {
 			catchupOperation,
