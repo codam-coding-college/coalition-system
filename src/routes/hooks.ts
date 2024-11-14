@@ -9,6 +9,7 @@ export interface WebhookHeaders {
 	modelType: string;
 	eventType: string;
 	deliveryId: string;
+	secret: string;
 }
 
 export enum WebhookHandledStatus {
@@ -17,6 +18,8 @@ export enum WebhookHandledStatus {
 	Ok = "ok",
 	Error = "error",
 	AlreadyHandled = "already_handled",
+	SecretConfigMissing = "secret_config_missing",
+	IncorrectSecret = "incorrect_secret",
 };
 
 export const addWebhookToDB = async function(prisma: PrismaClient, webhookHeaders: WebhookHeaders, body: any): Promise<boolean> {
@@ -47,7 +50,8 @@ export const parseWebhookHeaders = function(req: any): WebhookHeaders {
 	const modelType = req.headers['x-model'];
 	const eventType = req.headers['x-event'];
 	const deliveryId = req.headers['x-delivery'];
-	return { modelType, eventType, deliveryId };
+	const secret = req.headers['x-secret'];
+	return { modelType, eventType, deliveryId, secret };
 };
 
 export const respondWebHookHandledStatus = async function(prisma: PrismaClient, deliveryId: string | null, res: Response, status: WebhookHandledStatus): Promise<Response> {
@@ -68,17 +72,39 @@ export const respondWebHookHandledStatus = async function(prisma: PrismaClient, 
 export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.post('/hooks/intra', async (req, res) => {
 		// Handle all Intra webhooks
-		const webhookHeaders = parseWebhookHeaders(req);
+		const webhookHeaders: WebhookHeaders = parseWebhookHeaders(req);
 		console.log(`Received ${webhookHeaders.modelType} ${webhookHeaders.eventType} webhook ${webhookHeaders.deliveryId}`, req.body);
 		if (!webhookHeaders.deliveryId || !webhookHeaders.modelType || !webhookHeaders.eventType) {
 			console.warn('One or more required webhook headers is missing');
 			return res.status(400).json({ status: 'error', message: 'One or more required webhook headers is missing' });
 		}
+
+		// Add the webhook to our database to keep track of how the webhook was handled
 		const alreadyHandled = ! await addWebhookToDB(prisma, webhookHeaders, req.body);
 		if (alreadyHandled) {
 			console.log(`Webhook ${webhookHeaders.deliveryId} already handled, skipping...`);
 			return res.status(200).json({ status: WebhookHandledStatus.AlreadyHandled });
 		}
+
+		// Verify the webhook secret
+		const expectedSecret = await prisma.intraWebhookSecret.findUnique({
+			where: {
+				model_event: {
+					model: webhookHeaders.modelType,
+					event: webhookHeaders.eventType,
+				},
+			},
+		});
+		if (!expectedSecret) {
+			console.warn(`Secret config missing for webhook of type ${webhookHeaders.modelType} ${webhookHeaders.eventType}! Add it using the admin interface.`);
+			return await respondWebHookHandledStatus(prisma, webhookHeaders.deliveryId, res, WebhookHandledStatus.SecretConfigMissing);
+		}
+		if (expectedSecret.secret !== webhookHeaders.secret) {
+			console.warn(`Incorrect secret received for webhook of type ${webhookHeaders.modelType} ${webhookHeaders.eventType} from ip ${req.ip}!`);
+			return await respondWebHookHandledStatus(prisma, webhookHeaders.deliveryId, res, WebhookHandledStatus.IncorrectSecret);
+		}
+
+		// Actually handle the webhook, but do catch any errors
 		try {
 			if (!req.body) {
 				throw new Error("Missing body");
