@@ -296,6 +296,17 @@ model IntraWebhook {
 	handled_at       DateTime?
 }
 
+model IntraWebhookSecret {
+	model            String
+	event            String
+	secret           String
+
+	created_at       DateTime @default(now())
+	updated_at       DateTime @default(now()) @updatedAt
+
+	@@id([model, event]) // Composite primary key
+}
+
 // Session management
 // https://www.npmjs.com/package/@quixo3/prisma-session-store
 model Session {
