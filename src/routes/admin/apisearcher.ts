@@ -573,6 +573,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			const recentEvents = await fetchSingleApiPage(api, `/campus/${CAMPUS_ID}/events`, {
 				...API_DEFAULT_FILTERS_EVENTS,
 				'page[size]': '100',
+				'filter[future]': 'false',
 			});
 			apiSearcherCache.set('recent_events', recentEvents, 60 * 60 * 3); // cache for 3 hours
 			return res.json(recentEvents);
