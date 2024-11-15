@@ -61,17 +61,17 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 		},
 		{
 			type: "event_basic",
-			desc: "Each basic event organized will grant the student with this amount of points. Refer to the Coalition 2024 Set-up to view event criteria",
+			desc: "Each basic event organized will grant the student with this amount of points.",
 			points: 1000, // recommended
 		},
 		{
 			type: "event_intermediate",
-			desc: "Each intermediate event organized will grant the student with this amount of points. Refer to the Coalition 2024 Set-up to view event criteria",
+			desc: "Each intermediate event organized will grant the student with this amount of points.",
 			points: 3000, // recommended
 		},
 		{
 			type: "event_advanced",
-			desc: "Each advanced event organized will grant the student with this amount of points. Refer to the Coalition 2024 Set-up to view event criteria",
+			desc: "Each advanced event organized will grant the student with this amount of points.",
 			points: 6000, // recommended
 		},
 	];
