@@ -13,7 +13,7 @@ const INCLUDE_IN_SCORE_RETURN_DATA = {
 	},
 };
 
-export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
+export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType | null, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
 	// Get the user's coalition
 	const coalitionUser = await prisma.intraCoalitionUser.findFirst({
 		where: {
@@ -26,11 +26,11 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 		return null;
 	}
 
-	console.log(`Creating score for user ${userId} in coalition ${coalitionUser.coalition_id} with ${points} points for reason "${reason}" (connected to Intra object ${typeIntraId} for fixed type ${type.type})...`);
+	console.log(`Creating score for user ${userId} in coalition ${coalitionUser.coalition_id} with ${points} points for reason "${reason}" (connected to Intra object ${typeIntraId} for fixed type ${(type ? type.type : "null")})...`);
 	return await prisma.codamCoalitionScore.create({
 		data: {
 			amount: points,
-			fixed_type_id: type.type,
+			fixed_type_id: (type ? type.type : null),
 			type_intra_id: typeIntraId,
 			user_id: userId,
 			coalition_id: coalitionUser.coalition_id,

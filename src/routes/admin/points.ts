@@ -3,7 +3,7 @@ import { CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import { fetchSingleApiPage, getAPIClient } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
-import { handleFixedPointScore } from '../../handlers/points';
+import { createScore, handleFixedPointScore } from '../../handlers/points';
 
 export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/points/history', async (req, res) => {
@@ -128,9 +128,31 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 	app.get('/admin/points/manual/:type', async (req, res) => {
 		const type = req.params.type;
 		if (type == "custom") {
+			const recentCustomScores = await prisma.codamCoalitionScore.findMany({
+				where: {
+					fixed_type_id: null,
+				},
+				include: {
+					user: {
+						include: {
+							intra_user: true,
+						},
+					},
+					coalition: {
+						include: {
+							intra_coalition: true,
+						},
+					},
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+			});
+
 			return res.render('admin/points/manual/custom.njk', {
 				manual_type: type,
 				fixedPointType: null,
+				recentCustomScores,
 			});
 		}
 
@@ -178,6 +200,9 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 							intra_coalition: true,
 						},
 					},
+				},
+				orderBy: {
+					created_at: 'desc',
 				},
 			});
 
@@ -396,6 +421,133 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 	});
 
 	app.post('/admin/points/manual/custom', async (req, res) => {
-		return res.status(501).send('Not implemented');
+		try {
+			const login = req.body.login;
+			const pointAmount = parseInt(req.body.point_amount);
+			const reason = req.body.reason;
+			if (!login || isNaN(pointAmount) || !reason) {
+				return res.status(400).send('Invalid input');
+			}
+
+			const sessionUser = req.user as ExpressIntraUser;
+			console.log(`User ${sessionUser.login} is assigning ${pointAmount} custom points manually to ${login} for reason "${reason}"`);
+
+			// Verify the login exists in our database
+			const user = await prisma.intraUser.findFirst({
+				where: {
+					login: login,
+				},
+				select: {
+					id: true,
+					login: true,
+				},
+			});
+			if (!user) {
+				console.log(`The login ${login} has not been found in the coalition system`);
+				return res.status(400).send(`The login ${login} has not been found in the coalition system`);
+			}
+
+			// Assign the points
+			const score = await createScore(prisma, null, null, user.id, pointAmount, reason);
+
+			// Display the points assigned
+			return res.render('admin/points/manual/added.njk', {
+				redirect: `/admin/points/manual/custom#single-score-form`,
+				scores: [score],
+			});
+		}
+		catch (err) {
+			console.error(err);
+			return res.status(500).send('An error occurred');
+		}
+	});
+
+	app.post('/admin/points/manual/custom-csv', async (req, res) => {
+		try {
+			const csv = req.body.csv;
+			if (!csv) {
+				return res.status(400).send('Invalid input');
+			}
+
+			const sessionUser = req.user as ExpressIntraUser;
+			console.log(`User ${sessionUser.login} is assigning custom points manually using CSV`);
+
+			// Parse csv
+			const lines = csv.split('\n');
+			const scoresToCreate: { login: string, points: number, reason: string }[] = [];
+			let lineNumber = 0;
+			for (const line of lines) {
+				lineNumber++;
+				if (!line.trim()) {
+					// Skip empty lines
+					continue;
+				}
+				const parts = line.split(',');
+				if (parts.length !== 3) {
+					console.log(`Invalid line ${lineNumber} in CSV. Columns missing. Line: ${parts}`);
+					return res.status(400).send(`Invalid line ${lineNumber} in CSV. Columns missing. Expected format: login,points,reason`);
+				}
+
+				const login = parts[0].trim();
+				const points = parseInt(parts[1].trim());
+				const reason = parts[2].trim();
+				if (lineNumber === 1 && lines[1].indexOf(",") > -1 && (!login || isNaN(points) || !reason)) {
+					// Assume first line is a header, next line contains columns too
+					continue;
+				}
+				if (!login || isNaN(points) || !reason) {
+					console.log(`Invalid line ${lineNumber} in CSV. Failed to parse content. Line: ${parts}`);
+					return res.status(400).send(`Invalid line ${lineNumber} in CSV. Failed to parse content. Expected format: login,points,reason`);
+				}
+
+				scoresToCreate.push({ login, points, reason });
+			}
+
+			// Verify the logins exist in our database
+			const loginsArray = scoresToCreate.map((score) => score.login);
+			const users = await prisma.intraUser.findMany({
+				where: {
+					login: {
+						in: loginsArray,
+					},
+				},
+				select: {
+					id: true,
+					login: true,
+				},
+			});
+			if (users.length !== loginsArray.length) {
+				const missingLogins = loginsArray.filter((login: string) => !users.find((user: any) => user.login === login));
+				console.log(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
+				return res.status(400).send(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
+			}
+
+			// Assign the points
+			const scores: CodamCoalitionScore[] = [];
+			for (const scoreToCreate of scoresToCreate) {
+				const user = users.find((user: any) => user.login === scoreToCreate.login);
+				if (!user) {
+					console.warn(`User not found for login ${scoreToCreate.login}, which is weird, because earlier we did select all users with specified logins...`);
+					continue;
+				}
+				console.log(`User ${sessionUser.login} is assigning ${scoreToCreate.points} custom points manually to ${user.login} with reason "${scoreToCreate.reason}"`);
+				const score = await createScore(prisma, null, null, user.id, scoreToCreate.points, scoreToCreate.reason);
+				if (!score) {
+					console.warn(`Failed to create score for user ${user.login}`);
+					continue;
+				}
+				scores.push(score);
+			}
+
+			// Display the points assigned
+			return res.render('admin/points/manual/added.njk', {
+				redirect: `/admin/points/manual/custom#many-score-form`,
+				scores,
+			});
+		}
+		catch (err) {
+			console.error(err);
+			return res.status(500).send('An error occurred');
+		}
 	});
 };

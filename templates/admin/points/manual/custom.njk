@@ -10,7 +10,20 @@
 	</ol>
 </nav>
 
-<form action="/admin/points/manual/custom" method="post">
+<div class="alert alert-warning">
+	<p>Points for any <b>events</b> organized should be assigned using the <a href="/admin/points/manual/event_basic">event_basic</b>, <a href="/admin/points/manual/event_intermediate">event_intermediate</a> or <a href="/admin/points/manual/event_advanced">event_advanced</a> forms instead of this one.</b></p>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+	<li class="nav-item">
+		<a class="nav-link" href="#single-score-form">Assign single score</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link active" href="#many-score-form">Assign many scores at once</a>
+	</li>
+</ul>
+
+<form class="mb-4" action="/admin/points/manual/custom" method="post" id="single-score-form">
 	<div class="mb-2">
 		<label for="login" class="form-label">Login student</label>
 		<input type="text" id="login" name="login" class="form-control" placeholder="Login" required>
@@ -18,14 +31,124 @@
 
 	<div class="mb-2">
 		<label for="point_amount" class="form-label">Point amount</label>
-		<input type="number" id="point_amount" name="point_amount" class="form-control" placeholder="Point amount" required value="0" step="1">
+		<input type="number" id="point_amount" name="point_amount" class="form-control" placeholder="Point amount" required value="0" step="100">
+		<div class="form-text">The amount of points may also be negative.</div>
 	</div>
 
 	<div class="mb-2">
 		<label for="reason" class="form-label">Reason</label>
 		<input type="text" id="reason" name="reason" class="form-control" placeholder="Reason" required>
+		<div class="form-text">Tip: try starting your reason with a verb, e.g. <i>"Helped out at X event"</i>, <i>"Ranked 1st in Y"</i> or <i>"Received community service"</i>.</div>
 	</div>
 
-	<button type="submit" class="btn btn-primary">Assign points</button>
+	<button type="submit" class="btn btn-primary">Assign single score</button>
 </form>
+
+<form class="mb-4" action="/admin/points/manual/custom-csv" method="post" id="many-score-form">
+	<div class="mb-2">
+		<label for="csv" class="form-label">Paste your CSV file or upload a CSV file:</label>
+		<input type="file" id="csv-file" name="csv-file" class="form-control form-control-sm" accept=".csv">
+		<div class="form-text">The CSV file should contain the login, point amount and reason for each score, separated by commas. Each score should be on a new line. The file may contain a header.</div>
+
+		<textarea id="csv" name="csv" class="form-control mt-2" rows="7" placeholder="login1,100,A solid reason
+login2,300,Another solid reason
+login3,-1000,A very solid reason" required></textarea>
+		<div class="form-text">Tip: try starting your reason with a verb, e.g. <i>"Helped out at X event"</i>, <i>"Ranked 1st in Y"</i> or <i>"Received community service"</i>.</div>
+	</div>
+
+	<script>
+	// On csv file change, update the textarea
+	document.getElementById('csv-file').addEventListener('change', function() {
+		const file = this.files[0];
+		if (!file) {
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.onload = function(e) {
+			document.getElementById('csv').value = e.target.result;
+
+			// Clear the file input to allow for the same file to be uploaded again
+			document.getElementById('csv-file').value = '';
+		};
+		reader.readAsText(file);
+	});
+	</script>
+
+	<button type="submit" class="btn btn-primary">Assign multiple scores</button>
+</form>
+
+<div class="alert alert-info">
+	<p>Assigning points to students is a powerful tool to reward them for their efforts. However, it should be used with care. Points should be assigned fairly and transparently, and the reasons should be clear and well-documented. It is recommended to not assign custom points too often and just let the system do its job.</p>
+</div>
+
+<script>
+// On tab change, display the corresponding form
+function tabChange() {
+	const hash = window.location.hash;
+	const tab = document.querySelector(`.nav-link[href="${hash}"]`);
+	if (!tab) {
+		console.warn('No tab found for hash', hash);
+		return;
+	}
+
+	const forms = document.querySelectorAll('form');
+	forms.forEach(form => {
+		if (form.id === hash.slice(1)) {
+			form.style.display = 'block';
+		} else {
+			form.style.display = 'none';
+		}
+	});
+
+	const tabs = document.querySelectorAll('.nav-link');
+	tabs.forEach(t => {
+		if (t === tab) {
+			t.classList.add('active');
+		} else {
+			t.classList.remove('active');
+		}
+	});
+}
+window.addEventListener('hashchange', tabChange);
+if (!window.location.hash) {
+	window.location.hash = '#single-score-form';
+}
+else {
+	tabChange();
+}
+</script>
+
+<hr class="mt-4">
+
+<div>
+	<h3 class="mb-3">Recently assigned points</h3>
+	<table class="table coalition-colored" id="points-added">
+		<thead>
+			<tr>
+				<th>Date</th>
+				<th>Login</th>
+				<th>Coalition</th>
+				<th>Points</th>
+				<th>Reason</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for score in recentCustomScores %}
+				<tr class="points-added-row" style="background: {{ score.coalition.intra_coalition.color | rgba(0.25) }}">
+					<td>{{ score.created_at | timeAgo }}</td>
+					<td><a href="/profile/{{ score.user.intra_user.login }}/">{{ score.user.intra_user.login }}</a></td>
+					<td>{{ score.coalition.intra_coalition.name }}</td>
+					<td>{{ score.amount }}</td>
+					<td>{{ score.reason }}</td>
+				</tr>
+			{% endfor %}
+			{% if recentCustomScores|length == 0 %}
+				<tr>
+					<td colspan="5"><i class="text-muted">No custom points have been assigned yet.</i></td>
+				</tr>
+			{% endif %}
+		</tbody>
+	</table>
+</div>
 {% endblock %}
