@@ -11,7 +11,7 @@ export const getAPIClient = async function(): Promise<Fast42> {
 	return api;
 };
 
-export const fetchSingleApiPage = async function(api: Fast42, endpoint: string, params: Record<string, string>): Promise<any> {
+export const fetchSingleApiPage = async function(api: Fast42, endpoint: string, params: Record<string, string> = {}): Promise<any> {
 	const job = await api.getPage(endpoint, "1", params);
 	try {
 		if (job.status !== 200) {

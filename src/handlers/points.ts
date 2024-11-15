@@ -1,5 +1,18 @@
 import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@prisma/client';
 
+const INCLUDE_IN_SCORE_RETURN_DATA = {
+	user: {
+		include: {
+			intra_user: true,
+		},
+	},
+	coalition: {
+		include: {
+			intra_coalition: true,
+		},
+	},
+};
+
 export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
 	// Get the user's coalition
 	const coalitionUser = await prisma.intraCoalitionUser.findFirst({
@@ -24,6 +37,7 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 			reason: reason,
 			created_at: scoreDate,
 		},
+		include: INCLUDE_IN_SCORE_RETURN_DATA,
 	});
 
 	// TODO: create intra score (maybe not here but in a runner/job?)
@@ -48,6 +62,7 @@ export const updateScore = async function(prisma: PrismaClient, score: CodamCoal
 		where: {
 			id: score.id,
 		},
+		include: INCLUDE_IN_SCORE_RETURN_DATA,
 	});
 }
 
@@ -56,6 +71,7 @@ export const handleFixedPointScore = async function(prisma: PrismaClient, type: 
 		// Check if a score already exists for this type and typeIntraId
 		const existingScore = await prisma.codamCoalitionScore.findFirst({
 			where: {
+				user_id: userId, // This means that if we PATCH an Intra object in the Intra API, changing which user the object belongs to, a score could show up more than once, while the old score should be deleted. But when does this ever happen?
 				fixed_type_id: type.type,
 				type_intra_id: typeIntraId,
 			},
@@ -63,7 +79,7 @@ export const handleFixedPointScore = async function(prisma: PrismaClient, type: 
 
 		if (existingScore) {
 			// Update the existing score
-			console.warn(`Score already exists for type ${type.type} and typeIntraId ${typeIntraId}, updating CodamScore ${existingScore.id} with IntraScore ${existingScore.intra_score_id}...`);
+			console.warn(`Score already exists for type ${type.type}, user ${userId} and typeIntraId ${typeIntraId}, updating this existing CodamScore ${existingScore.id} with IntraScore ${existingScore.intra_score_id}...`);
 			// TODO: delete the score if the coalitionsUser does not exist
 			// Do not delete if the score is 0, or you can no longer recalculate the score later on!
 			return await updateScore(prisma, existingScore, points, reason);

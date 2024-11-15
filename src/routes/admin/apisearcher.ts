@@ -7,6 +7,10 @@ import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTea
 
 const EXAM_PROJECT_IDS = [1320, 1321, 1322, 1323, 1324];
 
+// Cache for the API searcher specifically
+import NodeCache from 'node-cache';
+const apiSearcherCache = new NodeCache({ stdTTL: 60 * 5, checkperiod: 60 * 5 });
+
 // Filters applied to locations
 export const API_DEFAULT_FILTERS_LOCATIONS = {
 	'filter[inactive]': 'true',
@@ -33,6 +37,11 @@ export const API_DEFAULT_FILTERS_SCALE_TEAMS = {
 	'filter[future]': 'false',
 	'range[filled_at]': `2024-01-01T00:00:00,${new Date().toISOString()}`, // filled_at was only added later
 	'sort': '-filled_at',
+};
+
+// Filters applied to events
+export const API_DEFAULT_FILTERS_EVENTS = {
+	'sort': '-begin_at',
 };
 
 export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient): void {
@@ -549,5 +558,28 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			},
 		});
 		return res.json(webhooks);
+	});
+
+	// EVENTS
+	// 100 most recent events
+	// Store them in a node-cache to speed up loading
+	app.get('/admin/apisearch/events', async (req, res) => {
+		try {
+			if (apiSearcherCache.has('recent_events')) {
+				return res.json(apiSearcherCache.get('recent_events'));
+			}
+
+			const api = await getAPIClient();
+			const recentEvents = await fetchSingleApiPage(api, `/campus/${CAMPUS_ID}/events`, {
+				...API_DEFAULT_FILTERS_EVENTS,
+				'page[size]': '100',
+			});
+			apiSearcherCache.set('recent_events', recentEvents, 60 * 60 * 3); // cache for 3 hours
+			return res.json(recentEvents);
+		}
+		catch (err) {
+			console.log(err);
+			return res.status(500).json({ error: err });
+		}
 	});
 };

@@ -1,4 +1,4 @@
-const ApiSearcher = function(options) {
+const ApiSearcherTable = function(options) {
 	this.options = options;
 
 	this.concatUrlPaths = (url, path) => {
@@ -168,6 +168,14 @@ const ApiSearcher = function(options) {
 						}
 						case 'datetime': {
 							td.innerText = new Date(value).toLocaleString();
+							break;
+						}
+						case 'date': {
+							td.innerText = new Date(value).toLocaleDateString();
+							break;
+						}
+						case 'time': {
+							td.innerText = new Date(value).toLocaleTimeString();
 							break;
 						}
 						case 'code': {

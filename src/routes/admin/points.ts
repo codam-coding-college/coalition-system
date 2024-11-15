@@ -1,6 +1,9 @@
 import { Express } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import fs from 'fs';
+import { fetchSingleApiPage, getAPIClient } from '../../utils';
+import { ExpressIntraUser } from '../../sync/oauth';
+import { handleFixedPointScore } from '../../handlers/points';
 
 export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/points/history', async (req, res) => {
@@ -146,6 +149,45 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			return res.status(400).send('Invalid point type');
 		}
 
+		if (type.startsWith('event_')) {
+			// Fetch 25 most recent scores assigned for organizing events
+			const eventFixedPointTypes = await prisma.codamCoalitionFixedType.findMany({
+				where: {
+					type: {
+						startsWith: 'event_',
+					},
+				},
+				select: {
+					type: true,
+				},
+			});
+			const recentEventScores = await prisma.codamCoalitionScore.findMany({
+				where: {
+					fixed_type_id: {
+						in: eventFixedPointTypes.map((type) => type.type),
+					},
+				},
+				include: {
+					user: {
+						include: {
+							intra_user: true,
+						},
+					},
+					coalition: {
+						include: {
+							intra_coalition: true,
+						},
+					},
+				},
+			});
+
+			return res.render('admin/points/manual/event.njk', {
+				manual_type: type,
+				fixedPointType,
+				recentEventScores,
+			});
+		}
+
 		if (fs.existsSync(`templates/admin/points/manual/${type}.njk`)) {
 			return res.render(`admin/points/manual/${type}.njk`, {
 				manual_type: type,
@@ -259,5 +301,101 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 		// in the current tournament (optional choice in the form, not by default enabled)
 
 		return res.redirect('/admin/points/automatic');
+	});
+
+	// Custom point types
+	app.post('/admin/points/manual/event', async (req, res) => {
+		try {
+			const eventName = req.body.event_name;
+			const eventType = req.body.event_type;
+			const logins = req.body.logins;
+			if (!eventName || !eventType || !logins) {
+				return res.status(400).send('Invalid input');
+			}
+
+			const sessionUser = req.user as ExpressIntraUser;
+			console.log(`User ${sessionUser.login} is assigning points manually for ${eventType} "${eventName}" to the following logins: ${logins.split('\n').join(', ')}`);
+
+			// Get the fixed type ID for the event type
+			const fixedPointType = await prisma.codamCoalitionFixedType.findFirst({
+				where: {
+					type: eventType,
+				},
+			});
+			if (!fixedPointType || fixedPointType.point_amount === 0) {
+				console.warn(`No fixed point type found for ${fixedPointType} or point amount is set to 0, unable to assign points`);
+				return res.status(400).send(`No fixed point type found for ${fixedPointType} or point amount is set to 0, unable to assign points`);
+			}
+
+			let eventId = 0;
+			if (eventName.indexOf(' | ') > 0) {
+				// Assume this body is coming from the Admin Interface's event point assigning form, where the last part of the event_name is the event ID
+				console.log('Splitting the event name by " | " to get the event ID (should be the last part)');
+				eventId = parseInt(eventName.split(' | ').pop());
+			}
+			else {
+				// Assume the event name is actually the event id
+				console.log('Assuming the event name is the event ID');
+				eventId = parseInt(eventName);
+			}
+			if (isNaN(eventId) || eventId <= 0) {
+				console.log(`Invalid event ID: ${eventId}`);
+				return res.status(400).send('Invalid event ID');
+			}
+
+			// Verify the event exists on Intra
+			const api = await getAPIClient();
+			const intraEvent = await fetchSingleApiPage(api, `/events/${eventId}`);
+			if (!intraEvent) {
+				return res.status(404).send('Intra event not found');
+			}
+
+			// Verify the logins exist in our database
+			const loginsArray = logins.split('\n').map((login: string) => login.trim());
+			const users = await prisma.intraUser.findMany({
+				where: {
+					login: {
+						in: loginsArray,
+					},
+				},
+				select: {
+					id: true,
+					login: true,
+				},
+			});
+			if (users.length !== loginsArray.length) {
+				const missingLogins = loginsArray.filter((login: string) => !users.find((user: any) => user.login === login));
+				console.log(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
+				return res.status(400).send(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
+			}
+
+			// Assign the points
+			const scores: CodamCoalitionScore[] = [];
+			for (const user of users) {
+				const eventDate = new Date(intraEvent.begin_at);
+				const score = await handleFixedPointScore(prisma, fixedPointType, intraEvent.id, user.id, fixedPointType.point_amount,
+					`(Helped) organize event "${intraEvent.name}" (${eventDate.toLocaleDateString()})`);
+				// Warning: do not try to use eventDate as the score assignation date! If the event was organized in a past season, this past season could be influenced.
+				if (!score) {
+					console.warn(`Failed to create score for user ${user.login} for event ${intraEvent.id}`);
+					continue;
+				}
+				scores.push(score);
+			}
+
+			// Display the points assigned
+			return res.render('admin/points/manual/added.njk', {
+				redirect: `/admin/points/manual/${eventType}`,
+				scores,
+			});
+		}
+		catch (err) {
+			console.error(err);
+			return res.status(500).send('An error occurred');
+		}
+	});
+
+	app.post('/admin/points/manual/custom', async (req, res) => {
+		return res.status(501).send('Not implemented');
 	});
 };
