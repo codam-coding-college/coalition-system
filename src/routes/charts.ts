@@ -25,6 +25,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			for (let i = 0; i <= 60; i++) {
 				dates.push(new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000));
 			}
+			dates.push(new Date()); // always add the current score
 
 			// Get the scores for each coalition
 			const coalitionDataPoints: { [key: number]: CoalitionScore[] } = {};
@@ -40,7 +41,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			const chartJSData: ChartConfiguration = {
 				type: 'line',
 				data: {
-					labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:00`),
+					labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`),
 					datasets: [],
 				},
 				options: {
@@ -110,12 +111,16 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 				const date = new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000);
 				dataPoints[date.getTime()] = await getCoalitionScore(prisma, coalitionId, date);
 			}
+			dataPoints[Date.now()] = await getCoalitionScore(prisma, coalitionId, new Date()); // always add the current score
 
 			// Compose the returnable data (in a format Chart.js can understand)
 			const chartJSData: ChartConfiguration = {
 				type: 'line',
 				data: {
-					labels: Object.keys(dataPoints).map((timestamp) => new Date(parseInt(timestamp)).toLocaleDateString()),
+					labels: Object.keys(dataPoints).map((timestamp) => {
+						const date = new Date(parseInt(timestamp));
+						return `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+					}),
 					datasets: [
 						{
 							label: 'Score',
@@ -227,6 +232,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			for (let i = 0; i <= 60; i++) {
 				dates.push(new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000));
 			}
+			dates.push(new Date()); // always add the current score
 
 			// Get all scores for this user for the past 30 days
 			const scoreSumsPerDate: { [key: number]: number } = {};
@@ -253,7 +259,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			const chartJSData: ChartConfiguration = {
 				type: 'line',
 				data: {
-					labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:00`),
+					labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`),
 					datasets: [{
 						label: 'Total points',
 						data: dates.map(date => scoreSumsPerDate[date.getTime()] || 0),
@@ -333,6 +339,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			for (let i = 0; i <= 60; i++) {
 				dates.push(new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000));
 			}
+			dates.push(new Date()); // always add the current score
 
 			// Get all fixed point types
 			const fixedPointTypes = await prisma.codamCoalitionFixedType.findMany({
@@ -374,7 +381,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			const chartJSData: ChartConfiguration = {
 				type: 'line',
 				data: {
-					labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:00`),
+					labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`),
 					datasets: fixedPointTypes.map((fixedPointType) => {
 						return {
 							label: fixedPointType.type || 'custom',
