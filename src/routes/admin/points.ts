@@ -491,7 +491,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 				const login = parts[0].trim();
 				const points = parseInt(parts[1].trim());
 				const reason = parts[2].trim();
-				if (lineNumber === 1 && lines[1].indexOf(",") > -1 && (!login || isNaN(points) || !reason)) {
+				if ((!login || isNaN(points) || !reason) && lines.length > 1 && lineNumber === 1 && lines[1].indexOf(",") > -1) {
 					// Assume first line is a header, next line contains columns too
 					continue;
 				}
