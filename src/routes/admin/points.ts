@@ -516,8 +516,10 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 					login: true,
 				},
 			});
-			if (users.length !== loginsArray.length) {
-				const missingLogins = loginsArray.filter((login: string) => !users.find((user: any) => user.login === login));
+			// Get the list of unique logins in loginsArray
+			const uniqueUsers = Array.from(new Set(loginsArray));
+			if (users.length !== uniqueUsers.length) {
+				const missingLogins = uniqueUsers.filter((login: string) => !users.find((user: any) => user.login === login));
 				console.log(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
 				return res.status(400).send(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
 			}
