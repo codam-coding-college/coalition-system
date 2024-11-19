@@ -52,7 +52,7 @@ export const setupExpressMiddleware = function(app: any) {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(checkIfAuthenticated);
 	app.use(includeUser);
-	app.all('/admin/*', staffMiddleware); // require staff accounts to access admin routes
+	app.all('/admin*', staffMiddleware); // require staff accounts to access admin routes
 	app.use(expressErrorHandler); // should remain last
 	// More middleware for session management and authentication are defined in usePassport in authentication.ts
 };
