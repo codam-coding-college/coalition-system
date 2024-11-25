@@ -7,6 +7,7 @@ export const INTRA_API_UID = process.env.INTRA_API_UID!;
 export const INTRA_API_SECRET = process.env.INTRA_API_SECRET!;
 export const CAMPUS_ID: number = parseInt(process.env.INTRA_CAMPUS_ID!);
 export const CURSUS_ID: number = parseInt(process.env.INTRA_CURSUS_ID!);
+export const INTRA_TEST_ACCOUNTS: string[] = (process.env.INTRA_TEST_ACCOUNTS || '').split(',');
 
 // Not defined in .env but in regular shell environment variables
 export const DEV_DAYS_LIMIT: number = process.env.DEV_DAYS_LIMIT ? parseInt(process.env.DEV_DAYS_LIMIT) : 365;

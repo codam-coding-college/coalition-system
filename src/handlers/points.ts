@@ -1,4 +1,5 @@
 import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@prisma/client';
+import { INTRA_TEST_ACCOUNTS } from '../env';
 
 const INCLUDE_IN_SCORE_RETURN_DATA = {
 	user: {
@@ -14,17 +15,38 @@ const INCLUDE_IN_SCORE_RETURN_DATA = {
 };
 
 export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType | null, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
-	// Get the user's coalition
-	const coalitionUser = await prisma.intraCoalitionUser.findFirst({
+	// Retrieve user details
+	const user = await prisma.intraUser.findFirst({
 		where: {
-			user_id: userId,
+			id: userId,
 		},
+		select: {
+			login: true,
+			kind: true,
+			coalition_users: {
+				select: {
+					coalition_id: true,
+				},
+			},
+		}
 	});
-
-	if (!coalitionUser) {
+	if (!user) { // Check if user exists
+		console.error(`User ${userId} does not exist in our database, skipping score creation...`);
+		return null;
+	}
+	if (user.kind === "admin") { // Check if user is a staff member
+		console.warn(`User ${user.login} is an admin (staff member), skipping score creation...`);
+		return null;
+	}
+	if (INTRA_TEST_ACCOUNTS.includes(user.login)) { // Check if user is a testing account used by campus staff
+		console.warn(`User ${user.login} is a test account, skipping score creation...`);
+		return null;
+	}
+	if (!user.coalition_users || user.coalition_users.length === 0) { // Check if user has a coalition
 		console.warn(`User ${userId} does not have a coalition, skipping score creation...`);
 		return null;
 	}
+	const coalitionUser = user.coalition_users[0];
 
 	console.log(`Creating score for user ${userId} in coalition ${coalitionUser.coalition_id} with ${points} points for reason "${reason}" (connected to Intra object ${typeIntraId} for fixed type ${(type ? type.type : "null")})...`);
 	return await prisma.codamCoalitionScore.create({
