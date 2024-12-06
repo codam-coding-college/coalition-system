@@ -106,7 +106,7 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 					coalition_id: coalitionId,
 					created_at: {
 						gte: currentBloc.begin_at,
-						lt: new Date(),
+						lte: new Date(),
 					},
 				},
 				_sum: {
