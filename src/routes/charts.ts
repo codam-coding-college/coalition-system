@@ -240,7 +240,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			const dates: Date[] = [];
 			const blocStart = currentBloc.begin_at;
 			const twelveHourBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (12 * 60 * 60 * 1000));
-			for (let i = 0; i <= 60; i++) {
+			for (let i = 0; i <= twelveHourBlocsSinceBlocStart; i++) {
 				dates.push(new Date(blocStart.getTime() + i * 12 * 60 * 60 * 1000));
 			}
 			dates.push(now); // always add the current score
