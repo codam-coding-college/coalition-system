@@ -1,8 +1,9 @@
-import { PrismaClient, IntraUser, IntraCoalition } from "@prisma/client";
+import { PrismaClient, IntraUser, IntraCoalition, IntraBlocDeadline } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { api } from "./main";
 import { CURSUS_ID } from "./env";
+import NodeCache from "node-cache";
 
 export const getAPIClient = async function(): Promise<Fast42> {
 	if (!api) {
@@ -193,15 +194,41 @@ export const timeFromNow = function(date: Date | null): string {
 	return `within a minute`; // don't specify: otherwise it's weird when the amount of seconds does not go down
 };
 
+const blocCache = new NodeCache({
+	stdTTL: 60 * 60, // 1 hour
+	checkperiod: 60 * 5, // 5 minutes
+	useClones: false,
+});
+export const getBlocAtDate = async function(prisma: PrismaClient, date: Date = new Date()): Promise<IntraBlocDeadline | null> {
+	if (!blocCache.has('blocs')) {
+		// Cache the blocs to prevent querying the database every time
+		console.log('Fetching blocs from database');
+		const blocs = await prisma.intraBlocDeadline.findMany({
+			orderBy: {
+				begin_at: 'asc',
+			},
+		});
+		blocCache.set('blocs', blocs);
+	}
+
+	const blocs = blocCache.get('blocs') as IntraBlocDeadline[];
+	for (const bloc of blocs) {
+		if (bloc.begin_at <= date && bloc.end_at > date) {
+			return bloc;
+		}
+	}
+	return null;
+};
+
 export const getUserTournamentRanking = async function(prisma: PrismaClient, userId: number, date: Date = new Date()): Promise<number> {
-	// TODO: calculate based on tournament deadlines
 	const userCoalition = await prisma.intraCoalitionUser.findFirst({
 		where: {
 			user_id: userId,
 		},
 	});
-	if (!userCoalition) {
-		return 0;
+	const bloc = await getBlocAtDate(prisma, date);
+	if (!userCoalition || !bloc) {
+		return 0; // No coalition for user or no season currently ongoing
 	}
 
 	const scores = await prisma.codamCoalitionScore.groupBy({
@@ -212,6 +239,7 @@ export const getUserTournamentRanking = async function(prisma: PrismaClient, use
 		where: {
 			created_at: {
 				lte: date,
+				gte: bloc.begin_at,
 			},
 			coalition_id: userCoalition.coalition_id, // Only get scores for the user's coalition to get the position within the coalition
 		},
@@ -234,7 +262,10 @@ export interface NormalDistribution {
 };
 
 export const getScoresPerType = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<{ [key: string]: number }> {
-	// TODO: calculate based on tournament deadlines
+	const bloc = await getBlocAtDate(prisma, untilDate);
+	if (!bloc) {
+		return {}; // No season currently ongoing
+	}
 	const fixedTypes = await prisma.codamCoalitionFixedType.findMany({
 		orderBy: {
 			type: 'asc',
@@ -246,6 +277,7 @@ export const getScoresPerType = async function(prisma: PrismaClient, coalitionId
 			coalition_id: coalitionId,
 			created_at: {
 				lte: untilDate,
+				gte: bloc.begin_at,
 			},
 		},
 		_sum: {
@@ -264,7 +296,16 @@ export const getScoresPerType = async function(prisma: PrismaClient, coalitionId
 }
 
 export const getScoresNormalDistribution = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<NormalDistribution> {
-	// TODO: calculate based on tournament deadlines
+	const bloc = await getBlocAtDate(prisma, untilDate);
+	if (!bloc) { // No season currently ongoing
+		return {
+			dataPoints: [],
+			mean: 0,
+			stdDev: 0,
+			min: 0,
+			max: 0,
+		};
+	}
 	const scores = await prisma.codamCoalitionScore.groupBy({
 		by: ['user_id'],
 		where: {
