@@ -39,7 +39,7 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 				user_id: profileUser.id,
 				created_at: {
 					gte: currentBloc.begin_at,
-					lt: now,
+					lte: now,
 				},
 			},
 		})) : []);

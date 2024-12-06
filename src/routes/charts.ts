@@ -257,7 +257,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 						user_id: user.id,
 						created_at: {
 							gte: blocStart,
-							lt: date,
+							lte: date,
 						},
 					},
 				});
@@ -383,7 +383,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 						user_id: user.id,
 						created_at: {
 							gte: blocStart,
-							lt: date,
+							lte: date,
 						},
 					},
 				});
