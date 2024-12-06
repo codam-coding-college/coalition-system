@@ -88,6 +88,23 @@ export const updateScore = async function(prisma: PrismaClient, score: CodamCoal
 	});
 }
 
+export const shiftScore = async function(prisma: PrismaClient, scoreId: number, newCreationDate: Date): Promise<CodamCoalitionScore> {
+	console.log(`Shifting CodamScore ${scoreId} to new creation date ${newCreationDate}...`);
+	const score = await prisma.codamCoalitionScore.update({
+		where: {
+			id: scoreId,
+		},
+		data: {
+			created_at: newCreationDate,
+			updated_at: new Date(),
+		}
+	});
+
+	// TODO: update intra score (maybe not here but in a runner/job?)
+
+	return score;
+}
+
 export const handleFixedPointScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
 	if (typeIntraId) {
 		// Check if a score already exists for this type and typeIntraId

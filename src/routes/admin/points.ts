@@ -3,7 +3,7 @@ import { CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import { fetchSingleApiPage, getAPIClient } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
-import { createScore, handleFixedPointScore } from '../../handlers/points';
+import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
 
 export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/points/history', async (req, res) => {
@@ -551,5 +551,101 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			console.error(err);
 			return res.status(500).send('An error occurred');
 		}
+	});
+
+	app.get('/admin/points/shift', async (req, res) => {
+		// Page to shift points from in-between seasons to the exact start of the next season
+
+		const blocDeadlines = await prisma.intraBlocDeadline.findMany({
+			where: {
+				begin_at: {
+					lt: new Date(),
+				},
+			},
+			orderBy: {
+				begin_at: 'asc',
+			},
+		});
+
+		const shiftablePoints: { [key: number]: number } = {};
+		for (let i = 0; i < blocDeadlines.length; i++) {
+			const shiftablePointsForBloc = await prisma.codamCoalitionScore.aggregate({
+				_sum: {
+					amount: true,
+				},
+				where: {
+					created_at: {
+						gte: (i > 0 ? blocDeadlines[i - 1].end_at : new Date(0)),
+						lt: blocDeadlines[i].begin_at,
+					},
+				},
+			});
+			shiftablePoints[blocDeadlines[i].id] = shiftablePointsForBloc._sum.amount || 0;
+		}
+
+		return res.render('admin/points/shift.njk', {
+			blocDeadlines,
+			shiftablePoints,
+		});
+	});
+
+	app.post('/admin/points/shift', async (req, res) => {
+		const user = req.user as ExpressIntraUser;
+		if (!user) {
+			return res.status(401).send('Unauthorized');
+		}
+
+		const seasonId = parseInt(req.body.season);
+		if (isNaN(seasonId)) {
+			return res.status(400).send('Invalid season');
+		}
+
+		console.warn(`User ${user.login} is shifting points from in-between seasons to the exact start of the next season (to season blocdeadline id ${seasonId})`);
+
+		const blocDeadline = await prisma.intraBlocDeadline.findFirst({
+			where: {
+				id: seasonId,
+			},
+		});
+		if (!blocDeadline) {
+			return res.status(404).send('Season not found');
+		}
+		const previousBlocDeadline = await prisma.intraBlocDeadline.findFirst({
+			where: {
+				begin_at: {
+					lt: blocDeadline.begin_at,
+				},
+				end_at: {
+					lt: blocDeadline.begin_at,
+				},
+			},
+			orderBy: {
+				begin_at: 'desc',
+			},
+		});
+
+		// Shift points from in-between seasons to the exact start of the next season
+		const scoresToShift = await prisma.codamCoalitionScore.findMany({
+			where: {
+				created_at: {
+					gte: previousBlocDeadline ? previousBlocDeadline.end_at : new Date(0),
+					lt: blocDeadline.begin_at,
+				},
+			},
+			select: {
+				id: true,
+			},
+		});
+		// This might take a long time
+		// TODO: maybe update all in one go? Might make it more difficult to update Intra scores though...
+		// Do we even push scores to Intra that fall outside of a season?
+		for (const score of scoresToShift) {
+			await shiftScore(prisma, score.id, blocDeadline.begin_at);
+		}
+
+		console.log(`User ${user.login} has shifted ${scoresToShift.length} scores to the start of season ${seasonId} - ${blocDeadline.begin_at.toLocaleString()}`);
+
+		// Done, redirect back to the form
+		return res.redirect('/admin/points/shift');
 	});
 };

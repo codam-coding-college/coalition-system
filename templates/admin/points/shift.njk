@@ -1,0 +1,25 @@
+{% extends "base.njk" %}
+{% set title = "Points shifter" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/points/shift">Points shifter</a></li>
+	</ol>
+</nav>
+
+<form class="mb-4" action="/admin/points/shift" method="post" id="points-shifter-form">
+	<p>Using this page you can shift points that got assigned in-between seasons towards the beginning of the next season, providing the students who earned points in-between seasons with a head-start.</p>
+	<p><b>WARNING: This operation is irreversible. Make sure you know what you're doing.</b></p>
+
+	<select class="form-select mb-3" name="season" required>
+		<option value="" selected disabled>Select season to shift points to</option>
+		{% for blocDeadline in blocDeadlines %}
+			<option value="{{ blocDeadline.id }}">Season {{ blocDeadline.begin_at | dateInput }} to {{ blocDeadline.end_at | dateInput }} ({{ shiftablePoints[blocDeadline.id] | thousands }} points)</option>
+		{% endfor %}
+	</select>
+
+	<button type="submit" class="btn btn-warning">Shift points</button>
+</form>
+{% endblock %}
