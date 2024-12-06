@@ -2,6 +2,7 @@ import { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { CURSUS_ID } from '../../env';
 import { ChartConfiguration } from 'chart.js';
+import { getBlocAtDate } from '../../utils';
 
 export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/charts/coalitions/users/distribution', async (req, res) => {
@@ -95,10 +96,18 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 			if (!coalition) {
 				throw new Error('Invalid coalition ID');
 			}
+			const currentBloc = await getBlocAtDate(prisma);
+			if (!currentBloc) {
+				throw new Error('No current bloc found');
+			}
 			const scores = await prisma.codamCoalitionScore.groupBy({
 				by: ['user_id'],
 				where: {
 					coalition_id: coalitionId,
+					created_at: {
+						gte: currentBloc.begin_at,
+						lt: new Date(),
+					},
 				},
 				_sum: {
 					amount: true,

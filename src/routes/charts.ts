@@ -1,12 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import { ChartConfiguration } from 'chart.js';
 import { Express } from 'express';
-import { CoalitionScore, getCoalitionScore } from '../utils';
+import { CoalitionScore, getBlocAtDate, getCoalitionScore } from '../utils';
 
 export const setupChartRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/charts/coalitions/scores/history', async (req, res) => {
-		// TODO: change this to the full overview of a tournament deadline instead of past 30 days
 		try {
+			const now = new Date();
+			const currentBloc = await getBlocAtDate(prisma, now);
+			if (!currentBloc) {
+				throw new Error('No season is currently ongoing');
+			}
 			const coalitions = await prisma.intraCoalition.findMany({
 				select: {
 					id: true,
@@ -17,15 +21,14 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			if (coalitions.length === 0) {
 				throw new Error('No coalitions found');
 			}
-			// Get the score for the past 30 days per day, 2 points per day (00:00 and 12:00)
+			// Get the scores since the beginning of the season, 2 data points per day
 			const dates = [];
-			const now = new Date();
-			now.setHours((now.getHours() > 12) ? 12 : 0, 0, 0, 0);
-			const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-			for (let i = 0; i <= 60; i++) {
-				dates.push(new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000));
+			const blocStart = currentBloc.begin_at;
+			const twelveHourBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (12 * 60 * 60 * 1000));
+			for (let i = 0; i <= twelveHourBlocsSinceBlocStart; i++) {
+				dates.push(new Date(blocStart.getTime() + i * 12 * 60 * 60 * 1000));
 			}
-			dates.push(new Date()); // always add the current score
+			dates.push(now); // always add the current score
 
 			// Get the scores for each coalition
 			const coalitionDataPoints: { [key: number]: CoalitionScore[] } = {};
@@ -89,6 +92,11 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 
 	app.get('/charts/coalitions/:coalitionId/scores/history', async (req, res) => {
 		try {
+			const now = new Date();
+			const currentBloc = await getBlocAtDate(prisma, now);
+			if (!currentBloc) {
+				throw new Error('No season is currently ongoing');
+			}
 			const coalitionId = parseInt(req.params.coalitionId);
 			const coalition = await prisma.intraCoalition.findFirst({
 				where: {
@@ -103,15 +111,15 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			if (!coalition) {
 				throw new Error('Invalid coalition ID');
 			}
-			// Get the score for the past 30 days per day, 2 points per day (00:00 and 12:00)
+			// Get the scores since the beginning of the season, 2 data points per day
 			const dataPoints: CoalitionScore[] = [];
-			const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-			monthAgo.setHours(0, 0, 0, 0);
-			for (let i = 0; i < 60; i++) {
-				const date = new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000);
+			const blocStart = currentBloc.begin_at;
+			const twelveHourBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (12 * 60 * 60 * 1000));
+			for (let i = 0; i < twelveHourBlocsSinceBlocStart; i++) {
+				const date = new Date(blocStart.getTime() + i * 12 * 60 * 60 * 1000);
 				dataPoints[date.getTime()] = await getCoalitionScore(prisma, coalitionId, date);
 			}
-			dataPoints[Date.now()] = await getCoalitionScore(prisma, coalitionId, new Date()); // always add the current score
+			dataPoints[now.getTime()] = await getCoalitionScore(prisma, coalitionId, now); // always add the current score
 
 			// Compose the returnable data (in a format Chart.js can understand)
 			const chartJSData: ChartConfiguration = {
@@ -222,19 +230,22 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			if (!user || !user.coalition_users || user.coalition_users.length === 0) {
 				return res.status(404).send('User not found or not in a coalition');
 			}
-
-			// Get the score for the past 30 days per day, 2 points per day (00:00 and 12:00)
-			// TODO: change this to the entire current tournament
-			const dates: Date[] = [];
 			const now = new Date();
-			now.setHours((now.getHours() > 12) ? 12 : 0, 0, 0, 0);
-			const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-			for (let i = 0; i <= 60; i++) {
-				dates.push(new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000));
+			const currentBloc = await getBlocAtDate(prisma, now);
+			if (!currentBloc) {
+				throw new Error('No season is currently ongoing');
 			}
-			dates.push(new Date()); // always add the current score
 
-			// Get all scores for this user for the past 30 days
+			// Get the scores for this user since the beginning of the season, 2 data points per day
+			const dates: Date[] = [];
+			const blocStart = currentBloc.begin_at;
+			const twelveHourBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (12 * 60 * 60 * 1000));
+			for (let i = 0; i <= 60; i++) {
+				dates.push(new Date(blocStart.getTime() + i * 12 * 60 * 60 * 1000));
+			}
+			dates.push(now); // always add the current score
+
+			// Get all scores for this user for the given timespan
 			const scoreSumsPerDate: { [key: number]: number } = {};
 			for (const date of dates) {
 				const scores = await prisma.codamCoalitionScore.groupBy({
@@ -245,7 +256,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 					where: {
 						user_id: user.id,
 						created_at: {
-							gte: monthAgo,
+							gte: blocStart,
 							lt: date,
 						},
 					},
@@ -330,16 +341,20 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 				return res.status(404).send('User not found or not in a coalition');
 			}
 
-			// Get the score for the past 30 days per day, 2 points per day (00:00 and 12:00)
-			// TODO: change this to the entire current tournament
-			const dates: Date[] = [];
 			const now = new Date();
-			now.setHours((now.getHours() > 12) ? 12 : 0, 0, 0, 0);
-			const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-			for (let i = 0; i <= 60; i++) {
-				dates.push(new Date(monthAgo.getTime() + i * 12 * 60 * 60 * 1000));
+			const currentBloc = await getBlocAtDate(prisma, now);
+			if (!currentBloc) {
+				throw new Error('No season is currently ongoing');
 			}
-			dates.push(new Date()); // always add the current score
+
+			// Get the scores for this user since the beginning of the season, 2 data points per day
+			const dates: Date[] = [];
+			const blocStart = currentBloc.begin_at;
+			const twelveHourBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (12 * 60 * 60 * 1000));
+			for (let i = 0; i <= twelveHourBlocsSinceBlocStart; i++) {
+				dates.push(new Date(blocStart.getTime() + i * 12 * 60 * 60 * 1000));
+			}
+			dates.push(now); // always add the current score
 
 			// Get all fixed point types
 			const fixedPointTypes = await prisma.codamCoalitionFixedType.findMany({
@@ -353,7 +368,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			// @ts-ignore
 			fixedPointTypes.push({ type: null }); // replacement for null
 
-			// Get all scores for this user for the past 30 days
+			// Get all scores for this user for the given timespan
 			const scoreSumsPerTypePerDate: { [key: string]: { [key: number]: number } } = {};
 			for (const fixedPointType of fixedPointTypes) {
 				scoreSumsPerTypePerDate[fixedPointType.type || 'null'] = {};
@@ -367,7 +382,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 					where: {
 						user_id: user.id,
 						created_at: {
-							gte: monthAgo,
+							gte: blocStart,
 							lt: date,
 						},
 					},
