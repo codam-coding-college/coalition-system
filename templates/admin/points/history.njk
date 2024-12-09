@@ -9,6 +9,8 @@
 	</ol>
 </nav>
 
+{{ pagination(pageNav) }}
+
 <table class="table coalition-colored">
 	<thead>
 		<th scope="col">Date</th>
@@ -41,6 +43,9 @@
 		{% endfor %}
 	</tbody>
 </table>
+
+{{ pagination(pageNav) }}
+
 <script src="/js/reactive-button.js"></script>
 <script>
 function buttonHandler(event) {

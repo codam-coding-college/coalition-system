@@ -1,13 +1,24 @@
 import { Express } from 'express';
 import { CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import fs from 'fs';
-import { fetchSingleApiPage, getAPIClient } from '../../utils';
+import { fetchSingleApiPage, getAPIClient, getPageNav } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
 import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
 
+const SCORES_PER_PAGE = 100;
+
 export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/points/history', async (req, res) => {
-		// Retrieve all scores
+		// Calculate the total amount of pages
+		const totalScores = await prisma.codamCoalitionScore.count();
+		const totalPages = Math.ceil(totalScores / SCORES_PER_PAGE);
+		const pageNum = (req.query.page ? parseInt(req.query.page as string) : 1);
+		if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+			return res.status(404).send('Page not found');
+		}
+		const offset = (pageNum - 1) * SCORES_PER_PAGE;
+
+		// Retrieve the scores to be displayed on the page
 		const scores = await prisma.codamCoalitionScore.findMany({
 			select: {
 				id: true,
@@ -33,6 +44,8 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			orderBy: {
 				created_at: 'desc',
 			},
+			take: SCORES_PER_PAGE,
+			skip: offset,
 		});
 
 		// Retrieve all coalitions
@@ -48,9 +61,15 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			coalitions[row.intra_coalition.id] = row;
 		}
 
+		// Create a list of pages for the pagination nav
+		const pageNav = getPageNav(pageNum, totalPages);
+
 		return res.render('admin/points/history.njk', {
 			scores,
 			coalitions,
+			pageNum,
+			totalPages,
+			pageNav,
 		});
 	});
 

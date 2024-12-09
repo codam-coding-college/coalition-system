@@ -70,6 +70,60 @@ export const getCoalitionIds = async function(prisma: PrismaClient): Promise<any
 	return returnable;
 };
 
+export interface PageNav {
+	num: number;
+	active: boolean;
+	text: string;
+};
+
+export const getPageNav = function(currentPage: number, totalPages: number, maxPages: number = 7): PageNav[] {
+	const pageNav: { num: number, active: boolean, text: string }[] = [];
+	const halfMaxPages = Math.floor(maxPages / 2);
+	let startPage = Math.max(1, currentPage - halfMaxPages);
+	let endPage = Math.min(totalPages, startPage + maxPages - 1);
+	if (endPage - startPage < maxPages - 1) {
+		startPage = Math.max(1, endPage - maxPages + 1);
+	}
+	if (endPage - startPage < maxPages - 1) {
+		endPage = Math.min(totalPages, startPage + maxPages - 1);
+	}
+	if (endPage - startPage < maxPages - 1) {
+		startPage = Math.max(1, endPage - maxPages + 1);
+	}
+	if (startPage > 1) {
+		pageNav.push({
+			num: 1,
+			active: false,
+			text: 'First',
+		});
+		pageNav.push({
+			num: currentPage - 1,
+			active: false,
+			text: '<',
+		});
+	}
+	for (let i = startPage; i <= endPage; i++) {
+		pageNav.push({
+			num: i,
+			active: i === currentPage,
+			text: i.toString(),
+		});
+	}
+	if (endPage < totalPages) {
+		pageNav.push({
+			num: currentPage + 1,
+			active: false,
+			text: '>',
+		});
+		pageNav.push({
+			num: totalPages,
+			active: false,
+			text: 'Last',
+		});
+	}
+	return pageNav;
+};
+
 export const parseTeamInAPISearcher = async function(prisma: PrismaClient, teams: any): Promise<any> {
 	const projects = await prisma.intraProject.findMany({
 		select: {

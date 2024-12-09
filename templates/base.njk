@@ -1,3 +1,13 @@
+{% macro pagination(pageNav) %}
+{# Refer to interface PageNav in utils.ts for an overview of what a PageNav item contains #}
+<nav aria-label="Page navigation" class="d-flex justify-content-center">
+	<ul class="pagination">
+		{% for pageNavItem in pageNav %}
+			<li class="page-item{{ ' active' if pageNavItem.active }}" {{ 'aria-current="page"' if pageNavItem.active }}><a class="page-link" href="/admin/points/history?page={{ pageNavItem.num }}">{{ pageNavItem.text }}</a></li>
+		{% endfor %}
+	</ul>
+</nav>
+{% endmacro %}
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
