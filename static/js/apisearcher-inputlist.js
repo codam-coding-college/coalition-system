@@ -68,12 +68,12 @@ const ApiSearcherInputList = function(options) {
 		}
 	};
 
-	this.clearAndLoadResults = (data) => {
+	this.clearAndLoadResults = (results) => {
 		this.clear();
 
 		// Load results into datalist
 		const options = [];
-		for (const row of data) {
+		for (const row of results.data) {
 			const option = document.createElement('option');
 			const optionValue = [];
 			for (const dataKey of this.dataKeys) {

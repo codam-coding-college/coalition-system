@@ -82,6 +82,14 @@ const ApiSearcherTable = function(options) {
 		this.filterForm = document.querySelector(this.options['filterForm']);
 		this.filterForm.addEventListener('submit', this.search);
 
+		// Page navigation setup
+		if (this.options['pageNav']) {
+			this.pageNav = document.querySelector(this.options['pageNav']);
+		}
+		else {
+			this.pageNav = null;
+		}
+
 		// Points calculator setup
 		if (this.options['noPoints'] !== true) {
 			if (!this.options['pointsCalculator']) {
@@ -120,11 +128,93 @@ const ApiSearcherTable = function(options) {
 		}
 	};
 
+	this.setupPagination = (results) => {
+		const pageNav = [];
+		const currentPageNum = results.meta.pagination.page;
+		const totalPages = results.meta.pagination.pages;
+		const maxPages = 5;
+		const halfMaxPages = Math.floor(maxPages / 2);
+		let startPage = Math.max(1, currentPageNum - halfMaxPages);
+		let endPage = Math.min(totalPages, startPage + maxPages - 1);
+
+		if (endPage - startPage < maxPages - 1) {
+			startPage = Math.max(1, endPage - maxPages + 1);
+		}
+		if (endPage - startPage < maxPages - 1) {
+			endPage = Math.min(totalPages, startPage + maxPages - 1);
+		}
+		if (endPage - startPage < maxPages - 1) {
+			startPage = Math.max(1, endPage - maxPages + 1);
+		}
+		if (startPage > 1) {
+			pageNav.push({
+				num: 1,
+				active: false,
+				text: 'First',
+			});
+			pageNav.push({
+				num: currentPageNum - 1,
+				active: false,
+				text: '<',
+			});
+		}
+		for (let i = startPage; i <= endPage; i++) {
+			pageNav.push({
+				num: i,
+				active: i === currentPageNum,
+				text: i.toString(),
+			});
+		}
+		if (endPage < totalPages) {
+			pageNav.push({
+				num: currentPageNum + 1,
+				active: false,
+				text: '>',
+			});
+			pageNav.push({
+				num: totalPages,
+				active: false,
+				text: 'Last',
+			});
+		}
+
+		const ul = document.createElement('ul');
+		ul.classList.add('pagination');
+		for (const page of pageNav) {
+			const li = document.createElement('li');
+			li.classList.add('page-item');
+			if (page.active) {
+				li.classList.add('active');
+				li.setAttribute('aria-current', 'page');
+			}
+			const a = document.createElement('a');
+			a.classList.add('page-link');
+			a.innerText = page.text;
+			a.href = '?page=' + page.num;
+			a.addEventListener('click', (e) => {
+				e.preventDefault();
+				this.clearAndShowLoading();
+				this.search(null, e.target.href.split('=')[1]);
+				// TODO: update page URL
+			});
+			li.appendChild(a);
+			ul.appendChild(li);
+		}
+		this.pageNav.appendChild(ul);
+	};
+
 	this.clear = () => {
 		// Delete all tbody children
 		const tbody = this.results.querySelector('tbody');
 		while (tbody.firstChild) {
 			tbody.removeChild(tbody.firstChild);
+		}
+
+		// Clear pagination
+		if (this.pageNav) {
+			while (this.pageNav.firstChild) {
+				this.pageNav.removeChild(this.pageNav.firstChild);
+			}
 		}
 	};
 
@@ -149,13 +239,18 @@ const ApiSearcherTable = function(options) {
 		}
 	};
 
-	this.clearAndLoadResults = (data) => {
+	this.clearAndLoadResults = (results) => {
 		this.clear();
 		const tbody = this.results.querySelector('tbody');
 
+		// Set up pagination
+		if (this.pageNav) {
+			this.setupPagination(results);
+		}
+
 		// Load results into table
 		const trs = [];
-		for (const row of data) {
+		for (const row of results.data) {
 			const tr = document.createElement('tr');
 			for (const header of this.headers) {
 				const td = document.createElement('td');
@@ -289,19 +384,37 @@ const ApiSearcherTable = function(options) {
 		tbody.append(...trs);
 	};
 
-	this.search = async (e) => {
+	this.abortController = null;
+	this.search = async (e, pageNum = 1) => {
 		if (e) {
 			e.preventDefault();
+		}
+		// Abort any ongoing fetch requests
+		if (this.abortController) {
+			this.abortController.abort();
+			this.abortController = null;
 		}
 		// Check if a filter should be applied
 		let filter = '';
 		if (this.filterSelector.value != 'none' && this.filterValue.value != '') {
 			filter = this.filterSelector.value + '/' + this.filterValue.value;
+			// TODO: update page URL with filter
 		}
 		this.clearAndShowLoading();
-		const req = await fetch(this.concatUrlPaths(this.url, filter));
-		const results = await req.json();
-		this.clearAndLoadResults(results);
+		try {
+			this.abortController = new AbortController();
+			fetch(this.concatUrlPaths(this.url, filter) + '?page=' + pageNum, { signal: this.abortController.signal })
+				.then(req => req.json())
+				.then(results => this.clearAndLoadResults(results))
+		}
+		catch (err) {
+			if (err.name === 'AbortError') {
+				console.log('Search aborted');
+			}
+			else {
+				console.error('An error occurred while fetching data', err);
+			}
+		}
 	};
 
 	this.init();

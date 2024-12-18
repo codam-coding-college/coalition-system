@@ -4,6 +4,7 @@ import Fast42 from "@codam/fast42";
 import { api } from "./main";
 import { CURSUS_ID } from "./env";
 import NodeCache from "node-cache";
+import { Request } from "express";
 
 export const getAPIClient = async function(): Promise<Fast42> {
 	if (!api) {
@@ -12,19 +13,38 @@ export const getAPIClient = async function(): Promise<Fast42> {
 	return api;
 };
 
-export const fetchSingleApiPage = async function(api: Fast42, endpoint: string, params: Record<string, string> = {}): Promise<any> {
-	const job = await api.getPage(endpoint, "1", params);
-	try {
-		if (job.status !== 200) {
-			console.error(`Failed to fetch page ${endpoint} with status ${job.status}`);
-			return null;
+export const fetchSingleApiPage = function(api: Fast42, endpoint: string, params: Record<string, string> = {}, pageNum: number = 1): Promise<{headers: any, data: any}> {
+	return new Promise(async (resolve, reject) => {
+		try {
+			const job = await api.getPage(endpoint, pageNum.toString(), params);
+			if (job.status !== 200) {
+				console.error(`Failed to fetch page ${endpoint} with status ${job.status}`);
+				reject(`Failed to fetch page ${endpoint} with status ${job.status}`);
+			}
+			const headers = job.headers.raw();
+			const data = await job.json();
+			resolve({ headers, data });
 		}
-		return await job.json();
+		catch (err) {
+			console.error(`Failed to fetch page ${endpoint}`, err);
+			reject(err);
+		}
+	});
+};
+
+export const getPageNumber = function(req: Request, totalPages: number | null): number {
+	const pageNum = (req.query.page ? parseInt(req.query.page as string) : 1);
+	if (pageNum < 1 || isNaN(pageNum)) {
+		return 1;
 	}
-	catch (err) {
-		console.error(`Failed to fetch page ${endpoint}`, err);
-		return null;
+	if (totalPages && !isNaN(totalPages) && pageNum > totalPages) {
+		return totalPages;
 	}
+	return pageNum;
+};
+
+export const getOffset = function(pageNum: number, itemsPerPage: number): number {
+	return (pageNum - 1) * itemsPerPage;
 };
 
 export const isStudentOrStaff = async function(prisma: PrismaClient, intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {

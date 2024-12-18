@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import { CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import fs from 'fs';
-import { fetchSingleApiPage, getAPIClient, getPageNav } from '../../utils';
+import { fetchSingleApiPage, getAPIClient, getOffset, getPageNav, getPageNumber } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
 import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
 
@@ -12,11 +12,8 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 		// Calculate the total amount of pages
 		const totalScores = await prisma.codamCoalitionScore.count();
 		const totalPages = Math.ceil(totalScores / SCORES_PER_PAGE);
-		const pageNum = (req.query.page ? parseInt(req.query.page as string) : 1);
-		if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
-			return res.status(404).send('Page not found');
-		}
-		const offset = (pageNum - 1) * SCORES_PER_PAGE;
+		const pageNum = getPageNumber(req, totalPages);
+		const offset = getOffset(pageNum, SCORES_PER_PAGE);
 
 		// Retrieve the scores to be displayed on the page
 		const scores = await prisma.codamCoalitionScore.findMany({
@@ -389,7 +386,8 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 
 			// Verify the event exists on Intra
 			const api = await getAPIClient();
-			const intraEvent = await fetchSingleApiPage(api, `/events/${eventId}`);
+			const apires = await fetchSingleApiPage(api, `/events/${eventId}`);
+			const intraEvent = apires.data;
 			if (!intraEvent) {
 				return res.status(404).send('Intra event not found');
 			}

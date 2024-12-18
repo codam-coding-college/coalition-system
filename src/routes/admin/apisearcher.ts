@@ -1,11 +1,23 @@
 import { Express } from 'express';
-import { IntraCoalitionUser, Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
-import Fast42 from '@codam/fast42';
 import { CAMPUS_ID, CURSUS_ID } from '../../env';
-import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTeamInAPISearcher } from '../../utils';
+import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTeamInAPISearcher, getPageNumber, getOffset } from '../../utils';
 
 const EXAM_PROJECT_IDS = [1320, 1321, 1322, 1323, 1324];
+
+// Response interface
+export interface APISearchResponse {
+	data: any[];
+	meta: {
+		pagination: {
+			total: number;
+			pages: number;
+			page: number;
+			per_page: number;
+		};
+	};
+};
 
 // Cache for the API searcher specifically
 import NodeCache from 'node-cache';
@@ -44,18 +56,34 @@ export const API_DEFAULT_FILTERS_EVENTS = {
 	'sort': '-begin_at',
 };
 
+const getPaginationMeta = function(headers: any): APISearchResponse['meta']['pagination'] {
+	return {
+		total: parseInt(headers['x-total']),
+		pages: Math.ceil(parseInt(headers['x-total']) / parseInt(headers['x-per-page'])),
+		page: parseInt(headers['x-page']),
+		per_page: parseInt(headers['x-per-page']),
+	};
+};
+
 export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient): void {
 
 	// LOCATIONS
 	// All locations
 	app.get('/admin/apisearch/locations', async (req, res) => {
 		try {
+			const itemsPerPage = 50;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const locations = await fetchSingleApiPage(api, `/campus/${CAMPUS_ID}/locations`, {
 				...API_DEFAULT_FILTERS_LOCATIONS,
-				'page[size]': '50',
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			return res.json({
+				data: locations.data,
+				meta: {
+					pagination: getPaginationMeta(locations.headers),
+				},
 			});
-			return res.json(locations);
 		}
 		catch (err) {
 			console.log(err);
@@ -78,12 +106,19 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			if (user === null) {
 				return res.status(404).json({ error: 'User not found' });
 			}
+			const itemsPerPage = 50;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const locations = await fetchSingleApiPage(api, `/users/${user.id}/locations`, {
 				...API_DEFAULT_FILTERS_LOCATIONS,
-				'page[size]': '50',
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			return res.json({
+				data: locations.data,
+				meta: {
+					pagination: getPaginationMeta(locations.headers),
+				},
 			});
-			return res.json(locations);
 		}
 		catch (err) {
 			console.log(err);
@@ -99,7 +134,12 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			const location = await fetchSingleApiPage(api, '/locations/', { // use /locations with filter to make sure the response is in the same format as the other location endpoints
 				'filter[id]': locationId,
 			});
-			return res.json(location);
+			return res.json({
+				data: location.data,
+				meta: {
+					pagination: getPaginationMeta(location.headers),
+				},
+			});
 		}
 		catch (err) {
 			console.log(err);
@@ -111,13 +151,20 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	// All projects (teams)
 	app.get('/admin/apisearch/projects', async (req, res) => {
 		try {
+			const itemsPerPage = 100;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, `/teams`, {
 				...API_DEFAULT_FILTERS_PROJECTS,
-				'page[size]': '100',
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
+			return res.json({
+				data: modifiedTeams,
+				meta: {
+					pagination: getPaginationMeta(teams.headers),
+				},
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
-			return res.json(modifiedTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -140,13 +187,20 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			if (user === null) {
 				return res.status(404).json({ error: 'User not found' });
 			}
+			const itemsPerPage = 100;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, `/users/${user.id}/teams`, {
 				...API_DEFAULT_FILTERS_PROJECTS,
-				'page[size]': '100',
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
+			return res.json({
+				data: modifiedTeams,
+				meta: {
+					pagination: getPaginationMeta(teams.headers),
+				},
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
-			return res.json(modifiedTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -158,12 +212,20 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	app.get('/admin/apisearch/projects/id/:teamId', async (req, res) => {
 		try {
 			const teamId = req.params.teamId;
+			const itemsPerPage = 50;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, '/teams/', {
 				'filter[id]': teamId,
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
+			return res.json({
+				data: modifiedTeams,
+				meta: {
+					pagination: getPaginationMeta(teams.headers),
+				},
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
-			return res.json(modifiedTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -176,12 +238,19 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	app.get('/admin/apisearch/exams', async (req, res) => {
 		try {
 			const api = await getAPIClient();
+			const itemsPerPage = 100;
+			const pageNum = getPageNumber(req, NaN);
 			const teams = await fetchSingleApiPage(api, `/teams`, {
 				...API_DEFAULT_FILTERS_EXAMS,
-				'page[size]': '100',
+				'page[size]': itemsPerPage.toString(),
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
-			return res.json(modifiedTeams);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
+			return res.json({
+				data: modifiedTeams,
+				meta: {
+					pagination: getPaginationMeta(teams.headers),
+				},
+			});
 		}
 		catch (err) {
 			console.log(err);
@@ -205,12 +274,19 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				return res.status(404).json({ error: 'User not found' });
 			}
 			const api = await getAPIClient();
+			const itemsPerPage = 100;
+			const pageNum = getPageNumber(req, NaN);
 			const teams = await fetchSingleApiPage(api, `/users/${user.id}/teams`, {
 				...API_DEFAULT_FILTERS_EXAMS,
-				'page[size]': '100',
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
+			return res.json({
+				data: modifiedTeams,
+				meta: {
+					pagination: getPaginationMeta(teams.headers),
+				},
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
-			return res.json(modifiedTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -222,13 +298,21 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	app.get('/admin/apisearch/exams/id/:teamId', async (req, res) => {
 		try {
 			const teamId = req.params.teamId;
+			const itemsPerPage = 50;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, '/teams/', {
 				'filter[id]': teamId,
 				'filter[project_id]': EXAM_PROJECT_IDS.join(','),
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
+			return res.json({
+				data: modifiedTeams,
+				meta: {
+					pagination: getPaginationMeta(teams.headers),
+				},
 			});
-			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams);
-			return res.json(modifiedTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -240,13 +324,20 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	// All evaluations
 	app.get('/admin/apisearch/evaluations', async (req, res) => {
 		try {
+			const itemsPerPage = 10;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
 				...API_DEFAULT_FILTERS_SCALE_TEAMS,
-				'page[size]': '25',
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations.data);
+			return res.json({
+				data: modifiedScaleTeams,
+				meta: {
+					pagination: getPaginationMeta(evaluations.headers),
+				},
 			});
-			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
-			return res.json(modifiedScaleTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -269,14 +360,21 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			if (user === null) {
 				return res.status(404).json({ error: 'User not found' });
 			}
+			const itemsPerPage = 10;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
 				...API_DEFAULT_FILTERS_SCALE_TEAMS,
-				'page[size]': '25',
+				'page[size]': itemsPerPage.toString(),
 				'filter[user_id]': user.id.toString(),
+			}, pageNum);
+			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations.data);
+			return res.json({
+				data: modifiedScaleTeams,
+				meta: {
+					pagination: getPaginationMeta(evaluations.headers),
+				},
 			});
-			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
-			return res.json(modifiedScaleTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -288,15 +386,22 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	app.get('/admin/apisearch/evaluations/team/:teamId', async (req, res) => {
 		try {
 			const teamId = req.params.teamId;
+			const itemsPerPage = 10;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
 				'filter[team_id]': teamId,
 				'filter[future]': 'false',
-				'page[size]': '25',
+				'page[size]': itemsPerPage.toString(),
 				'sort': '-filled_at'
+			}, pageNum);
+			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations.data);
+			return res.json({
+				data: modifiedScaleTeams,
+				meta: {
+					pagination: getPaginationMeta(evaluations.headers),
+				},
 			});
-			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
-			return res.json(modifiedScaleTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -308,15 +413,22 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	app.get('/admin/apisearch/evaluations/scale_team/:scaleTeamId', async (req, res) => {
 		try {
 			const scaleTeamId = req.params.scaleTeamId;
+			const itemsPerPage = 10;
+			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
 				'filter[id]': scaleTeamId,
 				'filter[future]': 'false',
-				'page[size]': '25',
+				'page[size]': itemsPerPage.toString(),
 				'sort': '-filled_at'
+			}, pageNum);
+			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations.data);
+			return res.json({
+				data: modifiedScaleTeams,
+				meta: {
+					pagination: getPaginationMeta(evaluations.headers),
+				},
 			});
-			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations);
-			return res.json(modifiedScaleTeams);
 		}
 		catch (err) {
 			console.log(err);
@@ -367,8 +479,29 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 
 	// All users
 	app.get('/admin/apisearch/users', async (req, res) => {
-		const coalitionUsers = await prisma.intraCoalitionUser.findMany(USER_QUERY_DEFAULTS);
-		return res.json(coalitionUsers);
+		const itemsPerPage = 50;
+		const pageNum = getPageNumber(req, NaN);
+		const offset = getOffset(pageNum, itemsPerPage);
+		// @ts-ignore
+		const totalCoalitionUsers = await prisma.intraCoalitionUser.count({
+			where: USER_QUERY_DEFAULTS.where,
+		});
+		const coalitionUsers = await prisma.intraCoalitionUser.findMany({
+			...USER_QUERY_DEFAULTS,
+			take: itemsPerPage,
+			skip: offset,
+		});
+		return res.json({
+			data: coalitionUsers,
+			meta: {
+				pagination: {
+					total: totalCoalitionUsers,
+					pages: Math.ceil(totalCoalitionUsers / itemsPerPage),
+					page: pageNum,
+					per_page: itemsPerPage,
+				},
+			},
+		});
 	});
 
 	// Users by login
@@ -382,7 +515,17 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				},
 			},
 		});
-		return res.json(coalitionUsers);
+		return res.json({
+			data: coalitionUsers,
+			meta: {
+				pagination: {
+					total: coalitionUsers.length,
+					pages: 1,
+					page: 1,
+					per_page: coalitionUsers.length,
+				},
+			},
+		});
 	});
 
 	// Users by ID
@@ -399,28 +542,47 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				},
 			},
 		});
-		return res.json(coalitionUsers);
+		return res.json({
+			data: coalitionUsers,
+			meta: {
+				pagination: {
+					total: coalitionUsers.length,
+					pages: 1,
+					page: 1,
+					per_page: coalitionUsers.length,
+				},
+			},
+		});
 	});
 
 	// Users by coalition name / slug
 	app.get('/admin/apisearch/users/coalition/:name', async (req, res) => {
 		const name = req.params.name;
+		const itemsPerPage = 50;
+		const pageNum = getPageNumber(req, NaN);
+		const offset = getOffset(pageNum, itemsPerPage);
 		if (name.toLowerCase() === 'none' || name.toLowerCase() === 'null') {
 			console.log("Fetching users without coalition");
 			const nonExistingCoalitionUsers = [];
-			console.log(USER_QUERY_DEFAULTS);
+			const whereQuery = {
+				...(USER_QUERY_DEFAULTS.where?.user),
+				coalition_users: {
+					none: {},
+				},
+			};
+
+			const totalUsersWithoutCoalition = await prisma.intraUser.count({
+				where: whereQuery,
+			});
 			const usersWithoutCoalition = await prisma.intraUser.findMany({
 				// @ts-ignore
 				select: (USER_QUERY_DEFAULTS.select?.user)?.select,
-				where: {
-					...(USER_QUERY_DEFAULTS.where?.user),
-					coalition_users: {
-						none: {},
-					},
-				},
+				where: whereQuery,
 				orderBy: {
 					created_at: 'desc',
-				}
+				},
+				take: itemsPerPage,
+				skip: offset,
 			});
 			for (const user of usersWithoutCoalition) {
 				// Should be similar to an IntraCoalitionUser object, but then with null values.
@@ -432,36 +594,58 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 					coalition: null,
 				});
 			}
-			return res.json(nonExistingCoalitionUsers);
+			return res.json({
+				data: nonExistingCoalitionUsers,
+				meta: {
+					pagination: {
+						total: totalUsersWithoutCoalition,
+						pages: Math.ceil(totalUsersWithoutCoalition / itemsPerPage),
+						page: pageNum,
+						per_page: itemsPerPage,
+					},
+				},
+			});
 		}
 		else {
 			// Format name with first letter uppercase and rest lowercase (Intra coalitions are usually named like this)
 			const stylizedName = req.params.name.charAt(0).toUpperCase() + req.params.name.slice(1).toLowerCase();
+			const whereQuery = {
+				OR: [
+					{
+						coalition: {
+							name: stylizedName,
+						},
+					},
+					{
+						coalition: {
+							name: name,
+						},
+					},
+					{
+						coalition: {
+							slug: {
+								contains: name,
+							}
+						},
+					},
+				],
+			};
+			const totalCoalitionUsers = await prisma.intraCoalitionUser.count({ where: whereQuery });
 			const coalitionUsers = await prisma.intraCoalitionUser.findMany({
 				...USER_QUERY_DEFAULTS,
-				where: {
-					OR: [
-						{
-							coalition: {
-								name: stylizedName,
-							},
-						},
-						{
-							coalition: {
-								name: name,
-							},
-						},
-						{
-							coalition: {
-								slug: {
-									contains: name,
-								}
-							},
-						},
-					],
+				where: whereQuery,
+			});
+			return res.json({
+				data: coalitionUsers,
+				meta: {
+					pagination: {
+						total: totalCoalitionUsers,
+						pages: Math.ceil(totalCoalitionUsers / itemsPerPage),
+						page: pageNum,
+						per_page: itemsPerPage,
+					},
 				},
 			});
-			return res.json(coalitionUsers);
 		}
 	});
 
@@ -477,18 +661,43 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				id: coalitionUserId,
 			},
 		});
-		return res.json(coalitionUsers);
+		return res.json({
+			data: coalitionUsers,
+			meta: {
+				pagination: {
+					total: coalitionUsers.length,
+					pages: 1,
+					page: 1,
+					per_page: coalitionUsers.length,
+				},
+			},
+		});
 	});
 
 	// WEBHOOKS
 	// All webhooks
 	app.get('/admin/apisearch/hooks', async (req, res) => {
+		const itemsPerPage = 50;
+		const pageNum = getPageNumber(req, NaN);
+		const offset = getOffset(pageNum, itemsPerPage);
 		const webhooks = await prisma.intraWebhook.findMany({
 			orderBy: {
 				received_at: 'desc',
 			},
+			take: itemsPerPage,
+			skip: offset,
 		});
-		return res.json(webhooks);
+		return res.json({
+			data: webhooks,
+			meta: {
+				pagination: {
+					total: await prisma.intraWebhook.count(),
+					pages: Math.ceil(await prisma.intraWebhook.count() / itemsPerPage),
+					page: pageNum,
+					per_page: itemsPerPage,
+				},
+			},
+		});
 	});
 
 	// Webhooks by delivery ID
@@ -499,12 +708,30 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				delivery_id: deliveryId,
 			},
 		});
-		return res.json(webhooks);
+		return res.json({
+			data: webhooks,
+			meta: {
+				pagination: {
+					total: webhooks.length,
+					pages: 1,
+					page: 1,
+					per_page: webhooks.length,
+				},
+			},
+		});
 	});
 
 	// Webhooks by status
 	app.get('/admin/apisearch/hooks/status/:status', async (req, res) => {
 		const status = req.params.status;
+		const itemsPerPage = 50;
+		const pageNum = getPageNumber(req, NaN);
+		const offset = getOffset(pageNum, itemsPerPage);
+		const webhookCount = await prisma.intraWebhook.count({
+			where: {
+				status: status,
+			},
+		});
 		const webhooks = await prisma.intraWebhook.findMany({
 			where: {
 				status: status,
@@ -512,13 +739,33 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			orderBy: {
 				received_at: 'desc',
 			},
+			take: itemsPerPage,
+			skip: offset,
 		});
-		return res.json(webhooks);
+		return res.json({
+			data: webhooks,
+			meta: {
+				pagination: {
+					total: webhookCount,
+					pages: Math.ceil(webhookCount / itemsPerPage),
+					page: pageNum,
+					per_page: itemsPerPage,
+				},
+			},
+		});
 	});
 
 	// Webhooks by model type
 	app.get('/admin/apisearch/hooks/model/:modelType', async (req, res) => {
 		const modelType = req.params.modelType;
+		const itemsPerPage = 50;
+		const pageNum = getPageNumber(req, NaN);
+		const offset = getOffset(pageNum, itemsPerPage);
+		const webhookCount = await prisma.intraWebhook.count({
+			where: {
+				model: modelType,
+			},
+		});
 		const webhooks = await prisma.intraWebhook.findMany({
 			where: {
 				model: modelType,
@@ -527,12 +774,30 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				received_at: 'desc',
 			},
 		});
-		return res.json(webhooks);
+		return res.json({
+			data: webhooks,
+			meta: {
+				pagination: {
+					total: webhookCount,
+					pages: Math.ceil(webhookCount / itemsPerPage),
+					page: pageNum,
+					per_page: itemsPerPage,
+				},
+			},
+		});
 	});
 
 	// Webhooks by event type
 	app.get('/admin/apisearch/hooks/event/:eventType', async (req, res) => {
 		const eventType = req.params.eventType;
+		const itemsPerPage = 50;
+		const pageNum = getPageNumber(req, NaN);
+		const offset = getOffset(pageNum, itemsPerPage);
+		const webhookCount = await prisma.intraWebhook.count({
+			where: {
+				event: eventType,
+			},
+		});
 		const webhooks = await prisma.intraWebhook.findMany({
 			where: {
 				event: eventType,
@@ -541,12 +806,32 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				received_at: 'desc',
 			},
 		});
-		return res.json(webhooks);
+		return res.json({
+			data: webhooks,
+			meta: {
+				pagination: {
+					total: webhookCount,
+					pages: Math.ceil(webhookCount / itemsPerPage),
+					page: pageNum,
+					per_page: itemsPerPage,
+				},
+			},
+		});
 	});
 
 	// Webhooks by (part of) the body
 	app.get('/admin/apisearch/hooks/body/:body', async (req, res) => {
 		const body = req.params.body;
+		const itemsPerPage = 50;
+		const pageNum = getPageNumber(req, NaN);
+		const offset = getOffset(pageNum, itemsPerPage);
+		const webhookCount = await prisma.intraWebhook.count({
+			where: {
+				body: {
+					contains: body,
+				},
+			},
+		});
 		const webhooks = await prisma.intraWebhook.findMany({
 			where: {
 				body: {
@@ -557,7 +842,17 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				received_at: 'desc',
 			},
 		});
-		return res.json(webhooks);
+		return res.json({
+			data: webhooks,
+			meta: {
+				pagination: {
+					total: webhookCount,
+					pages: Math.ceil(webhookCount / itemsPerPage),
+					page: pageNum,
+					per_page: itemsPerPage,
+				},
+			},
+		});
 	});
 
 	// EVENTS
@@ -565,18 +860,31 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	// Store them in a node-cache to speed up loading
 	app.get('/admin/apisearch/events', async (req, res) => {
 		try {
-			if (apiSearcherCache.has('recent_events')) {
-				return res.json(apiSearcherCache.get('recent_events'));
+			const itemsPerPage = 50;
+			const pageNum = getPageNumber(req, NaN);
+			if (apiSearcherCache.has(`recent_events_p${pageNum}`)) {
+				const cachedEvents = apiSearcherCache.get(`recent_events_p${pageNum}`) as { data: any, headers: any };
+				return res.json({
+					data: cachedEvents.data,
+					meta: {
+						pagination: getPaginationMeta(cachedEvents.headers),
+					},
+				});
 			}
 
 			const api = await getAPIClient();
 			const recentEvents = await fetchSingleApiPage(api, `/campus/${CAMPUS_ID}/events`, {
 				...API_DEFAULT_FILTERS_EVENTS,
-				'page[size]': '100',
+				'page[size]': itemsPerPage.toString(),
 				'filter[future]': 'false',
 			});
-			apiSearcherCache.set('recent_events', recentEvents, 60 * 60 * 3); // cache for 3 hours
-			return res.json(recentEvents);
+			apiSearcherCache.set(`recent_events_p${pageNum}`, recentEvents, 60 * 60 * 3); // cache for 3 hours
+			return res.json({
+				data: recentEvents.data,
+				meta: {
+					pagination: getPaginationMeta(recentEvents.headers),
+				},
+			});
 		}
 		catch (err) {
 			console.log(err);

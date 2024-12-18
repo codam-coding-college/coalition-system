@@ -46,6 +46,8 @@
 	</tbody>
 </table>
 
+<nav aria-label="Page navigation" class="d-flex justify-content-center" id="pagenav"></nav>
+
 <script src="/js/reactive-button.js"></script>
 <script src="/js/apisearcher-table.js"></script>
 <script>
@@ -55,6 +57,7 @@ const apiSearcher = new ApiSearcherTable({
 	filterSelector: '#searchfilter',
 	filterValue: '#searchfilterval',
 	filterForm: '#searchfilterform',
+	pageNav: '#pagenav',
 	noPoints: true,
 	actions: [
 		// TODO: add option to retrigger the webhook
