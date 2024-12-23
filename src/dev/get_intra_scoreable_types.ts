@@ -1,4 +1,3 @@
-import { getAPIClient } from "../utils";
 import { fetchMultiple42ApiPagesCallback } from "../sync/base";
 import Fast42 from "@codam/fast42";
 import { PrismaClient } from '@prisma/client';

@@ -1,31 +1,38 @@
-import { getAPIClient } from "../utils";
-import { fetchMultiple42ApiPagesCallback } from "../sync/base";
 import Fast42 from "@codam/fast42";
 import { PrismaClient } from '@prisma/client';
 import { INTRA_API_UID, INTRA_API_SECRET } from "../env";
 const prisma = new PrismaClient();
 
-const createScore = async function(api: Fast42): Promise<void> {
-	const coalition = await prisma.intraCoalition.findFirst({});
-	if (!coalition) {
-		throw new Error('No coalition found in DB.');
+const createScore = async function(api: Fast42, login: string): Promise<void> {
+	const user = await prisma.intraUser.findFirst({
+		where: {
+			login: login,
+		}
+	});
+	if (!user) {
+		throw new Error(`No user found in DB for login ${login}.`);
 	}
 	const coalitionUser = await prisma.intraCoalitionUser.findFirst({
 		where: {
-			coalition_id: coalition.id,
+			user_id: user.id,
+		},
+		include: {
+			coalition: true,
 		}
 	});
 	if (!coalitionUser) {
-		throw new Error('No coalition user found in DB for given coalition.');
+		throw new Error('No coalition user found for user.');
 	}
+	const coalitionId = coalitionUser.coalition.id;
+	// const coalitionId = 58;
 
 	// CREATE SCORE
-	console.log(`Creating testing score for coalition ${coalition.id} with user ${coalitionUser.user_id}...`);
-	const postreq = await api.post(`/coalitions/${coalition.id}/scores`, {
+	console.log(`Creating testing score for coalition ${coalitionId} with user ${user.login}...`);
+	const postreq = await api.post(`/coalitions/${coalitionId}/scores`, {
 		"score": {
 			"reason": "[CCS-test] Test score for Codam's Coalition System, please ignore...",
 			"value": 42,
-			"coalitions_users_id": coalitionUser.id,
+			"coalitions_user_id": coalitionUser.id,
 			"scoreable_type": "Location",
 			"scoreable_id": 1,
 			"calculation_id": null,
@@ -51,8 +58,10 @@ const createScore = async function(api: Fast42): Promise<void> {
 	}
 
 	// DELETE SCORE
+	console.log('Press a key to delete the score...');
+	await new Promise((resolve) => process.stdin.once('data', resolve));
 	console.log('Deleting score...');
-	const delreq = await api.delete(`/coalitions/${coalition.id}/scores/${scoreCreationBody.id}`, {});
+	const delreq = await api.delete(`/coalitions/${coalitionId}/scores/${scoreCreationBody.id}`, {});
 	if (delreq.ok) {
 		console.log('Score deleted.');
 	}
@@ -66,7 +75,12 @@ const main = async function(): Promise<void> {
 		client_id: INTRA_API_UID,
 		client_secret: INTRA_API_SECRET,
 	}]).init();
-	await createScore(api);
+	// Get login from CLI arguments
+	const login = process.argv[2];
+	if (!login) {
+		throw new Error('No login provided as CLI argument.');
+	}
+	await createScore(api, login);
 };
 
 main().then(() => {
