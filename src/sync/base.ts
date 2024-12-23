@@ -11,7 +11,6 @@ import { cleanupDB } from "./cleanup";
 import { syncProjects } from "./projects";
 import { syncCursusUsers } from './cursus_users';
 import { syncScores } from './scores';
-import { intraScoreSyncingPossible } from '../handlers/intrascores';
 import { getBlocAtDate } from '../utils';
 
 export const prisma = new PrismaClient();
