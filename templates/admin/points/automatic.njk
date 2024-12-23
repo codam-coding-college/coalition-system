@@ -14,8 +14,8 @@
 		<th scope="col">Type</th>
 		<th scope="col">Description</th>
 		<th scope="col">Points</th>
-		<th scope="col">Total points in current tournament</th>
-		<th scope="col">Total points in all past tournaments</th>
+		<th scope="col">Total points in current season</th>
+		<th scope="col">Total points in all past seasons</th>
 		<th scope="col text-end" style="text-align: end;">Options</th> <!-- for some reason the text-end class doesn't work here -->
 	</thead>
 	<tbody>
@@ -24,7 +24,7 @@
 				<td>{{ fixedPointType.type }}</td>
 				<td>{{ fixedPointType.description }}</td>
 				<td>{{ fixedPointType.point_amount }}</td>
-				<td><!-- TODO --></td>
+				<td>{{ seasonScoresMap[fixedPointType.type] }}</td>
 				<td>{{ totalScoresMap[fixedPointType.type] }}</td>
 				<td class="text-end">
 					<a href="/admin/points/automatic/{{ fixedPointType.type }}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>

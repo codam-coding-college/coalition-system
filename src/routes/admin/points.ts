@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import { CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import fs from 'fs';
-import { fetchSingleApiPage, getAPIClient, getOffset, getPageNav, getPageNumber } from '../../utils';
+import { fetchSingleApiPage, getAPIClient, getBlocAtDate, getOffset, getPageNav, getPageNumber } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
 import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
 
@@ -266,7 +266,29 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			},
 		})
 
-		// TODO: also gather the total scores for each type in the current tournament
+		const now = new Date();
+		const currentBloc = await getBlocAtDate(prisma, now);
+		const seasonScoresMap: { [key: string]: number } = {};
+		if (currentBloc) {
+			const scoresThisSeason = await prisma.codamCoalitionScore.groupBy({
+				by: ['fixed_type_id'],
+				_sum: {
+					amount: true,
+				},
+				where: {
+					created_at: {
+						lte: now,
+						gte: currentBloc.begin_at,
+					},
+					fixed_type_id: {
+						not: null,
+					},
+				},
+			});
+			for (const score of scoresThisSeason) {
+				seasonScoresMap[score.fixed_type_id!] = score._sum.amount!;
+			}
+		}
 
 		// Map the total scores to the fixed point types
 		const totalScoresMap: { [key: string]: number } = {};
@@ -276,6 +298,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 
 		return res.render('admin/points/automatic.njk', {
 			fixedPointTypes,
+			seasonScoresMap,
 			totalScoresMap,
 		});
 	});
