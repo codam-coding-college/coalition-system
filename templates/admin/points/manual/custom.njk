@@ -23,7 +23,7 @@
 	</li>
 </ul>
 
-<form class="mb-4" action="/admin/points/manual/custom" method="post" id="single-score-form">
+<form class="mb-4" action="/admin/points/manual/custom/assign" method="post" id="single-score-form">
 	<div class="mb-2">
 		<label for="login" class="form-label">Login student</label>
 		<input type="text" id="login" name="login" class="form-control" placeholder="Login" required>
@@ -44,7 +44,7 @@
 	<button type="submit" class="btn btn-primary">Assign single score</button>
 </form>
 
-<form class="mb-4" action="/admin/points/manual/custom-csv" method="post" id="many-score-form">
+<form class="mb-4" action="/admin/points/manual/custom-csv/assign" method="post" id="many-score-form">
 	<div class="mb-2">
 		<label for="csv" class="form-label">Paste your CSV file or upload a CSV file:</label>
 		<input type="file" id="csv-file" name="csv-file" class="form-control form-control-sm" accept=".csv">

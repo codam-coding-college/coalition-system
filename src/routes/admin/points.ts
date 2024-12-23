@@ -368,7 +368,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 	});
 
 	// Custom point types
-	app.post('/admin/points/manual/event', async (req, res) => {
+	app.post('/admin/points/manual/event/assign', async (req, res) => {
 		try {
 			const eventName = req.body.event_name;
 			const eventType = req.body.event_type;
@@ -378,7 +378,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			}
 
 			const sessionUser = req.user as ExpressIntraUser;
-			console.log(`User ${sessionUser.login} is assigning points manually for ${eventType} "${eventName}" to the following logins: ${logins.split('\n').join(', ')}`);
+			console.log(`User ${sessionUser.login} is assigning points manually for ${eventType} "${eventName}" to the following logins: ${logins.replaceAll('\r', '').split('\n').join(', ')}`);
 
 			// Get the fixed type ID for the event type
 			const fixedPointType = await prisma.codamCoalitionFixedType.findFirst({
@@ -415,8 +415,11 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 				return res.status(404).send('Intra event not found');
 			}
 
-			// Verify the logins exist in our database
-			const loginsArray = logins.split('\n').map((login: string) => login.trim());
+			// Init an array to store failed score creations to display to the user later
+			const failedScores: { login: string, amount: number, error: string }[] = [];
+
+			// Verify the logins exist in our database, removing duplicate logins using a Set
+			const loginsArray: string[] = Array.from(new Set(logins.split('\n').map((login: string) => login.trim())));
 			const users = await prisma.intraUser.findMany({
 				where: {
 					login: {
@@ -431,7 +434,9 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			if (users.length !== loginsArray.length) {
 				const missingLogins = loginsArray.filter((login: string) => !users.find((user: any) => user.login === login));
 				console.log(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
-				return res.status(400).send(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
+				for (const missingLogin of missingLogins) {
+					failedScores.push({ login: missingLogin, amount: fixedPointType.point_amount, error: 'Login not found in coalition system' });
+				}
 			}
 
 			// Assign the points
@@ -443,6 +448,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 				// Warning: do not try to use eventDate as the score assignation date! If the event was organized in a past season, this past season could be influenced.
 				if (!score) {
 					console.warn(`Failed to create score for user ${user.login} for event ${intraEvent.id}`);
+					failedScores.push({ login: user.login, amount: 0, error: 'Failed to create score' });
 					continue;
 				}
 				scores.push(score);
@@ -452,6 +458,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			return res.render('admin/points/manual/added.njk', {
 				redirect: `/admin/points/manual/${eventType}`,
 				scores,
+				failedScores,
 			});
 		}
 		catch (err) {
@@ -460,7 +467,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 		}
 	});
 
-	app.post('/admin/points/manual/custom', async (req, res) => {
+	app.post('/admin/points/manual/custom/assign', async (req, res) => {
 		try {
 			const login = req.body.login;
 			const pointAmount = parseInt(req.body.point_amount);
@@ -468,6 +475,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			if (!login || isNaN(pointAmount) || !reason) {
 				return res.status(400).send('Invalid input');
 			}
+			const redirect = `/admin/points/manual/custom#single-score-form`;
 
 			const sessionUser = req.user as ExpressIntraUser;
 			console.log(`User ${sessionUser.login} is assigning ${pointAmount} custom points manually to ${login} for reason "${reason}"`);
@@ -484,16 +492,29 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			});
 			if (!user) {
 				console.log(`The login ${login} has not been found in the coalition system`);
-				return res.status(400).send(`The login ${login} has not been found in the coalition system`);
+				return res.render('admin/points/manual/added.njk', {
+					redirect,
+					scores: [],
+					failedScores: [{ login, amount: pointAmount, error: 'Login not found in coalition system' }],
+				});
 			}
 
 			// Assign the points
 			const score = await createScore(prisma, null, null, user.id, pointAmount, reason);
+			if (!score) {
+				console.warn(`Failed to create score for user ${user.login}`);
+				return res.render('admin/points/manual/added.njk', {
+					redirect,
+					scores: [],
+					failedScores: [{ login, amount: pointAmount, error: 'Failed to create score' }],
+				});
+			}
 
 			// Display the points assigned
 			return res.render('admin/points/manual/added.njk', {
-				redirect: `/admin/points/manual/custom#single-score-form`,
+				redirect,
 				scores: [score],
+				failedScores: [],
 			});
 		}
 		catch (err) {
@@ -502,7 +523,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 		}
 	});
 
-	app.post('/admin/points/manual/custom-csv', async (req, res) => {
+	app.post('/admin/points/manual/custom-csv/assign', async (req, res) => {
 		try {
 			const csv = req.body.csv;
 			if (!csv) {
@@ -514,7 +535,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 
 			// Parse csv
 			const lines = csv.split('\n');
-			const scoresToCreate: { login: string, points: number, reason: string }[] = [];
+			let scoresToCreate: { login: string, points: number, reason: string }[] = [];
 			let lineNumber = 0;
 			for (const line of lines) {
 				lineNumber++;
@@ -542,6 +563,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 
 				scoresToCreate.push({ login, points, reason });
 			}
+			const failedScores: { login: string, amount: number, error: string }[] = [];
 
 			// Verify the logins exist in our database
 			const loginsArray = scoresToCreate.map((score) => score.login);
@@ -561,7 +583,14 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			if (users.length !== uniqueUsers.length) {
 				const missingLogins = uniqueUsers.filter((login: string) => !users.find((user: any) => user.login === login));
 				console.log(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
-				return res.status(400).send(`The following logins have not been found in the coalition system: ${missingLogins.join(', ')}`);
+				for (const missingLogin of missingLogins) {
+					// Add error message for each missing login
+					for (const score of scoresToCreate.filter((score) => score.login === missingLogin)) {
+						failedScores.push({ login: missingLogin, amount: score.points, error: 'Login not found in coalition system' });
+					}
+					// Remove each missing login from the scoresToCreate array
+					scoresToCreate = scoresToCreate.filter((score) => score.login !== missingLogin);
+				}
 			}
 
 			// Assign the points
@@ -570,12 +599,14 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 				const user = users.find((user: any) => user.login === scoreToCreate.login);
 				if (!user) {
 					console.warn(`User not found for login ${scoreToCreate.login}, which is weird, because earlier we did select all users with specified logins...`);
+					failedScores.push({ login: scoreToCreate.login, amount: scoreToCreate.points, error: 'User not found' });
 					continue;
 				}
 				console.log(`User ${sessionUser.login} is assigning ${scoreToCreate.points} custom points manually to ${user.login} with reason "${scoreToCreate.reason}"`);
 				const score = await createScore(prisma, null, null, user.id, scoreToCreate.points, scoreToCreate.reason);
 				if (!score) {
 					console.warn(`Failed to create score for user ${user.login}`);
+					failedScores.push({ login: user.login, amount: scoreToCreate.points, error: 'Failed to create score' });
 					continue;
 				}
 				scores.push(score);
@@ -585,6 +616,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			return res.render('admin/points/manual/added.njk', {
 				redirect: `/admin/points/manual/custom#many-score-form`,
 				scores,
+				failedScores,
 			});
 		}
 		catch (err) {

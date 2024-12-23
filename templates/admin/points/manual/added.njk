@@ -4,8 +4,30 @@
 {% set title = "Points assigner" %}
 
 {% block content %}
-<h2 class="mb-3">Points assigned</h2>
-<p>The following points have been assigned successfully:</p>
+<h2 class="mb-3">Result</h2>
+{% if failedScores|length > 0 %}
+<div class="alert alert-danger">The following points could not be assigned. Please check the error messages below.</div>
+<table class="table">
+	<thead>
+		<tr>
+			<th>Login</th>
+			<th>Points not assigned</th>
+			<th>Error message</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for failedScore in failedScores %}
+			<tr>
+				<td><a href="/profile/{{ failedScore.login }}">{{ failedScore.login }}</a></td>
+				<td>{{ failedScore.amount }}</td>
+				<td>{{ failedScore.error }}</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+<hr style="margin-top: 80px;">
+{% endif %}
+<div class="alert alert-success">The following points have been assigned successfully:</div>
 <table class="table coalition-colored" id="points-added">
 	<thead>
 		<tr>
