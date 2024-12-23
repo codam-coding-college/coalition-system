@@ -18,7 +18,7 @@ A work in progress.
 - [x] Implement Codam's new point system
 - [x] Improve Codam's new point system (add custom project point system, rip out Intra's)
 - [x] Set up automated points system using Intra webhooks
-- [ ] Implement Intra's bloc tournament system
+- [x] Implement Intra's bloc tournament system
 
 ### Student interface
 - [x] Create basic dashboard
@@ -34,12 +34,12 @@ A work in progress.
 - [x] Create point history interface where admin can delete, recalculate and synchronize points with Intra
 - [x] Create interface to edit automated point system
 - [x] Implement method to recalculate already given points
-- [ ] Create interface for manually assigning custom points
-- [ ] Create interface for manually assigning points for organizing events
+- [x] Create interface for manually assigning custom points
+- [x] Create interface for manually assigning points for organizing events
 
 ### Intra connection (API & Webhooks)
-- [ ] Implement a way of synchronizing points with Intra
-- [ ] Implement a way of averaging out the points on Intra too (bot user with minus points for each coalition?)
+- [x] Implement a way of synchronizing points with Intra
+- [x] Implement a way of averaging out the points on Intra
 - [ ] Implement a way of syncing existing Intra points including historical ones
 - [ ] Find a way of blocking Intra's coalitions_user creation
 - [ ] Re-implement old [coalition rank system](https://github.com/codam-coding-college/coalition-ranks)

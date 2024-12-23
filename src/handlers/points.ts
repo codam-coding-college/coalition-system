@@ -1,5 +1,8 @@
 import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import { INTRA_TEST_ACCOUNTS } from '../env';
+import { syncIntraScore } from './intrascores';
+import Fast42 from '@codam/fast42';
+import { getAPIClient } from '../utils';
 
 const INCLUDE_IN_SCORE_RETURN_DATA = {
 	user: {
@@ -49,7 +52,7 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 	const coalitionUser = user.coalition_users[0];
 
 	console.log(`Creating score for user ${userId} in coalition ${coalitionUser.coalition_id} with ${points} points for reason "${reason}" (connected to Intra object ${typeIntraId} for fixed type ${(type ? type.type : "null")})...`);
-	return await prisma.codamCoalitionScore.create({
+	const score = await prisma.codamCoalitionScore.create({
 		data: {
 			amount: points,
 			fixed_type_id: (type ? type.type : null),
@@ -61,8 +64,9 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 		},
 		include: INCLUDE_IN_SCORE_RETURN_DATA,
 	});
-
-	// TODO: create intra score (maybe not here but in a runner/job?)
+	const api = await getAPIClient();
+	score.intra_score_id = await syncIntraScore(prisma, api, score, true); // Sync the score with Intra
+	return score;
 }
 
 export const updateScore = async function(prisma: PrismaClient, score: CodamCoalitionScore, new_score: number, reason: string): Promise<CodamCoalitionScore> {
@@ -78,7 +82,8 @@ export const updateScore = async function(prisma: PrismaClient, score: CodamCoal
 		}
 	});
 
-	// TODO: update intra score (maybe not here but in a runner/job?)
+	const api = await getAPIClient();
+	await syncIntraScore(prisma, api, score, true);
 
 	return await prisma.codamCoalitionScore.findFirstOrThrow({
 		where: {
@@ -100,7 +105,8 @@ export const shiftScore = async function(prisma: PrismaClient, scoreId: number, 
 		}
 	});
 
-	// TODO: update intra score (maybe not here but in a runner/job?)
+	const api = await getAPIClient();
+	await syncIntraScore(prisma, api, score, false); // Sync this score but not the total coalition score, as we often move many points at once when shifting scores. Better to sync the total score once at the end.
 
 	return score;
 }

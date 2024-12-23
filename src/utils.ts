@@ -1,4 +1,4 @@
-import { PrismaClient, IntraUser, IntraCoalition, IntraBlocDeadline } from "@prisma/client";
+import { PrismaClient, IntraUser, IntraCoalition, IntraBlocDeadline, CodamCoalitionScore } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { api } from "./main";
@@ -292,6 +292,10 @@ export const getBlocAtDate = async function(prisma: PrismaClient, date: Date = n
 		}
 	}
 	return null;
+};
+
+export const scoreBelongsToBloc = function(score: CodamCoalitionScore, bloc: IntraBlocDeadline): boolean {
+	return score.created_at >= bloc.begin_at && score.created_at < bloc.end_at;
 };
 
 export const getUserTournamentRanking = async function(prisma: PrismaClient, userId: number, date: Date = new Date()): Promise<number> {

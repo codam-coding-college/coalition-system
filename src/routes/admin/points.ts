@@ -4,6 +4,7 @@ import fs from 'fs';
 import { fetchSingleApiPage, getAPIClient, getBlocAtDate, getOffset, getPageNav, getPageNumber } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
 import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
+import { deleteIntraScore, syncTotalCoalitionScore } from '../../handlers/intrascores';
 
 const SCORES_PER_PAGE = 100;
 
@@ -107,13 +108,22 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			where: {
 				id: scoreId,
 			},
+			include: {
+				coalition: {
+					select: {
+						intra_coalition: true,
+					},
+				},
+			},
 		});
 
 		if (!score) {
 			return res.status(404).json({ error: 'Score not found' });
 		}
 
-		// TODO: delete the intra score
+		const api = await getAPIClient();
+		await deleteIntraScore(prisma, api, score);
+		await syncTotalCoalitionScore(prisma, api, score.coalition.intra_coalition);
 
 		// Delete the score from the database
 		await prisma.codamCoalitionScore.delete({
@@ -500,6 +510,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			}
 
 			// Assign the points
+			const api = await getAPIClient();
 			const score = await createScore(prisma, null, null, user.id, pointAmount, reason);
 			if (!score) {
 				console.warn(`Failed to create score for user ${user.login}`);
