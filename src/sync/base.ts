@@ -28,17 +28,25 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
 
 			let i = 0;
 			const pageItems = await Promise.all(pages.map(async (page) => {
-				const p = await page;
-				if (p.status == 429) {
-					throw new Error('Intra API rate limit exceeded');
+				let p = null;
+				pageFetch: while (!p) {
+					p = await page;
+					if (p.status == 429) {
+						console.error('Intra API rate limit exceeded, let\'s wait a bit...');
+						const waitFor = parseInt(p.headers.get('Retry-After'));
+						console.log(`Waiting ${waitFor} seconds...`);
+						await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
+						p = null;
+						continue pageFetch;
+					}
+					if (!p.ok) {
+						throw new Error(`Intra API error: ${p.status} ${p.statusText} on ${p.url}`);
+					}
 				}
 				if (p.ok) {
 					const data = await p.json();
 					console.debug(`Fetched page ${++i} of ${pages.length} on ${path}...`);
 					return data;
-				}
-				else {
-					throw new Error(`Intra API error: ${p.status} ${p.statusText} on ${p.url}`);
 				}
 			}));
 			return resolve(pageItems.flat());
@@ -66,9 +74,25 @@ export const fetchMultiple42ApiPagesCallback = async function(api: Fast42, path:
 
 			let i = 0;
 			for (const page of pages) {
-				const p = await page;
-				if (p.status == 429) {
-					throw new Error('Intra API rate limit exceeded');
+				let p = null;
+				pageFetch: while (!p) {
+					p = await page;
+					if (!p) {
+						console.log('Retrying page fetch...');
+						await new Promise((resolve) => setTimeout(resolve, 1000));
+						continue pageFetch;
+					}
+					if (p.status == 429) {
+						console.error('Intra API rate limit exceeded, let\'s wait a bit...');
+						const waitFor = parseInt(p.headers.get('Retry-After'));
+						console.log(`Waiting ${waitFor} seconds...`);
+						await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
+						p = null;
+						continue pageFetch;
+					}
+					if (!p.ok) {
+						throw new Error(`Intra API error: ${p.status} ${p.statusText} on ${p.url}`);
+					}
 				}
 				if (p.ok) {
 					const xPage = parseInt(p.headers.get('X-Page'));
@@ -76,9 +100,6 @@ export const fetchMultiple42ApiPagesCallback = async function(api: Fast42, path:
 					const data = await p.json();
 					console.debug(`Fetched page ${++i} of ${pages.length} on ${path}...`);
 					callback(data, xPage, xTotal);
-				}
-				else {
-					throw new Error(`Intra API error: ${p.status} ${p.statusText} on ${p.url}`);
 				}
 			}
 			return resolve();
@@ -99,17 +120,24 @@ export const fetchMultiple42ApiPagesCallback = async function(api: Fast42, path:
 export const fetchSingle42ApiPage = async function(api: Fast42, path: string, params: { [key: string]: string } = {}): Promise<any> {
 	return new Promise(async (resolve, reject) => {
 		try {
-			const page = await api.get(path, params);
+			retry: while (true) {
+				const page = await api.get(path, params);
 
-			if (page.status == 429) {
-				throw new Error('Intra API rate limit exceeded');
-			}
-			if (page.ok) {
-				const data = await page.json();
-				return resolve(data);
-			}
-			else {
-				throw new Error(`Intra API error: ${page.status} ${page.statusText} on ${page.url}`);
+				if (page.status == 429) {
+					console.error('Intra API rate limit exceeded, let\'s wait a bit...');
+					const waitFor = parseInt(page.headers.get('Retry-After'));
+					console.log(`Waiting ${waitFor} seconds...`);
+					await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
+					continue retry;
+				}
+				if (page.ok) {
+					const data = await page.json();
+					return resolve(data);
+				}
+				else {
+					reject(`Intra API error: ${page.status} ${page.statusText} on ${page.url}`);
+					break;
+				}
 			}
 		}
 		catch (err) {
