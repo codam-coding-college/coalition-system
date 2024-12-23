@@ -18,6 +18,9 @@ export const syncScores = async function(api: Fast42): Promise<void> {
 			},
 			intra_score_id: null,
 		},
+		orderBy: {
+			created_at: 'asc',
+		},
 	});
 	let i = 0;
 	const total = scores.length;
