@@ -4,7 +4,7 @@ import fs from 'fs';
 import { fetchSingleApiPage, getAPIClient, getBlocAtDate, getOffset, getPageNav, getPageNumber } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
 import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
-import { deleteIntraScore, syncTotalCoalitionScore } from '../../handlers/intrascores';
+import { deleteIntraScore, syncIntraScore, syncTotalCoalitionScore } from '../../handlers/intrascores';
 
 const SCORES_PER_PAGE = 100;
 
@@ -69,6 +69,34 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			totalPages,
 			pageNav,
 		});
+	});
+
+	app.get('/admin/points/history/:id/sync', async (req, res) => {
+		try {
+			const scoreId = parseInt(req.params.id);
+			if (isNaN(scoreId)) {
+				return res.status(400).json({ error: 'Invalid score ID' });
+			}
+
+			// Get the score from the database
+			const score = await prisma.codamCoalitionScore.findFirst({
+				where: {
+					id: scoreId,
+				},
+			});
+
+			if (!score) {
+				return res.status(404).json({ error: 'Score not found' });
+			}
+
+			const api = await getAPIClient();
+			await syncIntraScore(prisma, api, score, true);
+			return res.status(200).json({ status: 'ok' });
+		}
+		catch (err) {
+			console.error(err);
+			return res.status(500).json({ error: 'An error occurred' });
+		}
 	});
 
 	app.get('/admin/points/history/:id/recalculate', async (req, res) => {
