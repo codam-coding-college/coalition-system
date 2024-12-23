@@ -11,6 +11,8 @@ import { cleanupDB } from "./cleanup";
 import { syncProjects } from "./projects";
 import { syncCursusUsers } from './cursus_users';
 import { syncScores } from './scores';
+import { intraScoreSyncingPossible } from '../handlers/intrascores';
+import { getBlocAtDate } from '../utils';
 
 export const prisma = new PrismaClient();
 
@@ -228,7 +230,9 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 		await syncBlocs(api, now); // also syncs coalitions
 		await syncCoalitionUsers(api, lastSync, now);
 		await cleanupDB(api);
-		if (NODE_ENV == 'production') {
+
+		const currentBloc = await getBlocAtDate(prisma, new Date()); // Check if a season is currently ongoing (only then we can sync)
+		if (NODE_ENV == 'production' && currentBloc) {
 			// WARNING: Do not run this in development mode!
 			// While it is possible to delete accidentally created scores using a dev script, you'd be mixing production and development data.
 			// If needed still, the dev script is available at build/dev/delete_synced_intra_scores.js after building the project.
