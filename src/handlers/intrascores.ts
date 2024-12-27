@@ -4,15 +4,27 @@ import { getBlocAtDate, getCoalitionScore, scoreBelongsToBloc } from '../utils';
 import { fetchSingle42ApiPage } from '../sync/base';
 import { CAMPUS_ID, CURSUS_ID } from '../env';
 
-const intraScoreSyncingPossible = async function(prisma: PrismaClient, score: CodamCoalitionScore): Promise<boolean> {
+const intraScoreSyncingPossible = async function(prisma: PrismaClient, score: CodamCoalitionScore | null): Promise<boolean> {
 	// Intra scores can only be created in the present, not in the past, so we only care about scores
 	// that belong to the currently ongoing season.
+
+	// Check if we're running in production
+	if (process.env.NODE_ENV !== 'production') {
+		return false;
+	}
+
+	// Check if there is an ongoing season
 	const currentBloc = await getBlocAtDate(prisma, new Date());
 	if (!currentBloc) {
 		return false;
 	}
-	if (!scoreBelongsToBloc(score, currentBloc)) {
-		return false;
+
+	// Check if a score is included
+	if (score) {
+		// Check if it belongs to the currently ongoing season
+		if (!scoreBelongsToBloc(score, currentBloc)) {
+			return false;
+		}
 	}
 	return true;
 };
@@ -103,6 +115,9 @@ const createIntraScore = async function(prisma: PrismaClient, api: Fast42, score
 };
 
 export const syncTotalCoalitionScore = async function(prisma: PrismaClient, api: Fast42, coalition: IntraCoalition): Promise<void> {
+	if (! await intraScoreSyncingPossible(prisma, null)) {
+		throw new Error('Intra score syncing not possible for this score.');
+	}
 	const currentScore = await getCoalitionScore(prisma, coalition.id, new Date());
 	const intraCoalition = await fetchSingle42ApiPage(api, `/coalitions/${coalition.id}`, {});
 	const scoreOnIntra = intraCoalition.score;
@@ -127,6 +142,9 @@ export const syncTotalCoalitionScore = async function(prisma: PrismaClient, api:
 };
 
 export const syncTotalCoalitionsScores = async function(prisma: PrismaClient, api: Fast42): Promise<void> {
+	if (! await intraScoreSyncingPossible(prisma, null)) {
+		throw new Error('Intra score syncing not possible for this score.');
+	}
 	const coalitions = await prisma.intraCoalition.findMany({});
 	for (const coalition of coalitions) {
 		await syncTotalCoalitionScore(prisma, api, coalition);
@@ -134,10 +152,6 @@ export const syncTotalCoalitionsScores = async function(prisma: PrismaClient, ap
 };
 
 export const syncIntraScore = async function(prisma: PrismaClient, api: Fast42, score: CodamCoalitionScore, doTotalSync: boolean = true): Promise<number> {
-	// The check below checks 2 things:
-	// 1. There is an ongoing season.
-	// 2. The score belongs to the currently ongoing season.
-	// If either of these is false, we cannot sync the score.
 	if (! await intraScoreSyncingPossible(prisma, score)) {
 		throw new Error('Intra score syncing not possible for this score.');
 	}
