@@ -17,7 +17,7 @@ const INCLUDE_IN_SCORE_RETURN_DATA = {
 	},
 };
 
-export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType | null, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
+export const createScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType | null, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date(), syncWithIntra: boolean = true): Promise<CodamCoalitionScore | null> {
 	// Retrieve user details
 	const user = await prisma.intraUser.findFirst({
 		where: {
@@ -64,8 +64,10 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 		},
 		include: INCLUDE_IN_SCORE_RETURN_DATA,
 	});
-	const api = await getAPIClient();
-	score.intra_score_id = await syncIntraScore(prisma, api, score, true); // Sync the score with Intra
+	if (syncWithIntra) {
+		const api = await getAPIClient();
+		score.intra_score_id = await syncIntraScore(prisma, api, score, true); // Sync the score with Intra
+	}
 	return score;
 }
 

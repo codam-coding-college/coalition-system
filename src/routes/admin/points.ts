@@ -4,7 +4,7 @@ import fs from 'fs';
 import { fetchSingleApiPage, getAPIClient, getBlocAtDate, getOffset, getPageNav, getPageNumber } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
 import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
-import { deleteIntraScore, syncIntraScore, syncTotalCoalitionScore } from '../../handlers/intrascores';
+import { deleteIntraScore, syncIntraScore, syncTotalCoalitionScore, syncTotalCoalitionsScores } from '../../handlers/intrascores';
 
 const SCORES_PER_PAGE = 100;
 
@@ -642,7 +642,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 					continue;
 				}
 				console.log(`User ${sessionUser.login} is assigning ${scoreToCreate.points} custom points manually to ${user.login} with reason "${scoreToCreate.reason}"`);
-				const score = await createScore(prisma, null, null, user.id, scoreToCreate.points, scoreToCreate.reason);
+				const score = await createScore(prisma, null, null, user.id, scoreToCreate.points, scoreToCreate.reason, new Date(), false);
 				if (!score) {
 					console.warn(`Failed to create score for user ${user.login}`);
 					failedScores.push({ login: user.login, amount: scoreToCreate.points, error: 'Failed to create score' });
