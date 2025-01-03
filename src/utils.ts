@@ -390,6 +390,7 @@ export const getScoresNormalDistribution = async function(prisma: PrismaClient, 
 			coalition_id: coalitionId,
 			created_at: {
 				lte: untilDate,
+				gte: bloc.begin_at,
 			},
 		},
 		_sum: {
