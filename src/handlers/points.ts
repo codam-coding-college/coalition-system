@@ -64,9 +64,14 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 		},
 		include: INCLUDE_IN_SCORE_RETURN_DATA,
 	});
-	if (syncWithIntra) {
+	if (syncWithIntra && process.env.NODE_ENV === 'production') {
 		const api = await getAPIClient();
-		score.intra_score_id = await syncIntraScore(prisma, api, score, true); // Sync the score with Intra
+		try {
+			score.intra_score_id = await syncIntraScore(prisma, api, score, true); // Sync the score with Intra
+		}
+		catch (err) {
+			console.error(`Failed to sync Intra score for Codam score ${score.id}. Error:`, err);
+		}
 	}
 	return score;
 }

@@ -110,3 +110,37 @@
 .mw-900 {
 	max-width: 900px;
 }
+
+.list-group.noborder {
+	border: none !important;
+	border-radius: initial !important;
+}
+
+.list-group-item.big-coalition-row {
+	display: flex;
+	align-items: center;
+	height: 180px;
+	color: #fff;
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+	font-size: 2em; /* for the number in the ol tag */
+}
+
+.big-coalition-logo {
+	pointer-events: none; /* prevent dragging */
+	height: 80%;
+	padding: 0 16px;
+}
+
+.big-coalition-logo > img {
+	height: 100%;
+}
+
+.big-coalition-content {
+	font-size: 0.5em; /* back to normal from 2em defined in .list-group-item.big-coalition-row */
+}
+
+.big-coalition-content > *:last-child {
+	margin-bottom: 0px !important;
+}

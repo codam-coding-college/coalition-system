@@ -23,6 +23,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 						name: true,
 						color: true,
 						image_url: true,
+						cover_url: true,
 					}
 				}
 			}
