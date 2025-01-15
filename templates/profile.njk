@@ -16,7 +16,7 @@
 		</div>
 		<div class="col-md-4 text-center text-md-end mt-4 mt-md-0">
 			<ul class="list-unstyled">
-				<li>Coalition: {{ profileUser.coalition_users[0].coalition.name | striptags(true) | escape }}</li>
+				<li>Coalition: <a href="/coalitions/{{ profileUser.coalition_users[0].coalition.id }}" style="color: {{ profileUser.coalition_users[0].coalition.color }};">{{ profileUser.coalition_users[0].coalition.name | striptags(true) | escape }}</a></li>
 				<li>Total score: {{ totalScore | thousands }}</li>
 				<li>{{ profileUser.coalition_users[0].coalition.name }} ranking: #{{ ranking }}</li>
 				{% for userRanking in userRankings %}
