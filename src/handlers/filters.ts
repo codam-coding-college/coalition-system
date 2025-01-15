@@ -15,7 +15,7 @@ export const setupNunjucksFilters = function(app: Express): void {
 
 	// Add formatting for numbers to thousands separator
 	nunjucksEnv.addFilter('thousands', (num: number | string) => {
-		return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+		return num.toString().replace(/\./, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 	});
 
 	// Add formatting filter for seconds to hh:mm format
