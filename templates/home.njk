@@ -15,7 +15,7 @@
 			<div class="">
 				<ol class="list-group list-group-numbered noborder">
 					{% for coalitionId, sortedCoalitionScore in sortedCoalitionScores %}
-						<li class="list-group-item big-coalition-row" style="background-color: {{ coalitionsObject[coalitionId].intra_coalition.color }}; background-image: url({{ coalitionsObject[coalitionId].intra_coalition.cover_url }})">
+						<li class="list-group-item big-coalition-row" style="background-color: {{ coalitionsObject[coalitionId].intra_coalition.color | rgba(0.5) }}; background-image: url({{ coalitionsObject[coalitionId].intra_coalition.cover_url }})">
 							<div class="big-coalition-logo">
 								<img src="{{ coalitionsObject[coalitionId].intra_coalition.image_url }}" style="filter: invert(1);" />
 							</div>
