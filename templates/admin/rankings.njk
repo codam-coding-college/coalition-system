@@ -26,9 +26,9 @@
 		{% for ranking in rankings %}
 			<tr>
 				<td>{{ ranking.type }}</td>
-				<td>{{ ranking.name }}</td>
-				<td>{{ ranking.description }}</td>
-				<td>{{ ranking.bonus_points }}</td>
+				<td>{{ ranking.name | striptags(true) | escape }}</td>
+				<td>{{ ranking.description | striptags(true) | escape | nl2br }}</td>
+				<td>{{ ranking.bonus_points | thousands }}</td>
 				<td>{{ ranking.disabled | bool }}</td>
 				<td>{{ ranking.fixed_types | keyjoin('type', ', ') }}</td>
 				<td class="text-end">

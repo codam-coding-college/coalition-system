@@ -13,17 +13,17 @@
 <form action="/admin/rankings/{{ ranking.type }}/edit" method="post">
 	<div class="mb-2">
 		<label for="name" class="form-label">Name</label>
-		<input type="text" id="name" name="name" class="form-control" placeholder="Name" value="{{ ranking.name }}" required readonly>
+		<input type="text" id="name" name="name" class="form-control" placeholder="Name" value="{{ ranking.name | striptags(true) | escape }}" required readonly>
 	</div>
 
 	<div class="mb-2">
 		<label for="description" class="form-label">Description</label>
-		<input type="text" id="description" name="description" class="form-control" placeholder="Description" value="{{ ranking.description }}" required>
+		<input type="text" id="description" name="description" class="form-control" placeholder="Description" value="{{ ranking.description | striptags(true) | escape }}" required>
 	</div>
 
 	<div class="mb-2">
 		<label for="top_title" class="form-label">Title for #1</label>
-		<input type="text" id="top_title" name="top_title" class="form-control" placeholder="#1 Name" value="{{ ranking.top_title }}" required>
+		<input type="text" id="top_title" name="top_title" class="form-control" placeholder="#1 Name" value="{{ ranking.top_title | striptags(true) | escape }}" required>
 	</div>
 
 	<div class="mb-2">

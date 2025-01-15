@@ -10,13 +10,13 @@
 			<img src="{{ profileUser.image }}" class="user-picture rounded-circle mx-auto d-block" alt="" height="200" style="background: #f0f0f0; height: auto; max-height: 200px;" />
 		</div>
 		<div class="col-md-5 text-center text-md-start mt-4 mt-md-0">
-			<h3>{{ profileUser.usual_full_name }}</h3>
-			<p><i>{{ profileUser.login }}</i></p>
+			<h3>{{ profileUser.usual_full_name | striptags(true) | escape }}</h3>
+			<p><i>{{ profileUser.login | striptags(true) | escape }}</i></p>
 			<p><a href="https://profile.intra.42.fr/users/{{ profileUser.login }}" target="_blank">42 Profile</a></p>
 		</div>
 		<div class="col-md-4 text-center text-md-end mt-4 mt-md-0">
 			<ul class="list-unstyled">
-				<li>Coalition: {{ profileUser.coalition_users[0].coalition.name }}</li>
+				<li>Coalition: {{ profileUser.coalition_users[0].coalition.name | striptags(true) | escape }}</li>
 				<li>Total score: {{ totalScore | thousands }}</li>
 				<li>{{ profileUser.coalition_users[0].coalition.name }} ranking: #{{ ranking }}</li>
 				{% for userRanking in userRankings %}
@@ -37,7 +37,7 @@
 					<h5 class="card-title mb-0">Point history</h5>
 				</div>
 				<div class="card-body">
-					<canvas height="300" class="codam-chart" data-url="/charts/users/{{ profileUser.login }}/points/split" id="user-points-split"></canvas>
+					<canvas height="300" class="codam-chart" data-url="/charts/users/{{ profileUser.login | striptags(true) | escape }}/points/split" id="user-points-split"></canvas>
 				</div>
 			</div>
 		</div>
@@ -52,7 +52,7 @@
 					<h5 class="card-title mb-0">Total point history</h5>
 				</div>
 				<div class="card-body">
-					<canvas height="300" class="codam-chart" data-url="/charts/users/{{ profileUser.login }}/points/total" id="user-points-total"></canvas>
+					<canvas height="300" class="codam-chart" data-url="/charts/users/{{ profileUser.login | striptags(true) | escape }}/points/total" id="user-points-total"></canvas>
 				</div>
 			</div>
 		</div>
@@ -76,8 +76,8 @@
 							{% for score in latestScores %}
 								<tr style="background: {{ score.coalition.intra_coalition.color | rgba(0.25) }}">
 									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
-									<td>{{ score.amount }}</td>
-									<td style="white-space: normal; word-wrap: break-word;">{{ score.reason }}</td>
+									<td>{{ score.amount | thousands }}</td>
+									<td style="white-space: normal; word-wrap: break-word;">{{ score.reason | striptags(true) | escape }}</td>
 								</tr>
 							{% endfor %}
 						</tbody>

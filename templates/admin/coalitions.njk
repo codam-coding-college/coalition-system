@@ -12,7 +12,7 @@
 {% for coalition in coalitions %}
 <div class="card w-100 mb-4" id="coalition-{{ coalition.id }}">
 	<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ coalition.intra_coalition.color }};">
-		<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Coalition "{{ coalition.intra_coalition.name }}"</div>
+		<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">Coalition "{{ coalition.intra_coalition.name | striptags(true) | escape }}"</div>
 		<div class="d-inline-block">
 
 		</div>
@@ -24,12 +24,12 @@
 
 		<div class="mb-3">
 			<label for="tagline" class="form-label">Tagline</label>
-			<input type="text" id="tagline" name="tagline" class="form-control" placeholder="Tagline" value="{{ coalition.tagline }}">
+			<input type="text" id="tagline" name="tagline" class="form-control" placeholder="Tagline" value="{{ coalition.tagline | striptags(true) | escape }}">
 		</div>
 
 		<div class="mb-3">
 			<label for="description" class="form-label">Description</label>
-			<textarea id="description" name="description" class="form-control" placeholder="Description" rows="8">{{ coalition.description }}</textarea>
+			<textarea id="description" name="description" class="form-control" placeholder="Description" rows="8">{{ coalition.description | striptags(true) | escape }}</textarea>
 		</div>
 
 		<div class="mb-3">

@@ -34,7 +34,7 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
-						<h5 class="card-title mb-0">Scores for {{ coalition.intra_coalition.name }}</h5>
+						<h5 class="card-title mb-0">Scores for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h5>
 					</div>
 					<div class="card-body">
 						<ul>
@@ -75,7 +75,7 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
-						<h5 class="card-title mb-0">Score history for {{ coalition.intra_coalition.name }}</h5>
+						<h5 class="card-title mb-0">Score history for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h5>
 					</div>
 					<div class="card-body">
 						<canvas height="500" class="codam-chart" data-url="/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
@@ -90,7 +90,7 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
-						<h5 class="card-title mb-0">Current score distribution for {{ coalition.intra_coalition.name }}</h5>
+						<h5 class="card-title mb-0">Current score distribution for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h5>
 					</div>
 					<div class="card-body">
 						<canvas height="500" class="codam-chart" data-url="/admin/charts/coalitions/{{ coalition.id }}/scores/distribution" id="coalition-{{ coalition.id }}-scores-distribution"></canvas>

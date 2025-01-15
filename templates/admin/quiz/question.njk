@@ -13,12 +13,12 @@
 <form action="/admin/quiz/questions/{{ question.id }}/edit" method="post">
 	<div class="mb-2">
 		<label for="question" class="form-label">Question</label>
-		<input type="text" id="question" name="question" class="form-control" placeholder="Question" value="{{ question.question }}" required>
+		<input type="text" id="question" name="question" class="form-control" placeholder="Question" value="{{ question.question | striptags(true) | escape }}" required>
 	</div>
 
 	<ul class="list-group list-group-flush mb-3">
 	{% for answer in question.answers %}
-		<li class="list-group-item text-body-secondary"><i>{{ answer.answer }}</i></li>
+		<li class="list-group-item text-body-secondary"><i>{{ answer.answer | striptags(true) | escape }}</i></li>
 	{% endfor %}
 	</ul>
 

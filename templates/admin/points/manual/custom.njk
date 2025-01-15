@@ -138,9 +138,9 @@ else {
 				<tr class="points-added-row" style="background: {{ score.coalition.intra_coalition.color | rgba(0.25) }}">
 					<td>{{ score.created_at | timeAgo }}</td>
 					<td><a href="/profile/{{ score.user.intra_user.login }}/">{{ score.user.intra_user.login }}</a></td>
-					<td>{{ score.coalition.intra_coalition.name }}</td>
-					<td>{{ score.amount }}</td>
-					<td>{{ score.reason }}</td>
+					<td>{{ score.coalition.intra_coalition.name | striptags(true) | escape }}</td>
+					<td>{{ score.amount | thousands }}</td>
+					<td>{{ score.reason | striptags(true) | escape }}</td>
 				</tr>
 			{% endfor %}
 			{% if recentCustomScores|length == 0 %}

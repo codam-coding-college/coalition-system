@@ -35,11 +35,11 @@
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
 											<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light" style="text-decoration: none;">
 												<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-												<span>{{ ranking.user.usual_full_name }}</span>
+												<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
 											</a>
 										</div>
 									</td>
-									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score }}</td>
+									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
 								</tr>
 							{% endfor %}
 						</tbody>
@@ -69,11 +69,11 @@
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
 											<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light" style="text-decoration: none;">
 												<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-												<span>{{ ranking.user.usual_full_name }}</span>
+												<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
 											</a>
 										</div>
 									</td>
-									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score }}</td>
+									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
 								</tr>
 							{% endfor %}
 						</tbody>
@@ -119,9 +119,9 @@
 							{% for score in latestScores %}
 								<tr>
 									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
-									<td><a href="/profile/{{ score.user.intra_user.login }}">{{ score.user.intra_user.login }}</a></td>
+									<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
 									<td>{{ score.amount }}</td>
-									<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason }}</small></td>
+									<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason | striptags(true) | escape }}</small></td>
 								</tr>
 							{% endfor %}
 						</tbody>

@@ -47,7 +47,7 @@
 						<div class="quiz-result-coalition-content">
 							<div>
 								<img class="quiz-result-coalition-img img-fluid" src="{{ coalition.image_url }}" alt="Failed to load coalition image">
-								<h4 class="quiz-result-coalition-name">{{ coalition.name }}</h4>
+								<h4 class="quiz-result-coalition-name">{{ coalition.name | striptags(true) | escape }}</h4>
 							</div>
 							<div>
 								<p class="quiz-result-coalition-score"><span class="quiz-result-coalition-score-percentage">0</span>% fit</p>

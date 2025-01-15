@@ -67,7 +67,7 @@ document.getElementById('quiz_start').addEventListener('change', limitQuizDateRa
 		</div>
 	</div>
 	<div class="card-body">
-		<h5 class="card-title">{{ question.question }}</h5>
+		<h5 class="card-title">{{ question.question | striptags(true) | escape }}</h5>
 
 		<form action="/admin/quiz/answers/new" method="post" id="question-{{ question.id }}-new-answer-form"></form>
 
@@ -85,8 +85,8 @@ document.getElementById('quiz_start').addEventListener('change', limitQuizDateRa
 				{% for answer in question.answers %}
 					<tr class="align-middle">
 						<!-- <th scope="row">{{ answer.id }}</th> -->
-						<td>{{ answer.answer }}</td>
-						<td>{{ answer.coalition.intra_coalition.name }}</td>
+						<td>{{ answer.answer | striptags(true) | escape }}</td>
+						<td>{{ answer.coalition.intra_coalition.name | striptags(true) | escape }}</td>
 						<td>{{ answer.weight }}</td>
 						<td class="text-end">
 							<a href="/admin/quiz/answers/{{ answer.id }}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
@@ -105,7 +105,7 @@ document.getElementById('quiz_start').addEventListener('change', limitQuizDateRa
 						<select class="form-select" aria-label="Coalition" name="coalition_id" form="question-{{ question.id }}-new-answer-form" required>
 							<option value="" selected disabled hidden>Choose a coalition...</option>
 							{% for coalition in coalitions %}
-								<option value="{{ coalition.id }}">{{ coalition.name }}</option>
+								<option value="{{ coalition.id }}">{{ coalition.name | striptags(true) | escape }}</option>
 							{% endfor %}
 						</select>
 					</td>
