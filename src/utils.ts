@@ -450,6 +450,29 @@ export interface SingleRanking {
 	rank: number;
 }
 
+export const scoreSumsToRanking = async function(prisma: PrismaClient, scores: { user_id: number, _sum: { amount: number | null } }[], rankingName: string): Promise<SingleRanking[]> {
+	const ranking: SingleRanking[] = [];
+	let rank = 1;
+	for (const score of scores) {
+		const user = await prisma.intraUser.findFirst({
+			where: {
+				id: score.user_id,
+			},
+		});
+		if (!user || !score._sum.amount) {
+			continue;
+		}
+		ranking.push({
+			user,
+			rankingName: rankingName,
+			score: score._sum.amount,
+			coalition: null,
+			rank: rank++,
+		});
+	}
+	return ranking;
+};
+
 export const getRanking = async function(prisma: PrismaClient, rankingType: string, atDateTime: Date = new Date(), topAmount: number = 10): Promise<SingleRanking[]> {
 	const ranking = await prisma.codamCoalitionRanking.findFirst({
 		where: {

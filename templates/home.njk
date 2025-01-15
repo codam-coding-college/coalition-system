@@ -13,16 +13,18 @@
 				</div>
 			</div>
 			<div class="">
-				<ol class="list-group list-group-numbered noborder">
+				<ol class="list-group list-group-numbered custom-numbers noborder">
 					{% for coalitionId, sortedCoalitionScore in sortedCoalitionScores %}
 						<li class="list-group-item big-coalition-row" style="background-color: {{ coalitionsObject[coalitionId].intra_coalition.color | rgba(0.5) }}; background-image: url({{ coalitionsObject[coalitionId].intra_coalition.cover_url }})">
-							<div class="big-coalition-logo">
-								<img src="{{ coalitionsObject[coalitionId].intra_coalition.image_url }}" style="filter: invert(1);" />
-							</div>
-							<div class="big-coalition-content">
-								<h5 class="coalition-name"><b>{{ coalitionsObject[coalitionId].intra_coalition.name }}</b></h5>
-								<p class="coalition-description">{{ sortedCoalitionScore.score }} points</p>
-							</div>
+							<a href="/coalitions/{{ coalitionsObject[coalitionId].intra_coalition.id }}">
+								<div class="big-coalition-logo">
+									<img src="{{ coalitionsObject[coalitionId].intra_coalition.image_url }}" style="filter: invert(1);" />
+								</div>
+								<div class="big-coalition-content">
+									<h5 class="coalition-name"><b>{{ coalitionsObject[coalitionId].intra_coalition.name | striptags(true) | escape }}</b></h5>
+									<p class="coalition-description">{{ sortedCoalitionScore.score }} points</p>
+								</div>
+							</a>
 						</li>
 					{% endfor %}
 				</ol>
