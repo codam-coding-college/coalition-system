@@ -97,6 +97,23 @@ const createIntraScore = async function(prisma: PrismaClient, api: Fast42, score
 		// 		updated_at: new Date(postBody.updated_at),
 		// 	},
 		// });
+		// Check if a score was created in the meantime due to multithreading
+		const currentIntraScoreId = await prisma.codamCoalitionScore.findFirst({
+			where: {
+				id: score.id,
+			},
+			select: {
+				intra_score_id: true,
+			},
+		});
+		if (currentIntraScoreId.intra_score_id != null) {
+			console.warn(`Two Intra scores were simultaneously created (probably due to multithreading) for score ${score.id}. Deleting duplicate Intra score ${postBody.id}...`);
+			const del = await api.delete(`/coalitions/${score.coalition_id}/scores/${postBody.id}`, {});
+			if (!del.ok) {
+				throw new Error(`Failed to delete duplicate Intra score ${postBody.id}`);
+			}
+			return currentIntraScoreId.intra_score_id; // Return with the previously created Intra score
+		}
 		await prisma.codamCoalitionScore.update({
 			where: {
 				id: score.id,
