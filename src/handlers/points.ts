@@ -45,13 +45,22 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 		console.warn(`User ${user.login} is a test account, skipping score creation...`);
 		return null;
 	}
+	const blocAtScoreCreation = await getBlocAtDate(prisma, scoreDate);
+	const currentBloc = await getBlocAtDate(prisma, new Date());
+	if (blocAtScoreCreation && currentBloc && blocAtScoreCreation.id !== currentBloc.id) { // Check if the score creation date is in the current bloc if a current bloc and previous bloc exist (if not, just assign the score - it won't belong to any season but it can be shifted using the admin panel)
+		console.warn(`Score creation date ${scoreDate} is not in the current bloc ${currentBloc.id} (${currentBloc.begin_at} - ${currentBloc.end_at}) but in bloc ${blocAtScoreCreation.id} (${blocAtScoreCreation.begin_at} - ${blocAtScoreCreation.end_at}), skipping score creation...`);
+		return null;
+	}
+	if (!blocAtScoreCreation) { // Check if there is a season ongoing at the score creation date
+		console.warn(`No bloc found for score creation date ${scoreDate}. The score will be created, but will not belong to any season. It should be shifted later to the correct season using the admin panel.`);
+	}
 	if (!user.coalition_users || user.coalition_users.length === 0) { // Check if user has a coalition
 		console.warn(`User ${userId} does not have a coalition, skipping score creation...`);
 		return null;
 	}
 	const coalitionUser = user.coalition_users[0];
 
-	console.log(`Creating score for user ${userId} in coalition ${coalitionUser.coalition_id} with ${points} points for reason "${reason}" (connected to Intra object ${typeIntraId} for fixed type ${(type ? type.type : "null")})...`);
+	console.log(`Creating score for user ${userId} in coalition ${coalitionUser.coalition_id} with ${points} points for reason "${reason}" (connected to Intra object ${typeIntraId} for fixed type ${(type ? type.type : "null")}), at score creation date ${scoreDate}...`);
 	const score = await prisma.codamCoalitionScore.create({
 		data: {
 			amount: points,

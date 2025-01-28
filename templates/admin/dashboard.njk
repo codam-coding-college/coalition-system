@@ -22,8 +22,8 @@
 					<h5 class="card-title mb-0">Season deadlines</h5>
 				</div>
 				<div class="card-body">
-					<p>Start: <span id="season-start" data-date="{{ blocDeadline.begin_at | timestamp }}">{{ blocDeadline.begin_at | timeAgo }}</span></p>
-					<p>End: <span id="season-end" data-date="{{ blocDeadline.end_at | timestamp }}">{{ blocDeadline.end_at | timeFromNow }}</span></p>
+					<p>Start: <span id="season-start" data-date="{{ currentBlocDeadline.begin_at | timestamp }}">{{ currentBlocDeadline.begin_at | timeAgo }}</span></p>
+					<p>End: <span id="season-end" data-date="{{ currentBlocDeadline.end_at | timestamp }}">{{ currentBlocDeadline.end_at | timeFromNow }}</span></p>
 				</div>
 			</div>
 		</div>
@@ -98,6 +98,23 @@
 				</div>
 			</div>
 		{% endfor %}
+	</div>
+
+	<div class="row ms-0 me-0 mb-4">
+		<div class="col-md-6">
+			<div class="card h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">Previous 10 seasons</h5>
+				</div>
+				<div class="card-body">
+					<ul>
+						{% for blocDeadline in blocDeadlines %}
+							<li>{{ blocDeadline.begin_at | dateInput }} - {{ blocDeadline.end_at | dateInput }}</li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 {% endblock %}

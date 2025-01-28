@@ -5,10 +5,18 @@ import { CoalitionScore, getCoalitionScore, getScoresPerType } from '../../utils
 export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin', async (req, res) => {
 		// Get current bloc deadline
-		const blocDeadline = await prisma.intraBlocDeadline.findFirst({
+		const currentBlocDeadline = await prisma.intraBlocDeadline.findFirst({
 			orderBy: {
 				end_at: 'desc',
 			},
+		});
+
+		// Get previous bloc deadlines
+		const blocDeadlines = await prisma.intraBlocDeadline.findMany({
+			orderBy: {
+				end_at: 'desc',
+			},
+			take: 10,
 		});
 
 		// Get coalitions
@@ -41,7 +49,8 @@ export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaCl
 		}
 
 		return res.render('admin/dashboard.njk', {
-			blocDeadline,
+			currentBlocDeadline,
+			blocDeadlines,
 			coalitions,
 			coalitionScores,
 			coalitionScoresPerFixedType,
