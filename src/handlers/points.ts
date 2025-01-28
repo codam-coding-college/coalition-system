@@ -2,7 +2,7 @@ import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@pri
 import { INTRA_TEST_ACCOUNTS } from '../env';
 import { syncIntraScore } from './intrascores';
 import Fast42 from '@codam/fast42';
-import { getAPIClient } from '../utils';
+import { getAPIClient, getBlocAtDate } from '../utils';
 
 const INCLUDE_IN_SCORE_RETURN_DATA = {
 	user: {
@@ -121,7 +121,10 @@ export const shiftScore = async function(prisma: PrismaClient, scoreId: number, 
 export const handleFixedPointScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {
 	if (typeIntraId) {
 		// Check if a score already exists for this type and typeIntraId
-		const existingScore = await prisma.codamCoalitionScore.findFirst({
+		const existingScores = await prisma.codamCoalitionScore.aggregate({
+			_sum: {
+				amount: true, // Sum the previous scores if there were more than one (e.g. 3 retries on a project)
+			},
 			where: {
 				user_id: userId, // This means that if we PATCH an Intra object in the Intra API, changing which user the object belongs to, a score could show up more than once, while the old score should be deleted. But when does this ever happen?
 				fixed_type_id: type.type,
@@ -129,12 +132,12 @@ export const handleFixedPointScore = async function(prisma: PrismaClient, type: 
 			},
 		});
 
-		if (existingScore) {
-			// Update the existing score
-			console.warn(`Score already exists for type ${type.type}, user ${userId} and typeIntraId ${typeIntraId}, updating this existing CodamScore ${existingScore.id} with IntraScore ${existingScore.intra_score_id}...`);
-			// TODO: delete the score if the coalitionsUser does not exist
-			// Do not delete if the score is 0, or you can no longer recalculate the score later on!
-			return await updateScore(prisma, existingScore, points, reason);
+		if (existingScores._sum.amount !== null) {
+			console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Calculating point difference and handing out the difference as a new score...`);
+			// Score(s) were already given for this type and typeIntraId in the past.
+			// Calculate the point difference and hand out the difference as a new score.
+			const pointDifference = points - existingScores._sum.amount;
+			return await createScore(prisma, type, typeIntraId, userId, pointDifference, reason, scoreDate);
 		}
 	}
 
