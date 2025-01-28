@@ -142,10 +142,14 @@ export const handleFixedPointScore = async function(prisma: PrismaClient, type: 
 		});
 
 		if (existingScores._sum.amount !== null) {
-			console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Calculating point difference and handing out the difference as a new score...`);
 			// Score(s) were already given for this type and typeIntraId in the past.
 			// Calculate the point difference and hand out the difference as a new score.
-			const pointDifference = points - existingScores._sum.amount;
+			const pointDifference = Math.floor(points - existingScores._sum.amount);
+			if (pointDifference === 0) {
+				console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Point difference is 0, no need to create a new score.`);
+				return null; // No difference in points, no need to create a new score
+			}
+			console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Point difference is ${pointDifference}, handing out the difference as a new score...`);
 			return await createScore(prisma, type, typeIntraId, userId, pointDifference, reason, scoreDate);
 		}
 	}
