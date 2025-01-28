@@ -688,7 +688,13 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			skip: offset,
 		});
 		return res.json({
-			data: webhooks,
+			// Replace delivery_id with id (for apisearcher compatibility)
+			data: webhooks.map((webhook) => {
+				return {
+					...webhook,
+					id: webhook.delivery_id,
+				};
+			}),
 			meta: {
 				pagination: {
 					total: await prisma.intraWebhook.count(),
@@ -709,7 +715,13 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			},
 		});
 		return res.json({
-			data: webhooks,
+			// Replace delivery_id with id (for apisearcher compatibility)
+			data: webhooks.map((webhook) => {
+				return {
+					...webhook,
+					id: webhook.delivery_id,
+				};
+			}),
 			meta: {
 				pagination: {
 					total: webhooks.length,
@@ -743,7 +755,13 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			skip: offset,
 		});
 		return res.json({
-			data: webhooks,
+			// Replace delivery_id with id (for apisearcher compatibility)
+			data: webhooks.map((webhook) => {
+				return {
+					...webhook,
+					id: webhook.delivery_id,
+				};
+			}),
 			meta: {
 				pagination: {
 					total: webhookCount,
@@ -775,7 +793,13 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			},
 		});
 		return res.json({
-			data: webhooks,
+			// Replace delivery_id with id (for apisearcher compatibility)
+			data: webhooks.map((webhook) => {
+				return {
+					...webhook,
+					id: webhook.delivery_id,
+				};
+			}),
 			meta: {
 				pagination: {
 					total: webhookCount,
@@ -807,7 +831,13 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			},
 		});
 		return res.json({
-			data: webhooks,
+			// Replace delivery_id with id (for apisearcher compatibility)
+			data: webhooks.map((webhook) => {
+				return {
+					...webhook,
+					id: webhook.delivery_id,
+				};
+			}),
 			meta: {
 				pagination: {
 					total: webhookCount,
@@ -843,7 +873,13 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			},
 		});
 		return res.json({
-			data: webhooks,
+			// Replace delivery_id with id (for apisearcher compatibility)
+			data: webhooks.map((webhook) => {
+				return {
+					...webhook,
+					id: webhook.delivery_id,
+				};
+			}),
 			meta: {
 				pagination: {
 					total: webhookCount,

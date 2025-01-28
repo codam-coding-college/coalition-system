@@ -1,6 +1,7 @@
 import { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { CatchupOperation, startCatchupOperation } from '../hooks/catchup';
+import { handleWebhook } from '../hooks';
 
 const catchupOperation: CatchupOperation = {
 	ongoing: false,
@@ -18,6 +19,26 @@ const catchupOperation: CatchupOperation = {
 export const setupWebhookManagementRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/hooks/history', async (req, res) => {
 		return res.render('admin/hooks/history.njk');
+	});
+
+	app.get('/admin/hooks/retrigger/:deliveryId', async (req, res) => { // :deliveryId is at the end of the path because the apisearcher requires this
+		const deliveryId = req.params.deliveryId;
+		const webhook = await prisma.intraWebhook.findUnique({
+			where: {
+				delivery_id: deliveryId,
+			},
+		});
+		if (!webhook) {
+			return res.status(404).json({ error: 'Webhook not found' });
+		}
+		try {
+			await handleWebhook(prisma, webhook.model, JSON.parse(webhook.body), null, deliveryId);
+			return res.status(200).json({ status: 'ok' });
+		}
+		catch (err) {
+			console.error('Failed to retrigger webhook:', err);
+			return res.status(500).json({ error: 'Failed to retrigger webhook', details: err });
+		}
 	});
 
 	app.get('/admin/hooks/secrets', async (req, res) => {

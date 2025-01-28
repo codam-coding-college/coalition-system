@@ -32,7 +32,7 @@
 <table class="table table-striped" id="results">
 	<thead>
 		<tr>
-			<th scope="col" data-key="delivery_id" data-format="code">Delivery ID</th>
+			<th scope="col" data-key="id" data-format="code">Delivery ID</th>
 			<th scope="col" data-key="received_at" data-format="datetime">Received at</th>
 			<th scope="col" data-key="handled_at" data-format="datetime">Handled at</th>
 			<th scope="col" data-key="model">Model</th>
@@ -60,7 +60,11 @@ const apiSearcher = new ApiSearcherTable({
 	pageNav: '#pagenav',
 	noPoints: true,
 	actions: [
-		// TODO: add option to retrigger the webhook
+		{
+			name: 'Retrigger',
+			url: window.location.origin + '/admin/hooks/retrigger/', // id will be appended
+			background: true, // background request, set to false to open in the same tab instead
+		}
 	]
 });
 </script>

@@ -69,6 +69,32 @@ export const respondWebHookHandledStatus = async function(prisma: PrismaClient, 
 	return res.status(200).json({ status: status }); // Always return 200 OK, we save the webhook in our database anyways and can easily trigger it again from our side
 };
 
+export const handleWebhook = async function(prisma: PrismaClient, modelType: string, body: { [key: string]: any }, res: Response | null, deliveryId: string): Promise<Response<any, Record<string, any>> | null> {
+	if (!body) {
+		throw new Error("Missing body");
+	}
+	if (typeof body !== 'object') {
+		throw new Error("Invalid body");
+	}
+	switch (modelType) {
+		case "location": // location close
+			const location: Location = body as Location;
+			return await handleLocationCloseWebhook(prisma, location, res, deliveryId);
+		case "projects_user": // project or exam validation
+			const projectUser: ProjectUser = body as ProjectUser;
+			return await handleProjectsUserUpdateWebhook(prisma, projectUser, res, deliveryId);
+		case "scale_team": // scale team (evaluation) update
+			const scaleTeam: ScaleTeam = body as ScaleTeam;
+			return await handleScaleTeamUpdateWebhook(prisma, scaleTeam, res, deliveryId);
+		case "pool": // pool point_given
+			const pointGiven: PointGiven = body as PointGiven;
+			return await handlePointGivenWebhook(prisma, pointGiven, res, deliveryId);
+		default:
+			console.warn("Unknown model type", modelType);
+			return await (res ? respondWebHookHandledStatus(prisma, deliveryId, res, WebhookHandledStatus.Error) : null);
+	}
+};
+
 export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.post('/hooks/intra', async (req, res) => {
 		// Handle all Intra webhooks
@@ -106,29 +132,7 @@ export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): 
 
 		// Actually handle the webhook, but do catch any errors
 		try {
-			if (!req.body) {
-				throw new Error("Missing body");
-			}
-			if (typeof req.body !== 'object') {
-				throw new Error("Invalid body");
-			}
-			switch (webhookHeaders.modelType) {
-				case "location": // location close
-					const location: Location = req.body as Location;
-					return await handleLocationCloseWebhook(prisma, location, res, webhookHeaders.deliveryId);
-				case "projects_user": // project or exam validation
-					const projectUser: ProjectUser = req.body as ProjectUser;
-					return await handleProjectsUserUpdateWebhook(prisma, projectUser, res, webhookHeaders.deliveryId);
-				case "scale_team": // scale team (evaluation) update
-					const scaleTeam: ScaleTeam = req.body as ScaleTeam;
-					return await handleScaleTeamUpdateWebhook(prisma, scaleTeam, res, webhookHeaders.deliveryId);
-				case "pool": // pool point_given
-					const pointGiven: PointGiven = req.body as PointGiven;
-					return await handlePointGivenWebhook(prisma, pointGiven, res, webhookHeaders.deliveryId);
-				default:
-					console.warn("Unknown model type", webhookHeaders.modelType);
-					return await respondWebHookHandledStatus(prisma, webhookHeaders.deliveryId, res, WebhookHandledStatus.Error);
-			}
+			return handleWebhook(prisma, webhookHeaders.modelType, req.body, res, webhookHeaders.deliveryId);
 		}
 		catch (err) {
 			console.error("Failed to handle webhook", err);
