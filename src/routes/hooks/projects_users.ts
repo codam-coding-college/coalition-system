@@ -100,9 +100,9 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 			console.warn("No user ID found in the projectUser data, skipping score creation...", projectUser);
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
 		}
-		const markedAt = new Date(projectUser.marked_at);
+		const updatedAt = new Date(projectUser.updated_at); // Could use markedAt, but the updated_at is more reliable (marked_at can be months ago if the evaluation feedback was filled in months after the project was marked)
 		const score = await handleFixedPointScore(prisma, fixedPointType, projectUser.id, userId, points,
-			`Validated ${project.name} with ${projectUser.final_mark}%`, markedAt);
+			`Validated ${project.name} with ${projectUser.final_mark}%`, updatedAt);
 		if (!score) {
 			console.warn("Refused or failed to create score, skipping...");
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
