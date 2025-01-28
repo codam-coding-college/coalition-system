@@ -11,6 +11,7 @@
 
 <table class="table coalition-colored">
 	<thead>
+		<th scope="col">Internal ID</th>
 		<th scope="col">Date</th>
 		<th scope="col">Coalition</th>
 		<th scope="col">Points</th>
@@ -24,6 +25,7 @@
 	<tbody>
 		{% for score in scores %}
 			<tr style="background: {{ coalitions[score.coalition_id].intra_coalition.color | rgba(0.25) }}">
+				<td><a href="/admin/points/history/{{ score.id }}" target="scorejson">{{ score.id }}</a></td>
 				<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
 				<td>{{ coalitions[score.coalition_id].intra_coalition.name | striptags(true) | escape }}</td>
 				<td>{{ score.amount }}</td>

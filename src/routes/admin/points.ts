@@ -71,6 +71,38 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 		});
 	});
 
+	app.get('/admin/points/history/:id', async (req, res) => {
+		const scoreId = parseInt(req.params.id);
+		if (isNaN(scoreId)) {
+			return res.status(400).json({ error: 'Invalid score ID' });
+		}
+
+		const score = await prisma.codamCoalitionScore.findFirst({
+			where: {
+				id: scoreId,
+			},
+			include: {
+				coalition: {
+					include: {
+						intra_coalition: true,
+					},
+				},
+				user: {
+					include: {
+						intra_user: true,
+					},
+				},
+				fixed_type: true,
+			},
+		});
+
+		if (!score) {
+			return res.status(404).json({ error: 'Score not found' });
+		}
+
+		return res.json(score);
+	});
+
 	app.get('/admin/points/history/:id/sync', async (req, res) => {
 		try {
 			const scoreId = parseInt(req.params.id);
