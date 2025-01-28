@@ -106,7 +106,7 @@ const createIntraScore = async function(prisma: PrismaClient, api: Fast42, score
 				intra_score_id: true,
 			},
 		});
-		if (currentIntraScoreId.intra_score_id != null) {
+		if (currentIntraScoreId && currentIntraScoreId.intra_score_id != null) {
 			console.warn(`Two Intra scores were simultaneously created (probably due to multithreading) for score ${score.id}. Deleting duplicate Intra score ${postBody.id}...`);
 			const del = await api.delete(`/coalitions/${score.coalition_id}/scores/${postBody.id}`, {});
 			if (!del.ok) {
