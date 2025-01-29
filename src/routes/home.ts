@@ -44,6 +44,13 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 		// Sort the coalitions by score
 		const sortedCoalitionScores = Object.entries(coalitionScores).sort((a, b) => b[1].score - a[1].score);
 
+		// Get current bloc deadline
+		const currentBlocDeadline = await prisma.intraBlocDeadline.findFirst({
+			orderBy: {
+				end_at: 'desc',
+			},
+		});
+
 		// Get the coalition of the current user
 		const my_coalition = await prisma.intraCoalitionUser.findFirst({
 			where: {
@@ -86,10 +93,15 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 		// Check if quiz is currently available
 		const quiz_available = await isQuizAvailable(user, prisma);
 
+		// Current datetime
+		const now = new Date();
+
 		return res.render('home.njk', {
 			coalitions,
 			coalitionsObject,
 			my_coalition,
+			now,
+			currentBlocDeadline,
 			quiz_available,
 			sortedCoalitionScores,
 			rankingTypes,

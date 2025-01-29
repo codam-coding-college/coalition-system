@@ -51,6 +51,16 @@ export const setupNunjucksFilters = function(app: Express): void {
 		return date.toISOString().split('T')[0];
 	});
 
+	// Add formatting to get a percentage based on two numbers
+	nunjucksEnv.addFilter('perc', (num: number, total: number) => {
+		return +((num / total) * 100).toFixed(2); // + in front changes to string to a number again
+	});
+
+	// Add formatting to get a percentage based on three numbers
+	nunjucksEnv.addFilter('perc3', (value: number, min: number, max: number) => {
+		return +(((value - min) / (max - min) * 100).toFixed(2)); // + in front changes to string to a number again
+	});
+
 	// Add filter to replace hex color with RGBA color
 	nunjucksEnv.addFilter('rgba', (hex: string, alpha: number) => {
 		if (!hex || !hex.startsWith('#')) {

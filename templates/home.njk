@@ -39,7 +39,13 @@
 				</div>
 			</div>
 			<div class="card-body">
-				<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
+				<div class="mb-4">
+					<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
+				</div>
+				<div class="progress mb-2" role="progressbar" aria-label="Progress of the current season" aria-valuenow="{{ now | timestamp }}" aria-valuemin="{{ currentBlocDeadline.begin_at | timestamp }}" aria-valuemax="{{ currentBlocDeadline.end_at | timestamp }}">
+					<div class="progress-bar" style="width: {{ now | timestamp | perc3(currentBlocDeadline.begin_at | timestamp, currentBlocDeadline.end_at | timestamp) }}%;"></div>
+				</div>
+				<p style="text-align: center;">The current season <b title="{{ currentBlocDeadline.end_at }}">ends {{ currentBlocDeadline.end_at | timeFromNow }}</b>!</p>
 			</div>
 		</div>
 
