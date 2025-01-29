@@ -198,11 +198,47 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			take: 50,
 		});
 
+		const latestTopScores = await prisma.codamCoalitionScore.findMany({
+			where: {
+				coalition_id: coalition.id,
+				NOT: {
+					fixed_type_id: {
+						in: ['logtime', 'evaluation'], // Exclude logtime and evaluation scores, they are usually low
+					}
+				},
+				amount: {
+					gt: 0,
+				},
+				created_at: {
+					gte: sevenDaysAgo,
+					lte: new Date(),
+				},
+			},
+			orderBy: {
+				created_at: 'desc',
+			},
+			include: {
+				user: {
+					select: {
+						intra_user: {
+							select: {
+								login: true,
+								usual_full_name: true,
+								image: true,
+							},
+						},
+					},
+				},
+			},
+			take: 25,
+		});
+
 		return res.render('coalition.njk', {
 			coalition,
 			topContributors,
 			topContributorsWeek,
 			latestScores,
+			latestTopScores,
 		});
 	});
 };

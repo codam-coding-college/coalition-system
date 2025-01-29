@@ -100,12 +100,44 @@
 		</div>
 	</div>
 
-	<!-- point history table (last 50 contributions) -->
+	<!-- top contributions history table (last 25 top contributions) -->
 	<div class="row ms-0 me-0 mb-4">
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Last 50 contributions</h5>
+					<h5 class="card-title mb-0">Most recent big contributions</h5>
+				</div>
+				<div class="card-body p-0">
+					<table class="table table-striped mb-0">
+						<thead>
+							<th scope="col">Date</th>
+							<th scope="col">Student</th>
+							<th scope="col">Points</th>
+							<th scope="col">Reason</th>
+						</thead>
+						<tbody>
+							{% for score in latestTopScores %}
+								<tr>
+									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
+									<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
+									<td>{{ score.amount }}</td>
+									<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason | striptags(true) | escape }}</small></td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- point history table (last 50 contributions) -->
+	<!--
+	<div class="row ms-0 me-0 mb-4">
+		<div class="col">
+			<div class="card h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">Most recent contributions</h5>
 				</div>
 				<div class="card-body p-0">
 					<table class="table table-striped mb-0">
@@ -130,6 +162,7 @@
 			</div>
 		</div>
 	</div>
+	-->
 </div>
 
 {% endblock %}
