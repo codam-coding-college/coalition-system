@@ -21,12 +21,12 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			if (coalitions.length === 0) {
 				throw new Error('No coalitions found');
 			}
-			// Get the scores since the beginning of the season, 2 data points per day
+			// Get the scores since the beginning of the season, 1 data point per day
 			const dates = [];
 			const blocStart = currentBloc.begin_at;
-			const twelveHourBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (12 * 60 * 60 * 1000));
-			for (let i = 0; i <= twelveHourBlocsSinceBlocStart; i++) {
-				dates.push(new Date(blocStart.getTime() + i * 12 * 60 * 60 * 1000));
+			const dailyBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (24 * 60 * 60 * 1000));
+			for (let i = 0; i <= dailyBlocsSinceBlocStart; i++) {
+				dates.push(new Date(blocStart.getTime() + i * 24 * 60 * 60 * 1000));
 			}
 			dates.push(now); // always add the current score
 
