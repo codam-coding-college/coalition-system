@@ -1,6 +1,50 @@
-import { prisma, fetchSingle42ApiPage } from './base';
+import { prisma, fetchSingle42ApiPage, fetchMultiple42ApiPages } from './base';
 import Fast42 from '@codam/fast42';
 import { syncUser } from './users';
+import { getCoalitionIds } from '../utils';
+
+const checkForDeletedCoalitionUsers = async function(api: Fast42): Promise<void> {
+	// Fetch all of our coalition ids
+	const coalitionIds = await getCoalitionIds(prisma);
+
+	// Fetch all users from the API updated since the last shutdown
+	console.log('Cleaning up non-existing coalition users...');
+	const coalitionUsers = await fetchMultiple42ApiPages(api, `/coalitions_users`, {
+		'filter[coalition_id]': Object.values(coalitionIds).join(','),
+	});
+
+	// Fetch all coalition users from our database that are not in the API response
+	const nonExistentCoalitionUsers = await prisma.intraCoalitionUser.findMany({
+		where: {
+			NOT: {
+				id: {
+					in: coalitionUsers.map((coalitionUser) => coalitionUser.id),
+				}
+			},
+		},
+		include: {
+			user: {
+				select: {
+					login: true,
+				},
+			},
+			coalition: {
+				select: {
+					name: true,
+				},
+			}
+		},
+	});
+	console.log(`Found ${nonExistentCoalitionUsers.length} coalition users that are not in the API response:`);
+	for (const coalitionUser of nonExistentCoalitionUsers) {
+		console.log(`Deleting local coalition user ${coalitionUser.id} (${coalitionUser.user.login} in ${coalitionUser.coalition.name})...`);
+		await prisma.intraCoalitionUser.delete({
+			where: {
+				id: coalitionUser.id,
+			},
+		});
+	}
+};
 
 const anonymizeUsers = async function(api: Fast42): Promise<void> {
 	// Fetch all users where the anonymize_date is in the past, not null and the login does not yet start with 3b3
@@ -18,6 +62,7 @@ const anonymizeUsers = async function(api: Fast42): Promise<void> {
 			},
 		},
 	});
+	console.log(`Found ${users.length} users to anonymize...`);
 
 	// Request the anonymized data from the API and overwrite the local data
 	// Only works with staff API key
@@ -40,4 +85,5 @@ const anonymizeUsers = async function(api: Fast42): Promise<void> {
 export const cleanupDB = async function(api: Fast42): Promise<void> {
 	console.info('Cleaning up the database...');
 	await anonymizeUsers(api);
+	await checkForDeletedCoalitionUsers(api);
 };
