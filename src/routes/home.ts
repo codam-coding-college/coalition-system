@@ -245,12 +245,38 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			take: 25,
 		});
 
+		// Get the staff part of this coalition
+		const staff = await prisma.intraUser.findMany({
+			where: {
+				kind: 'admin',
+				coalition_users: {
+					some: {
+						coalition_id: coalition.id,
+					},
+				},
+				cursus_users: {
+					some: {
+						end_at: null, // Make sure to only get active staff members
+					},
+				},
+			},
+			include: {
+				coalition_users: {
+					where: {
+						coalition_id: coalition.id,
+					},
+				},
+				cursus_users: true,
+			},
+		});
+
 		return res.render('coalition.njk', {
 			coalition,
 			topContributors,
 			topContributorsWeek,
 			latestScores,
 			latestTopScores,
+			staff,
 		});
 	});
 };

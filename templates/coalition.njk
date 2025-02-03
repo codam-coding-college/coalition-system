@@ -163,6 +163,32 @@
 		</div>
 	</div>
 	-->
+
+	<!-- staff overview for this coalition -->
+	<div class="row ms-0 me-0 mb-4">
+		<div class="col">
+			<div class="card h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">{{ coalition.intra_coalition.name }}'s staff</h5>
+				</div>
+				<div class="card-body p-2">
+					<p class="text-muted"><small>Though campus staff cannot contribute to any coalition's score, they are each also member of a coalition of their choice.</small></p>
+					<div class="row row-cols-3 row-cols-md-5 g-2">
+						{% for staff_member in staff %}
+							<div class="col">
+								<div class="card text-center">
+									<img src="{{ staff_member.image }}" class="img-square card-img-top" alt="{{ staff_member.login | striptags(true) | escape }}" />
+									<div class="card-body">
+										<h6 class="card-title">{{ staff_member.usual_first_name if staff_member.usual_first_name is not none else staff_member.first_name | striptags(true) | escape }}</h6>
+									</div>
+								</div>
+							</div>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
 {% endblock %}
