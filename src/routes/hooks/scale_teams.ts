@@ -34,13 +34,13 @@ export interface ScaleTeam {
 		login: string;
 		url: string;
 		// there is more but we don't care
-	} | undefined; // only defined in webhook (user = corrector)
+	} | undefined | null; // only defined in webhook (user = corrector), can be null
 	corrector: {
 		id: number;
 		login: string;
 		url: string;
 	} | "invisible" | undefined; // only defined in API, invisible for students until 15 minutes before the evaluation is scheduled
-	begin_at: string;
+	begin_at: string | null; // can be null if the evaluation is a placeholder for a missing evaluation during the piscine
 	filled_at: string | null;
 	created_at: string;
 	updated_at: string;
@@ -72,7 +72,7 @@ export const handleScaleTeamUpdateWebhook = async function(prisma: PrismaClient,
 		const payloadUser = scaleTeam.user || scaleTeam.corrector;
 		if (!payloadUser || payloadUser === "invisible") { // can be "invisible" for student API keys until 15 minutes before the evaluation is scheduled
 			console.error("No user found in the scale team payload, neither in the user or correcter key", scaleTeam);
-			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Error) : null);
+			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
 		}
 		if (payloadUser.login === "supervisor") {
 			console.warn("User is supervisor, meaning this evaluation was an Internship evaluation done by a company, skipping score creation...");
