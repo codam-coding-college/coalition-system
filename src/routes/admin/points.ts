@@ -71,6 +71,85 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 		});
 	});
 
+	app.get('/admin/points/history/user/:login', async (req, res) => {
+		const login = req.params.login;
+		if (!login) {
+			return res.status(400).json({ error: 'Invalid login' });
+		}
+
+		// Retrieve user
+		const user = await prisma.intraUser.findFirst({
+			where: {
+				login: login,
+			},
+			select: {
+				id: true,
+				login: true,
+			},
+		});
+		if (!user) {
+			return res.status(404).json({ error: 'User not found' });
+		}
+
+		// Calculate the total amount of pages
+		const totalScores = await prisma.codamCoalitionScore.count({
+			where: {
+				user_id: user.id,
+			},
+		});
+		const totalPages = Math.ceil(totalScores / SCORES_PER_PAGE);
+		const pageNum = getPageNumber(req, totalPages);
+		const offset = getOffset(pageNum, SCORES_PER_PAGE);
+
+		// Retrieve the scores to be displayed on the page
+		const scores = await prisma.codamCoalitionScore.findMany({
+			where: {
+				user_id: user.id,
+			},
+			select: {
+				id: true,
+				intra_score_id: true,
+				amount: true,
+				reason: true,
+				created_at: true,
+				fixed_type_id: true,
+				type_intra_id: true,
+				coalition_id: true,
+				coalition: false,
+				fixed_type: false,
+			},
+			orderBy: {
+				created_at: 'desc',
+			},
+			take: SCORES_PER_PAGE,
+			skip: offset,
+		});
+
+		// Retrieve all coalitions
+		const coalitionRows = await prisma.codamCoalition.findMany({
+			select: {
+				intra_coalition: true,
+			},
+		});
+
+		// Create a map of coalition id to coalition object
+		const coalitions: { [key: number]: any } = {};
+		for (const row of coalitionRows) {
+			coalitions[row.intra_coalition.id] = row;
+		}
+
+		// Create a list of pages for the pagination nav
+		const pageNav = getPageNav(pageNum, totalPages);
+
+		return res.render('admin/points/history.njk', {
+			scores,
+			coalitions,
+			pageNum,
+			totalPages,
+			pageNav,
+		});
+	});
+
 	app.get('/admin/points/history/:id', async (req, res) => {
 		const scoreId = parseInt(req.params.id);
 		if (isNaN(scoreId)) {
