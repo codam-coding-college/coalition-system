@@ -115,6 +115,11 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 				_count: {
 					id: true,
 				},
+				orderBy: {
+					_sum: {
+						amount: 'asc',
+					},
+				},
 			});
 			const coalitionUsers = await prisma.intraCoalitionUser.findMany({
 				where: {
