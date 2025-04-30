@@ -334,6 +334,7 @@ export const getUserTournamentRanking = async function(prisma: PrismaClient, use
 export interface NormalDistribution {
 	dataPoints: number[];
 	mean: number;
+	median: number;
 	stdDev: number;
 	min: number;
 	max: number;
@@ -373,16 +374,21 @@ export const getScoresPerType = async function(prisma: PrismaClient, coalitionId
 	return scoresPerType;
 }
 
+const getEmptyNormalDistribution = function(): NormalDistribution {
+	return {
+		dataPoints: [],
+		mean: 0,
+		median: 0,
+		stdDev: 0,
+		min: 0,
+		max: 0,
+	};
+};
+
 export const getScoresNormalDistribution = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<NormalDistribution> {
 	const bloc = await getBlocAtDate(prisma, untilDate);
 	if (!bloc) { // No season currently ongoing
-		return {
-			dataPoints: [],
-			mean: 0,
-			stdDev: 0,
-			min: 0,
-			max: 0,
-		};
+		return getEmptyNormalDistribution();
 	}
 	const scores = await prisma.codamCoalitionScore.groupBy({
 		by: ['user_id'],
@@ -396,11 +402,20 @@ export const getScoresNormalDistribution = async function(prisma: PrismaClient, 
 		_sum: {
 			amount: true,
 		},
+		orderBy: {
+			_sum: {
+				amount: 'asc',
+			},
+		},
 	});
+	if (scores.length === 0) { // No scores for this coalition
+		return getEmptyNormalDistribution();
+	}
 	// console.log(scores);
 	const scoresArray = scores.map(s => s._sum.amount ? s._sum.amount : 0);
 	const scoresSum = scoresArray.reduce((a, b) => a + b, 0);
 	const scoresMean = scoresSum / scoresArray.length;
+	const scoresMedian = scoresArray[Math.floor(scoresArray.length / 2)];
 	const scoresVariance = scoresArray.reduce((a, b) => a + Math.pow(b - scoresMean, 2), 0) / scoresArray.length;
 	const scoresStdDev = Math.sqrt(scoresVariance);
 	const scoresMin = Math.min(...scoresArray);
@@ -408,6 +423,7 @@ export const getScoresNormalDistribution = async function(prisma: PrismaClient, 
 	return {
 		dataPoints: scoresArray,
 		mean: scoresMean,
+		median: scoresMedian,
 		stdDev: scoresStdDev,
 		min: scoresMin,
 		max: scoresMax,
@@ -419,6 +435,7 @@ export interface CoalitionScore {
 	score: number;
 	totalPoints: number;
 	avgPoints: number;
+	medianPoints: number;
 	stdDevPoints: number;
 	minActivePoints: number; // Minimum score for a user to be considered active
 	totalContributors: number;
@@ -434,6 +451,7 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		coalition_id: coalitionId,
 		totalPoints: normalDist.dataPoints.reduce((a, b) => a + b, 0),
 		avgPoints: normalDist.mean,
+		medianPoints: normalDist.median,
 		stdDevPoints: normalDist.stdDev,
 		minActivePoints: minScore,
 		score: fairScore,

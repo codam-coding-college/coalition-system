@@ -44,6 +44,7 @@
 							<li>Minimum contrition: {{ coalitionScores[coalition.id].minActivePoints | thousands }}</li>
 							<li>Active contributor count: {{ coalitionScores[coalition.id].activeContributors | thousands }}</li>
 							<li>Average points: {{ coalitionScores[coalition.id].avgPoints | toFixed(2) | thousands }}</li>
+							<li>Median points: {{ coalitionScores[coalition.id].medianPoints | toFixed(2) | thousands }}</li>
 							<li>Standard deviation points: {{ coalitionScores[coalition.id].stdDevPoints | toFixed(2) | thousands }}</li>
 						</ul>
 						<ul>
