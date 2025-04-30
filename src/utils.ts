@@ -365,121 +365,32 @@ export const getScoresPerType = async function(prisma: PrismaClient, coalitionId
 	return scoresPerType;
 };
 
-export interface ExponentialDistribution {
-	// assume gamma with k (shape) = 1
+export interface FairDistribution {
 	dataPoints: number[];
-	mean: number; // scale / theta
+	mean: number;
 	median: number;
-	variance: number;
-	stdDev: number;
-	minScore: number;
-	lowerBound: number;
-	upperBound: number;
 	min: number;
 	max: number;
-	validScores: number[];
+	firstQuartile: number; // First quartile of the scores
+	lowerBound: number; // Minimum score for a user to be considered active
 };
 
-const getEmptyExponentialDistribution = function(): ExponentialDistribution {
+const getEmptyFairDistribution = function(): FairDistribution {
 	return {
 		dataPoints: [],
 		mean: 0,
 		median: 0,
-		variance: 0,
-		stdDev: 0,
-		minScore: 0,
-		lowerBound: 0,
-		upperBound: 0,
 		min: 0,
 		max: 0,
-		validScores: [],
+		firstQuartile: 0,
+		lowerBound: 0,
 	};
 };
 
-const exponPPF = function(p: number, scale: number = 1): number {
-	if (p <= 0 || p >= 1) {
-		throw new Error("Percentile 'p' must be between 0 and 1 (exclusive).");
-	}
-	if (scale <= 0) {
-		throw new Error("Scale parameter must be a positive number.");
-	}
-
-	return -scale * Math.log(1 - p);
-}
-
-function calculateStatistics(scores: number[]) {
-    // Calculate mean
-    const meanScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-
-    // Calculate median
-    const sortedScores = [...scores].sort((a, b) => a - b);
-    const middle = Math.floor(sortedScores.length / 2);
-    const medianScore = sortedScores.length % 2 === 0
-        ? (sortedScores[middle - 1] + sortedScores[middle]) / 2
-        : sortedScores[middle];
-
-    // Calculate standard deviation
-    const variance = scores.reduce((sum, score) => sum + Math.pow(score - meanScore, 2), 0) / scores.length;
-    const stdDevScore = Math.sqrt(variance);
-
-    return { meanScore, medianScore, stdDevScore, variance };
-}
-
-function percentile(scores: number[], p: number): number {
-    // Sort the scores
-    const sortedScores = [...scores].sort((a, b) => a - b);
-
-    // Calculate the index for the given percentile
-    const index = (p / 100) * (sortedScores.length - 1);
-
-    // Linear interpolation for percentile
-    const lowerIndex = Math.floor(index);
-    const upperIndex = Math.ceil(index);
-    if (lowerIndex === upperIndex) {
-        return sortedScores[lowerIndex];
-    }
-
-    const lowerValue = sortedScores[lowerIndex];
-    const upperValue = sortedScores[upperIndex];
-    const weight = index - lowerIndex;
-
-    return lowerValue + weight * (upperValue - lowerValue);
-}
-
-function detectOutliers(scores: number[], percentileThreshold: number = 25) {
-    // Step 1: Calculate the dynamic threshold (percentile of the data)
-    const minScoreThreshold = percentile(scores, percentileThreshold);
-
-    // Ensure minScoreThreshold is not negative
-    const adjustedMinScoreThreshold = Math.max(minScoreThreshold, 0);
-    console.log(`Dynamic minScoreThreshold (Percentile ${percentileThreshold}%): ${adjustedMinScoreThreshold}`);
-
-    // Step 2: Filter out scores that are below the dynamic threshold
-    const validScores = scores.filter(score => score >= adjustedMinScoreThreshold);
-
-    // Step 3: Calculate the quartiles (Q1 and Q3)
-    const sortedScores = [...validScores].sort((a, b) => a - b);
-    const q1 = sortedScores[Math.floor(sortedScores.length / 4)];
-    const q3 = sortedScores[Math.floor(sortedScores.length * (3 / 4))];
-
-    // Step 4: Calculate IQR (Interquartile Range)
-    const iqr = q3 - q1;
-
-    // Step 5: Calculate lower and upper bounds for outliers
-    const lowerBound = q1 - 1.5 * iqr;
-    const upperBound = q3 + 1.5 * iqr;
-
-    // Step 6: Filter out scores that are outliers on the bottom side
-	// Note: We only filter out lower outliers, as high scores are good and we want to keep them!
-    const filteredScores = validScores.filter(score => score >= lowerBound);
-
-    return { adjustedMinScoreThreshold, lowerBound, upperBound, filteredScores };
-}
-
-export const getExponentialDistribution = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<ExponentialDistribution> {
+export const getFairDistribution = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<FairDistribution> {
 	const bloc = await getBlocAtDate(prisma, untilDate);
 	if (!bloc) { // No season currently ongoing
-		return getEmptyExponentialDistribution();
+		return getEmptyFairDistribution();
 	}
 	const scores = await prisma.codamCoalitionScore.groupBy({
 		by: ['user_id'],
@@ -499,27 +410,28 @@ export const getExponentialDistribution = async function(prisma: PrismaClient, c
 			},
 		},
 	});
-
 	if (scores.length === 0) { // No scores for this coalition
-		return getEmptyExponentialDistribution();
+		return getEmptyFairDistribution();
 	}
 
 	const scoresArray = scores.map(s => s._sum.amount ? s._sum.amount : 0);
-	const { meanScore, medianScore, stdDevScore, variance } = calculateStatistics(scoresArray);
-	const { adjustedMinScoreThreshold, lowerBound, upperBound, filteredScores } = detectOutliers(scoresArray);
+	const scoresSum = scoresArray.reduce((a, b) => a + b, 0);
+	const scoresMean = scoresSum / scoresArray.length;
+	const scoresMedian = scoresArray[Math.floor(scoresArray.length / 2)];
+	const scoresFirstQuartile = scoresArray[Math.floor(scoresArray.length / 4)];
+	const scoresMin = Math.min(...scoresArray);
+	const scoresMax = Math.max(...scoresArray);
+	// lower bound is specified as the mean minus the first quartile * 4
+	const scoresLowerBound = Math.max(Math.floor(scoresMean - scoresFirstQuartile * 4), 0);
 	return {
 		dataPoints: scoresArray,
-		mean: meanScore,
-		median: medianScore,
-		stdDev: stdDevScore,
-		variance: variance,
-		minScore: adjustedMinScoreThreshold,
-		lowerBound: lowerBound,
-		upperBound: upperBound,
-		min: Math.min(...scoresArray),
-		max: Math.max(...scoresArray),
-		validScores: filteredScores,
-	}
+		mean: scoresMean,
+		median: scoresMedian,
+		min: scoresMin,
+		max: scoresMax,
+		firstQuartile: scoresFirstQuartile,
+		lowerBound: scoresLowerBound,
+	};
 };
 
 export interface NormalDistribution {
@@ -599,40 +511,20 @@ export interface CoalitionScore {
 	activeContributors: number;
 }
 
-/*
-
-export interface ExponentialDistribution {
-	// assume gamma with k (shape) = 1
-	dataPoints: number[];
-	mean: number; // scale / theta
-	median: number;
-	variance: number;
-	stdDev: number;
-	minScore: number;
-	lowerBound: number;
-	upperBound: number;
-	min: number;
-	max: number;
-	validScores: number[];
-};
-*/
-
 export const getCoalitionScore = async function(prisma: PrismaClient, coalitionId: number, atDateTime: Date = new Date()): Promise<CoalitionScore> {
-	const exponentialDist = await getExponentialDistribution(prisma, coalitionId, atDateTime);
-	console.log("Score at " + atDateTime.toDateString(), JSON.stringify(exponentialDist));
-	// fair score is average of validScores
-	const fairScore = Math.floor(exponentialDist.validScores.reduce((a, b) => a + b, 0) / exponentialDist.validScores.length);
-	console.log("Fair score: " + fairScore);
+	const fairDistribution = await getFairDistribution(prisma, coalitionId, atDateTime);
+	const fairScores = fairDistribution.dataPoints.filter(s => s >= fairDistribution.lowerBound);
+	const fairScore = Math.floor(fairScores.reduce((a, b) => a + b, 0) / fairScores.length);
 	return {
 		coalition_id: coalitionId,
-		totalPoints: exponentialDist.dataPoints.reduce((a, b) => a + b, 0),
-		avgPoints: exponentialDist.mean,
-		medianPoints: exponentialDist.median,
-		stdDevPoints: exponentialDist.stdDev,
-		minActivePoints: exponentialDist.minScore,
+		totalPoints: fairDistribution.dataPoints.reduce((a, b) => a + b, 0),
+		avgPoints: fairDistribution.mean,
+		medianPoints: fairDistribution.median,
+		stdDevPoints: fairDistribution.firstQuartile, // temporary to display the value in the graph
+		minActivePoints: fairDistribution.lowerBound,
 		score: fairScore,
-		totalContributors: exponentialDist.dataPoints.length,
-		activeContributors: exponentialDist.validScores.length,
+		totalContributors: fairDistribution.dataPoints.length,
+		activeContributors: fairScores.length,
 	};
 };
 
