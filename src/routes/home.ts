@@ -213,11 +213,18 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 		const latestTopScores = await prisma.codamCoalitionScore.findMany({
 			where: {
 				coalition_id: coalition.id,
-				NOT: {
-					fixed_type_id: {
-						in: ['logtime', 'evaluation'], // Exclude logtime and evaluation scores, they are usually low
+				OR: [
+					{
+						NOT: {
+							fixed_type_id: {
+								in: ['logtime', 'evaluation'], // Exclude logtime and evaluation scores, they are usually low
+							}
+						},
+					},
+					{
+						fixed_type_id: null, // Include scores that are not fixed types
 					}
-				},
+				],
 				amount: {
 					gt: 0,
 				},
