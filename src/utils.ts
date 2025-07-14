@@ -454,7 +454,7 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		medianPoints: normalDist.median,
 		stdDevPoints: normalDist.stdDev,
 		minActivePoints: minScore,
-		score: normalDist.mean, // fairScore can jump down too easily when there are a couple of really well scoring students on top of the leaderboard (scores dataset is not a normal distribution)
+		score: Math.floor(normalDist.mean), // fairScore can jump down too easily when there are a couple of really well scoring students on top of the leaderboard (scores dataset is not a normal distribution)
 		totalContributors: normalDist.dataPoints.length,
 		activeContributors: activeScores.length,
 	};
