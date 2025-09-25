@@ -139,6 +139,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 							// @ts-ignore
 							tension: 0.25,
 						},
+						/*
 						{
 							label: 'Average points',
 							data: Object.values(dataPoints).map((score) => score.avgPoints),
@@ -166,6 +167,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 							// @ts-ignore
 							tension: 0.25,
 						},
+						*/
 					],
 				},
 				options: {
