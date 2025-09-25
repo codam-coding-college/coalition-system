@@ -504,12 +504,16 @@ export const getRanking = async function(prisma: PrismaClient, rankingType: stri
 		throw new Error(`Ranking type ${rankingType} not found`);
 	}
 
-	// TODO: take into account the TOURNAMENT (not SEASONS!)
+	const bloc = await getBlocAtDate(prisma, atDateTime);
+	if (!bloc) { // No season currently ongoing
+		return [];
+	}
 	const scores = await prisma.codamCoalitionScore.groupBy({
 		by: ['user_id'],
 		where: {
 			created_at: {
 				lte: atDateTime,
+				gte: bloc.begin_at,
 			},
 			fixed_type_id: {
 				in: ranking.fixed_types.map(t => t.type),
