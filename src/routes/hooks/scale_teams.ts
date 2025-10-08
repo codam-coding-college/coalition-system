@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import Fast42 from '@codam/fast42';
 import { WebhookHandledStatus, respondWebHookHandledStatus } from '../hooks';
 import { handleFixedPointScore } from '../../handlers/points';
 

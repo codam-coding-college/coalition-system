@@ -55,6 +55,11 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 			points: 10, // recommended
 		},
 		{
+			type: "idle_logout",
+			desc: "Each automatic logout after leaving a computer idling too long will deduct this amount of points (should be negative and needs to be manually implemented in the cluster computers).",
+			points: -10, // recommended
+		},
+		{
 			type: "exam",
 			desc: "Each exam passed will grant the student with this amount of points",
 			points: 1000, // recommended
