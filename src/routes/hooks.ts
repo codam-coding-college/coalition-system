@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Express, Response } from 'express';
 import { handleLocationCloseWebhook, Location } from './hooks/locations';
+import { handleIdleLogoutWebhook, IdleLogout } from './hooks/idlelogout';
 import { handleProjectsUserUpdateWebhook, ProjectUser } from './hooks/projects_users';
 import { handleScaleTeamUpdateWebhook, ScaleTeam } from './hooks/scale_teams';
 import { handlePointGivenWebhook, PointGiven } from './hooks/pools';
@@ -80,6 +81,9 @@ export const handleWebhook = async function(prisma: PrismaClient, modelType: str
 		case "location": // location close
 			const location: Location = body as Location;
 			return await handleLocationCloseWebhook(prisma, location, res, deliveryId);
+		case "idle_logout": // idle logout
+			const autoLogout: IdleLogout = body as IdleLogout;
+			return await handleIdleLogoutWebhook(prisma, autoLogout, res, deliveryId);
 		case "projects_user": // project or exam validation
 			const projectUser: ProjectUser = body as ProjectUser;
 			return await handleProjectsUserUpdateWebhook(prisma, projectUser, res, deliveryId);

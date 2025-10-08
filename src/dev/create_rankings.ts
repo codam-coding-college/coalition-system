@@ -29,7 +29,7 @@ const createRanking = async function(name: string, description: string, topTitle
 const createRankings = async function(): Promise<void> {
 	await createRanking('Guiding Stars', 'Based on points gained through evaluations', 'Guiding Star', 100000, ['evaluation']);
 	await createRanking('Top Performers', 'Based on points gained through projects', 'Top Performer', 100000, ['project', 'exam']);
-	await createRanking('Top Endeavors', 'Based on points gained through logtime', 'Top Endeavor', 100000, ['logtime']);
+	await createRanking('Top Endeavors', 'Based on points gained through logtime', 'Top Endeavor', 100000, ['logtime', 'idle_logout']);
 	await createRanking('Philanthropists', 'Based on points gained through donating evaluation points to the pool', 'Philanthropist', 100000, ['point_donated']);
 	await createRanking('Community Leaders', 'Based on points gained through organizing events', 'Community Leader', 100000, ['event_basic', 'event_intermediate', 'event_advanced']);
 };
