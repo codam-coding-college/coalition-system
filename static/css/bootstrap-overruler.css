@@ -121,16 +121,22 @@
 	border-radius: initial !important;
 }
 
-.list-group-numbered.custom-numbers {
+.list-group-numbered.custom-numbers,
+.list-group-numbered.custom-number {
 	counter-reset: item;
 	list-style-type: none;
 }
-.list-group-numbered.custom-numbers li {
+.list-group-numbered.custom-numbers li,
+.list-group-numbered.custom-number li {
 	display: block;
 }
 .list-group-numbered.custom-numbers li:before {
 	content: counter(item) ". ";
 	counter-increment: item;
+	text-align: center;
+}
+.list-group-numbered.custom-number li:before {
+	content: attr(data-number) ". ";
 	text-align: center;
 }
 

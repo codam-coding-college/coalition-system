@@ -115,6 +115,7 @@ model CodamCoalitionUserResult {
 	user_id          Int
 	coalition_id     Int
 	score            Int
+	coalition_rank   Int      // No. in the coalition (1 = first, 2 = second, etc.)
 	season_result_id Int
 
 	created_at       DateTime @default(now())
