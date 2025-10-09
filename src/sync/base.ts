@@ -12,6 +12,7 @@ import { syncProjects } from "./projects";
 import { syncCursusUsers } from './cursus_users';
 import { syncScores } from './scores';
 import { getBlocAtDate } from '../utils';
+import { calculateResults } from './results';
 
 export const prisma = new PrismaClient();
 
@@ -228,6 +229,7 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 		await syncCursusUsers(api, lastSync, now);
 		await syncBlocs(api, now); // also syncs coalitions
 		await syncCoalitionUsers(api, lastSync, now);
+		await calculateResults();
 		await cleanupDB(api);
 
 		const currentBloc = await getBlocAtDate(prisma, new Date()); // Check if a season is currently ongoing (only then we can sync)

@@ -372,7 +372,26 @@ export const getScoresPerType = async function(prisma: PrismaClient, coalitionId
 	const score = scores.find(s => s.fixed_type_id === null);
 	scoresPerType['unknown'] = score && score._sum.amount ? score._sum.amount : 0;
 	return scoresPerType;
-}
+};
+
+export const getUserScores = async function(prisma: PrismaClient, userId: number, untilDate: Date = new Date()): Promise<{ userScores: { fixed_type_id: string | null, _sum: { amount: number | null } }[], totalScore: number }> {
+	const bloc = await getBlocAtDate(prisma, untilDate);
+	const userScores = (bloc ? (await prisma.codamCoalitionScore.groupBy({
+		by: ['fixed_type_id'],
+		_sum: {
+			amount: true,
+		},
+		where: {
+			user_id: userId,
+			created_at: {
+				gte: bloc.begin_at,
+				lte: untilDate,
+			},
+		},
+	})) : []);
+	const totalScore = userScores.reduce((acc, score) => acc + (score._sum.amount ? score._sum.amount : 0), 0);
+	return { userScores, totalScore };
+};
 
 const getEmptyNormalDistribution = function(): NormalDistribution {
 	return {
@@ -459,6 +478,8 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		activeContributors: activeScores.length,
 	};
 };
+
+export const RANKING_MAX = 100; // Maximum number of users to consider for rankings
 
 export interface SingleRanking {
 	rankingName: string;
@@ -569,7 +590,7 @@ export const getRanking = async function(prisma: PrismaClient, rankingType: stri
 };
 
 export const getUserRanking = async function(prisma: PrismaClient, rankingType: string, userId: number, atDateTime: Date = new Date()): Promise<SingleRanking | null> {
-	const ranking = await getRanking(prisma, rankingType, atDateTime, 100); // Don't care if the user is not in the top 100
+	const ranking = await getRanking(prisma, rankingType, atDateTime, RANKING_MAX);
 	const userRanking = ranking.find(r => r.user.id === userId);
 	return (userRanking ? userRanking : null);
 }

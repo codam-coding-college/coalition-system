@@ -91,7 +91,7 @@ model CodamCoalitionScore {
 model CodamCoalitionSeasonResult {
 	id               Int      @id @default(autoincrement())
 	coalition_id     Int
-	score            Int
+	score            Int      // NOT the same as the sum of all scores, but the score after applying the normal distribution
 	bloc_deadline_id Int
 
 	created_at       DateTime @default(now())
@@ -104,6 +104,9 @@ model CodamCoalitionSeasonResult {
 
 	// Link to Intra
 	bloc_deadline    IntraBlocDeadline @relation(fields: [bloc_deadline_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+	// Make coalition_id + bloc_deadline_id unique together
+	@@unique([coalition_id, bloc_deadline_id])
 }
 
 model CodamCoalitionUserResult {
@@ -120,6 +123,9 @@ model CodamCoalitionUserResult {
 	user             CodamUser        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 	coalition        CodamCoalition   @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 	season_result    CodamCoalitionSeasonResult @relation(fields: [season_result_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+	// Make season_result_id + coalition_id + user_id unique together
+	@@unique([season_result_id, coalition_id, user_id])
 }
 
 model CodamCoalitionRankingResult {
@@ -128,11 +134,14 @@ model CodamCoalitionRankingResult {
 	season_result_id Int
 	user_id          Int
 	score            Int
-	position         Int
+	rank             Int
 
 	// Relations
 	ranking          CodamCoalitionRanking @relation(fields: [ranking_type], references: [type], onDelete: Cascade, onUpdate: Cascade)
 	season_result    CodamCoalitionSeasonResult @relation(fields: [season_result_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+	// Make season_result_id + ranking_type + user_id unique together
+	@@unique([season_result_id, ranking_type, user_id])
 }
 
 // Sorting hat quiz settings
