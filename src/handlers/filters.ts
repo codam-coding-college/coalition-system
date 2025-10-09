@@ -95,4 +95,13 @@ export const setupNunjucksFilters = function(app: Express): void {
 	nunjucksEnv.addFilter('bool', (value: boolean) => {
 		return value ? 'true' : 'false';
 	});
+
+	// Add filter to name a season
+	nunjucksEnv.addFilter('seasonName', (season: any) => {
+		if (!season || !season.begin_at || !season.end_at) {
+			return 'Unknown season';
+		}
+		// return `${season.begin_at.getFullYear()}-${season.begin_at.getMonth() + 1} > ${season.end_at.getFullYear()}-${season.end_at.getMonth() + 1}`;
+		return `${season.end_at.toLocaleString('en-US', { month: 'short' })} ${season.end_at.getFullYear()}`;
+	});
 };

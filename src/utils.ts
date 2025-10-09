@@ -1,4 +1,4 @@
-import { PrismaClient, IntraUser, IntraCoalition, IntraBlocDeadline, CodamCoalitionScore } from "@prisma/client";
+import { PrismaClient, IntraUser, IntraCoalition, IntraBlocDeadline, CodamCoalitionScore, CodamCoalitionRanking, CodamCoalitionRankingResult, CodamCoalitionSeasonResult, CodamUser } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { api } from "./main";
@@ -287,7 +287,7 @@ export const getBlocAtDate = async function(prisma: PrismaClient, date: Date = n
 
 	const blocs = blocCache.get('blocs') as IntraBlocDeadline[];
 	for (const bloc of blocs) {
-		if (bloc.begin_at <= date && bloc.end_at > date) {
+		if (bloc.begin_at <= date && bloc.end_at >= date) { // >= to make sure a bloc deadline can be fetched by its end date as well
 			return bloc;
 		}
 	}
@@ -372,6 +372,30 @@ export const getScoresPerType = async function(prisma: PrismaClient, coalitionId
 	const score = scores.find(s => s.fixed_type_id === null);
 	scoresPerType['unknown'] = score && score._sum.amount ? score._sum.amount : 0;
 	return scoresPerType;
+};
+
+export const getUsersScores = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date(), topAmount: number = RANKING_MAX): Promise<{ user_id: number, _sum: { amount: number | null } }[]> {
+	const bloc = await getBlocAtDate(prisma, untilDate);
+	const usersScores = (bloc ? (await prisma.codamCoalitionScore.groupBy({
+		by: ['user_id'],
+		_sum: {
+			amount: true,
+		},
+		where: {
+			coalition_id: coalitionId,
+			created_at: {
+				gte: bloc.begin_at,
+				lte: untilDate,
+			},
+		},
+		orderBy: {
+			_sum: {
+				amount: 'desc',
+			},
+		},
+		take: topAmount,
+	})) : []);
+	return usersScores;
 };
 
 export const getUserScores = async function(prisma: PrismaClient, userId: number, untilDate: Date = new Date()): Promise<{ userScores: { fixed_type_id: string | null, _sum: { amount: number | null } }[], totalScore: number }> {
@@ -609,4 +633,94 @@ export const getUserRankingAcrossAllRankings = async function(prisma: PrismaClie
 		}
 	}
 	return userRankings.sort((a, b) => a.rank - b.rank);
+};
+
+export const getEndedSeasons = async function(prisma: PrismaClient): Promise<IntraBlocDeadline[]> {
+	const now = new Date();
+	const seasons = await prisma.intraBlocDeadline.findMany({
+		where: {
+			end_at: {
+				lt: now,
+			},
+		},
+		orderBy: {
+			end_at: 'desc',
+		},
+	});
+	return seasons;
+};
+
+export const getSeasonResults = async function(prisma: PrismaClient, blocDeadlineId: number, topAmount: number = RANKING_MAX) { // Implicit return type
+	const bloc = await prisma.intraBlocDeadline.findUnique({
+		where: {
+			id: blocDeadlineId,
+		},
+	});
+	if (!bloc) {
+		throw new Error(`Season with id ${blocDeadlineId} not found`);
+	}
+
+	const seasonResults = await prisma.codamCoalitionSeasonResult.findMany({
+		where: {
+			bloc_deadline_id: blocDeadlineId,
+		},
+		include: {
+			scores: {
+				take: topAmount,
+				orderBy: {
+					score: 'desc',
+				},
+				include: {
+					user: {
+						include: {
+							intra_user: true,
+						}
+					}
+				},
+			},
+			coalition: {
+				include: {
+					intra_coalition: true,
+				},
+			},
+		},
+		orderBy: {
+			score: 'desc',
+		},
+	});
+
+	const rankings = await prisma.codamCoalitionRanking.findMany({
+		where: {
+			results: {
+				some: {
+					bloc_deadline_id: blocDeadlineId,
+				},
+			},
+		},
+		include: {
+			results: {
+				take: topAmount,
+				where: {
+					bloc_deadline_id: blocDeadlineId,
+				},
+				orderBy: {
+					rank: 'asc',
+				},
+				include: {
+					user: {
+						include: {
+							intra_user: true,
+						},
+					},
+					coalition: {
+						include: {
+							intra_coalition: true,
+						},
+					},
+				},
+			},
+		},
+	});
+
+	return { seasonResults, rankings };
 };
