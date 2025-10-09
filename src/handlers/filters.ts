@@ -104,4 +104,12 @@ export const setupNunjucksFilters = function(app: Express): void {
 		// return `${season.begin_at.getFullYear()}-${season.begin_at.getMonth() + 1} > ${season.end_at.getFullYear()}-${season.end_at.getMonth() + 1}`;
 		return `${season.end_at.toLocaleString('en-US', { month: 'short' })} ${season.end_at.getFullYear()}`;
 	});
+
+	// Add filter to remove the first item from a list
+	nunjucksEnv.addFilter('skipFirst', (arr: any[] | undefined | null) => {
+		if (!arr || typeof arr !== 'object' || !Array.isArray(arr)) {
+			return [];
+		}
+		return arr.slice(1);
+	});
 };

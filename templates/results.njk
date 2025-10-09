@@ -113,6 +113,7 @@
 				<p class="p-4 pb-2">{{ ranking.description | striptags(true) | escape | nl2br }}</p>
 				<table class="table coalition-colored mb-0">
 					<tbody>
+						{# TODO: build a nice big highlight of the winner(s) #}
 						{% for result in ranking.results %}
 							<tr style="background: {{ result.coalition.intra_coalition.color | rgba(0.25) if result.coalition else 'transparent' }}; vertical-align: middle;">
 								<td class="fs-5 p-2" style="width: 25px;">{{ result.rank }}.</td>
