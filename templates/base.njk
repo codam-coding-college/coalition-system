@@ -33,7 +33,7 @@
 				<span class="navbar-toggler-icon"></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbarNavDropdown">
-				<ul class="navbar-nav">
+				<ul class="navbar-nav flex-grow-1">
 					<li class="nav-item">
 						<a class="nav-link" aria-current="page" href="/">Home</a>
 					</li>
@@ -65,6 +65,28 @@
 					</li>
 					{% endif %}
 				</ul>
+				<form class="d-flex" role="search" method="GET" action="/profile/" id="user-search-form">
+					<div class="input-group">
+						<span class="input-group-text" id="user-search">@</span>
+						<input class="form-control me-2" type="search" placeholder="Search user by login" aria-label="Username" id="user-search-input" aria-describedby="user-search" required />
+					</div>
+				</form>
+				<script>
+				function userSearchSetup() {
+					const form = document.getElementById('user-search-form');
+					const input = document.getElementById('user-search-input');
+					if (form && input) {
+						form.addEventListener('submit', (event) => {
+							if (!input.value) {
+								event.preventDefault();
+								return false;
+							}
+							form.action = '/profile/' + encodeURIComponent(input.value);
+						});
+					}
+				}
+				document.addEventListener('DOMContentLoaded', userSearchSetup);
+				</script>
 			</div>
 		</div>
 	</nav>
