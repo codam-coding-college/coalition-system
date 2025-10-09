@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getBlocAtDate, getUserRankingAcrossAllRankings, getUserTournamentRanking } from '../utils';
+import { getUserScores, getUserRankingAcrossAllRankings, getUserTournamentRanking } from '../utils';
 
 export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/profile/:login', async (req, res) => {
@@ -29,21 +29,7 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 		}
 
 		const now = new Date();
-		const currentBloc = await getBlocAtDate(prisma, now);
-		const totalScores = (currentBloc ? (await prisma.codamCoalitionScore.groupBy({
-			by: ['fixed_type_id'],
-			_sum: {
-				amount: true,
-			},
-			where: {
-				user_id: profileUser.id,
-				created_at: {
-					gte: currentBloc.begin_at,
-					lte: now,
-				},
-			},
-		})) : []);
-		const totalScore = totalScores.reduce((acc, score) => acc + (score._sum.amount ? score._sum.amount : 0), 0);
+		const { userScores, totalScore } = await getUserScores(prisma, profileUser.id, now);
 		const ranking = await getUserTournamentRanking(prisma, profileUser.id);
 
 		const latestScores = await prisma.codamCoalitionScore.findMany({
@@ -74,7 +60,7 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 		return res.render('profile.njk', {
 			profileUser,
 			latestScores,
-			totalScores,
+			userScores,
 			totalScore,
 			ranking,
 			userRankings,
