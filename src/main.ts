@@ -26,6 +26,7 @@ import { setupHomeRoutes } from './routes/home';
 import { setupWebhookRoutes } from './routes/hooks';
 import { setupProfileRoutes } from './routes/profile';
 import { setupChartRoutes } from './routes/charts';
+import { setupResultsRoutes } from './routes/results';
 
 export let api: Fast42 | null = null;
 
@@ -75,6 +76,7 @@ const main = async () => {
 	setupLoginRoutes(app);
 	setupHomeRoutes(app, prisma);
 	setupProfileRoutes(app, prisma);
+	setupResultsRoutes(app, prisma);
 	setupChartRoutes(app, prisma);
 	setupQuizRoutes(app, prisma);
 	setupAdminRoutes(app, prisma);
