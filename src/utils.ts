@@ -635,7 +635,7 @@ export const getUserRankingAcrossAllRankings = async function(prisma: PrismaClie
 	return userRankings.sort((a, b) => a.rank - b.rank);
 };
 
-export const getEndedSeasons = async function(prisma: PrismaClient): Promise<IntraBlocDeadline[]> {
+export const getEndedSeasons = async function(prisma: PrismaClient): Promise<(IntraBlocDeadline & { coalition: IntraCoalition | null })[]> {
 	const now = new Date();
 	const seasons = await prisma.intraBlocDeadline.findMany({
 		where: {
@@ -645,6 +645,9 @@ export const getEndedSeasons = async function(prisma: PrismaClient): Promise<Int
 		},
 		orderBy: {
 			end_at: 'desc',
+		},
+		include: {
+			coalition: true, // Winning coalition
 		},
 	});
 	return seasons;
