@@ -49,3 +49,51 @@ export const syncCoalition = async function(coalition: any): Promise<void> {
 		console.error(`Error syncing coalition ${coalition.name}: ${err}`);
 	}
 };
+
+export async function linkCoalitionToBloc(coalitionId: number, blocId: number): Promise<void> {
+	try {
+		const coalition = await prisma.intraCoalition.findUnique({
+			where: {
+				id: coalitionId,
+			},
+			include: {
+				blocs: true,
+			},
+		});
+		if (!coalition) {
+			throw new Error(`Coalition with id ${coalitionId} not found`);
+		}
+
+		const bloc = await prisma.intraBloc.findUnique({
+			where: {
+				id: blocId,
+			},
+		});
+		if (!bloc) {
+			throw new Error(`Bloc with id ${blocId} not found`);
+		}
+
+		// Check if the coalition is already linked to the bloc
+		const isLinked = coalition.blocs.some(b => b.id === blocId);
+		if (isLinked) {
+			// Already linked
+			return;
+		}
+
+		// Link the coalition to the bloc
+		console.log(`Linking coalition ${coalitionId} to bloc ${blocId}`);
+		await prisma.intraCoalition.update({
+			where: {
+				id: coalitionId,
+			},
+			data: {
+				blocs: {
+					connect: { id: blocId },
+				}
+			},
+		});
+	}
+	catch (error) {
+		console.error(`Error linking coalition ${coalitionId} to bloc ${blocId}: ${error}`);
+	}
+};

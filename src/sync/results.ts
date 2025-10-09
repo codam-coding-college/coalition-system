@@ -32,13 +32,14 @@ export const calculateResults = async function(): Promise<void> {
 
 	// Calculate results for each season that needs it
 	for (const season of seasonsToCalculate) {
-		console.log(`Calculating results for season ${season.coalition?.name} (ended at ${season.end_at.toISOString()})...`);
+		const seasonName = season.begin_at.toISOString().split('T')[0] + ' to ' + season.end_at.toISOString().split('T')[0];
+		console.log(`Calculating results for season ${seasonName}...`);
 		for (const coalition of season.bloc.coalitions) {
 			console.log(` - Calculating results for coalition ${coalition.name}...`);
 
 			// Entire coalition score
 			const score = await getScoresNormalDistribution(prisma, coalition.id, season.end_at);
-			console.log(`   - Total score for coalition ${coalition.name}: ${score}`);
+			console.log(`   - Final score for coalition ${coalition.name} in season ${seasonName}: ${score.mean}`);
 			const result = await prisma.codamCoalitionSeasonResult.create({
 				data: {
 					coalition_id: coalition.id,
@@ -48,7 +49,7 @@ export const calculateResults = async function(): Promise<void> {
 			});
 
 			// Individual user scores
-			const users = await prisma.intraCoalitionUser.findMany({
+			const coalitionUsers = await prisma.intraCoalitionUser.findMany({
 				where: {
 					coalition_id: coalition.id,
 				},
@@ -61,38 +62,37 @@ export const calculateResults = async function(): Promise<void> {
 					},
 				},
 			});
-			for (const user of users) {
-				const { userScores, totalScore } = await getUserScores(prisma, user.user_id, season.end_at);
-				if (totalScore === 0) {
-					continue;
-				}
-				console.log(`   - User ${user.user.login} scored ${totalScore} points in coalition ${coalition.name}`);
+			console.log(`   - Calculating individual results for ${coalitionUsers.length} users in coalition ${coalition.name}...`);
+			for (const coalitionUser of coalitionUsers) {
+				const { userScores, totalScore } = await getUserScores(prisma, coalitionUser.user_id, season.end_at);
+				console.log(`     - User ${coalitionUser.user.login} scored ${totalScore} points in coalition ${coalition.name}`);
 				const userResult = await prisma.codamCoalitionUserResult.create({
 					data: {
-						user_id: user.user_id,
+						user_id: coalitionUser.user_id,
 						coalition_id: coalition.id,
 						score: totalScore,
 						season_result_id: result.id,
 					}
 				});
 			}
+		}
 
-			// Tournament rankings
-			const rankings = await prisma.codamCoalitionRanking.findMany({});
-			for (const ranking of rankings) {
-				const rankings = await getRanking(prisma, ranking.type, season.end_at, RANKING_MAX);
-				for (const userRanking of rankings) {
-					console.log(`   - User ${userRanking.user.login} ranked #${userRanking.rank} with ${userRanking.score} points in ranking ${ranking.type}`);
-					const dbRanking = await prisma.codamCoalitionRankingResult.create({
-						data: {
-							ranking_type: ranking.type,
-							season_result_id: result.id,
-							user_id: userRanking.user.id,
-							rank: userRanking.rank,
-							score: userRanking.score,
-						}
-					});
-				}
+		// Tournament rankings
+		const rankings = await prisma.codamCoalitionRanking.findMany({});
+		console.log(` - Calculating tournament rankings for season ${seasonName}...`);
+		for (const ranking of rankings) {
+			const rankings = await getRanking(prisma, ranking.type, season.end_at, RANKING_MAX);
+			for (const userRanking of rankings) {
+				console.log(`   - User ${userRanking.user.login} ranked #${userRanking.rank} with ${userRanking.score} points in ranking ${ranking.type}`);
+				const dbRanking = await prisma.codamCoalitionRankingResult.create({
+					data: {
+						ranking_type: ranking.type,
+						bloc_deadline_id: season.id,
+						user_id: userRanking.user.id,
+						rank: userRanking.rank,
+						score: userRanking.score,
+					}
+				});
 			}
 		}
 	}
