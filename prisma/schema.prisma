@@ -17,6 +17,7 @@ model CodamUser {
 	// Relations
 	coalition_scores CodamCoalitionScore[]
 	user_results     CodamCoalitionUserResult[]
+	user_rankings    CodamCoalitionRankingResult[]
 
 	// Link to Intra
 	intra_user       IntraUser   @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -100,7 +101,6 @@ model CodamCoalitionSeasonResult {
 	// Relations
 	coalition        CodamCoalition    @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 	scores           CodamCoalitionUserResult[]
-	rankings         CodamCoalitionRankingResult[]
 
 	// Link to Intra
 	bloc_deadline    IntraBlocDeadline @relation(fields: [bloc_deadline_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -131,17 +131,20 @@ model CodamCoalitionUserResult {
 model CodamCoalitionRankingResult {
 	id               Int      @id @default(autoincrement())
 	ranking_type     String
-	season_result_id Int
+	bloc_deadline_id Int   // The bloc deadline (season) this ranking was for
 	user_id          Int
 	score            Int
-	rank             Int
+	rank             Int   // No. in the ranking (1 = first, 2 = second, etc.)
 
 	// Relations
+	user             CodamUser        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 	ranking          CodamCoalitionRanking @relation(fields: [ranking_type], references: [type], onDelete: Cascade, onUpdate: Cascade)
-	season_result    CodamCoalitionSeasonResult @relation(fields: [season_result_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-	// Make season_result_id + ranking_type + user_id unique together
-	@@unique([season_result_id, ranking_type, user_id])
+	// Link to Intra
+	bloc_deadline    IntraBlocDeadline @relation(fields: [bloc_deadline_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+	// Make bloc_deadline_id + ranking_type + user_id unique together
+	@@unique([bloc_deadline_id, ranking_type, user_id])
 }
 
 // Sorting hat quiz settings
@@ -237,6 +240,7 @@ model IntraBlocDeadline {
 
 	// Codam
 	codam_season_result CodamCoalitionSeasonResult[]
+	codam_ranking_results CodamCoalitionRankingResult[]
 }
 
 // Intra Coalition

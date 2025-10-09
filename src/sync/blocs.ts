@@ -1,6 +1,6 @@
 import Fast42 from '@codam/fast42';
 import { prisma, syncData } from './base';
-import { syncCoalition } from './coalitions';
+import { linkCoalitionToBloc, syncCoalition } from './coalitions';
 import { CAMPUS_ID, CURSUS_ID } from '../env';
 import { IntraBlocDeadline, Prisma } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
@@ -30,6 +30,7 @@ export const syncBloc = async function(bloc: any): Promise<void> {
 		// Sync the bloc's coalitions
 		for (const coalition of bloc.coalitions) {
 			await syncCoalition(coalition);
+			await linkCoalitionToBloc(coalition.id, bloc.id);
 		}
 	}
 	catch (err) {
