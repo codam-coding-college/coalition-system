@@ -497,7 +497,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 		const type = req.params.type;
 		const pointAmount = parseInt(req.body.point_amount);
 
-		if (isNaN(pointAmount) || pointAmount < 0) { // 0 is allowed, means disabled
+		if (isNaN(pointAmount)) { // 0 is allowed, means disabled
 			return res.status(400).send('Invalid point amount');
 		}
 
