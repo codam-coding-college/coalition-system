@@ -18,6 +18,15 @@ export const setupNunjucksFilters = function(app: Express): void {
 		return num.toString().replace(/\./, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 	});
 
+	// Add formatting for numbers to be colored red
+	nunjucksEnv.addFilter('colorNegative', (num: number | string) => {
+		const number = typeof num === 'string' ? parseFloat(num.replace(/\./g, '').replace(',', '.')) : num;
+		if (number < 0) {
+			return `<span style="color: orangered; font-weight: bold;">${num}</span>`;
+		}
+		return num;
+	});
+
 	// Add formatting filter for seconds to hh:mm format
 	nunjucksEnv.addFilter('formatSeconds', (seconds: number) => {
 		const hours = Math.floor(seconds / 3600);
