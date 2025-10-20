@@ -299,7 +299,6 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 								display: true,
 								text: 'Amount of points',
 							},
-							min: 0,
 						},
 					},
 					plugins: {
@@ -427,7 +426,6 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 								display: true,
 								text: 'Amount of points',
 							},
-							min: 0,
 						},
 					},
 					plugins: {
