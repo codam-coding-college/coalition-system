@@ -76,7 +76,7 @@
 							{% for score in latestScores %}
 								<tr style="background: {{ score.coalition.intra_coalition.color | rgba(0.25) }}">
 									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
-									<td>{{ score.amount | thousands | colorNegative }}</td>
+									<td>{{ score.amount | thousands }}</td>
 									<td style="white-space: normal; word-wrap: break-word;">{{ score.reason | striptags(true) | escape }}</td>
 								</tr>
 							{% endfor %}

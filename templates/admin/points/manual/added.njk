@@ -42,7 +42,7 @@
 			<tr class="points-added-row" style="background: {{ score.coalition.intra_coalition.color | rgba(0.25) }}">
 				<td><a href="/profile/{{ score.user.intra_user.login }}">{{ score.user.intra_user.login }}</a></td>
 				<td>{{ score.coalition.intra_coalition.name | striptags(true) | escape }}</td>
-				<td>{{ score.amount | thousands | colorNegative }}</td>
+				<td>{{ score.amount | thousands }}</td>
 				<td>{{ score.reason | striptags(true) | escape }}</td>
 			</tr>
 		{% endfor %}

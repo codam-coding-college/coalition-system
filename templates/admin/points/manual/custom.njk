@@ -139,7 +139,7 @@ else {
 					<td>{{ score.created_at | timeAgo }}</td>
 					<td><a href="/profile/{{ score.user.intra_user.login }}/">{{ score.user.intra_user.login }}</a></td>
 					<td>{{ score.coalition.intra_coalition.name | striptags(true) | escape }}</td>
-					<td>{{ score.amount | thousands | colorNegative }}</td>
+					<td>{{ score.amount | thousands }}</td>
 					<td>{{ score.reason | striptags(true) | escape }}</td>
 				</tr>
 			{% endfor %}

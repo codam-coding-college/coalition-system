@@ -28,7 +28,7 @@
 				<td><a href="/admin/points/history/{{ score.id }}" target="scorejson">{{ score.id }}</a></td>
 				<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
 				<td>{{ coalitions[score.coalition_id].intra_coalition.name | striptags(true) | escape }}</td>
-				<td>{{ score.amount | thousands | colorNegative }}</td>
+				<td>{{ score.amount }}</td>
 				<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
 				<td style="white-space: normal; word-wrap: break-word;">{{ score.reason | striptags(true) | escape }}</td>
 				<td>{{ score.fixed_type_id if score.fixed_type_id else "" }}</td>
