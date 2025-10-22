@@ -46,19 +46,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 		const sortedCoalitionScores = Object.entries(coalitionScores).sort((a, b) => b[1].score - a[1].score);
 
 		// Get current bloc deadline
-		const currentBlocDeadline = await prisma.intraBlocDeadline.findFirst({
-			orderBy: {
-				end_at: 'desc',
-			},
-			where: {
-				begin_at: {
-					gte: now,
-				},
-				end_at: {
-					lt: now,
-				},
-			},
-		});
+		const currentBlocDeadline = await getBlocAtDate(prisma);
 		const nextBlocDeadline = await prisma.intraBlocDeadline.findFirst({
 			orderBy: {
 				begin_at: 'asc',
