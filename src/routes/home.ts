@@ -10,6 +10,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 		keepSessionInfo: true,
 	}), async (req, res) => {
 		const user = req.user as ExpressIntraUser;
+		const now = new Date();
 
 		// Get all coalitions
 		const coalitions = await prisma.codamCoalition.findMany({
@@ -50,9 +51,11 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 				end_at: 'desc',
 			},
 			where: {
+				begin_at: {
+					gte: now,
+				},
 				end_at: {
-					lt: new Date(),
-					gte: new Date(),
+					lt: now,
 				},
 			},
 		});
@@ -62,7 +65,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			},
 			where: {
 				begin_at: {
-					gt: new Date(),
+					gt: now,
 				},
 			},
 		});
@@ -108,9 +111,6 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 
 		// Check if quiz is currently available
 		const quiz_available = await isQuizAvailable(user, prisma);
-
-		// Current datetime
-		const now = new Date();
 
 		return res.render('home.njk', {
 			coalitions,

@@ -4,15 +4,19 @@ import { CoalitionScore, getCoalitionScore, getScoresPerType } from '../../utils
 
 export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin', async (req, res) => {
+		const now = new Date();
+
 		// Get current bloc deadline
 		const currentBlocDeadline = await prisma.intraBlocDeadline.findFirst({
 			orderBy: {
 				end_at: 'desc',
 			},
 			where: {
+				begin_at: {
+					gte: now,
+				},
 				end_at: {
-					lt: new Date(),
-					gte: new Date(),
+					lt: now,
 				},
 			},
 		});
