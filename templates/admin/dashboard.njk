@@ -22,8 +22,12 @@
 					<h5 class="card-title mb-0">Season deadlines</h5>
 				</div>
 				<div class="card-body">
-					<p>Start: <span id="season-start" data-date="{{ currentBlocDeadline.begin_at | timestamp }}">{{ currentBlocDeadline.begin_at | timeAgo }}</span></p>
-					<p>End: <span id="season-end" data-date="{{ currentBlocDeadline.end_at | timestamp }}">{{ currentBlocDeadline.end_at | timeFromNow }}</span></p>
+					{% if currentBlocDeadline %}
+						<p>Start: <span id="season-start" data-date="{{ currentBlocDeadline.begin_at | timestamp }}">{{ currentBlocDeadline.begin_at | timeAgo }}</span></p>
+						<p>End: <span id="season-end" data-date="{{ currentBlocDeadline.end_at | timestamp }}">{{ currentBlocDeadline.end_at | timeFromNow }}</span></p>
+					{% else %}
+						<p>No season currently ongoing.</p>
+					{% endif %}
 				</div>
 			</div>
 		</div>

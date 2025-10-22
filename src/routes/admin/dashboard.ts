@@ -9,6 +9,12 @@ export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaCl
 			orderBy: {
 				end_at: 'desc',
 			},
+			where: {
+				end_at: {
+					lt: new Date(),
+					gte: new Date(),
+				},
+			},
 		});
 
 		// Get previous bloc deadlines

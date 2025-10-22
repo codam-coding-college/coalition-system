@@ -49,6 +49,22 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			orderBy: {
 				end_at: 'desc',
 			},
+			where: {
+				end_at: {
+					lt: new Date(),
+					gte: new Date(),
+				},
+			},
+		});
+		const nextBlocDeadline = await prisma.intraBlocDeadline.findFirst({
+			orderBy: {
+				begin_at: 'asc',
+			},
+			where: {
+				begin_at: {
+					gt: new Date(),
+				},
+			},
 		});
 
 		// Get the coalition of the current user
@@ -102,6 +118,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			my_coalition,
 			now,
 			currentBlocDeadline,
+			nextBlocDeadline,
 			quiz_available,
 			sortedCoalitionScores,
 			rankingTypes,
