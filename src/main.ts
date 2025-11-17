@@ -5,6 +5,9 @@ dotenv.config({ path: '.env', debug: true });
 // Imports for the server
 import express from 'express';
 
+// Imports of security middleware
+import helmet from "helmet";
+
 // Imports for the database connection
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
@@ -47,6 +50,9 @@ const main = async () => {
 
 	// Set up the Express app
 	const app = express();
+
+	// Adding helmet
+	app.use(helmet());
 
 	// Configure passport for OAuth2 authentication with Intra
 	setupPassport(prisma);
