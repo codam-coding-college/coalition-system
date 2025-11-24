@@ -5,6 +5,9 @@ dotenv.config({ path: '.env', debug: true });
 // Imports for the server
 import express from 'express';
 
+// Imports of security middleware
+import helmet from "helmet";
+
 // Imports for the database connection
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
@@ -47,6 +50,23 @@ const main = async () => {
 
 	// Set up the Express app
 	const app = express();
+
+	// Adding helmet
+	app.use(helmet.contentSecurityPolicy({
+		directives: {
+			"defaultSrc": ["'self'"],
+			"scriptSrc": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://cdnjs.cloudflare.com/"],
+			"styleSrc": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/"],
+			"imgSrc": ["'self'", "data:", "https://cdn.intra.42.fr/"],
+			"connectSrc": ["'self'", "https://cdn.jsdelivr.net/", "https://cdnjs.cloudflare.com/"], // For fetch, XMLHttpRequest, WebSocket, EventSource
+			"fontSrc": ["'self'", "data:"],
+			"objectSrc": ["'none'"],
+			"frameAncestors": ["'none'"],
+			"baseUri": ["'self'"],
+			"formAction": ["'self'"],
+			"upgradeInsecureRequests": [],
+		}
+	}));
 
 	// Configure passport for OAuth2 authentication with Intra
 	setupPassport(prisma);
