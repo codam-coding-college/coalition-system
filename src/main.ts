@@ -52,7 +52,21 @@ const main = async () => {
 	const app = express();
 
 	// Adding helmet
-	app.use(helmet());
+	app.use(helmet.contentSecurityPolicy({
+		directives: {
+			"defaultSrc": ["'self'"],
+			"scriptSrc": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://cdnjs.cloudflare.com/"],
+			"styleSrc": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/"],
+			"imgSrc": ["'self'", "data:", "https://cdn.intra.42.fr/"],
+			"connectSrc": ["'self'", "https://cdn.jsdelivr.net/", "https://cdnjs.cloudflare.com/"], // For fetch, XMLHttpRequest, WebSocket, EventSource
+			"fontSrc": ["'self'", "data:"],
+			"objectSrc": ["'none'"],
+			"frameAncestors": ["'none'"],
+			"baseUri": ["'self'"],
+			"formAction": ["'self'"],
+			"upgradeInsecureRequests": [],
+		}
+	}));
 
 	// Configure passport for OAuth2 authentication with Intra
 	setupPassport(prisma);
