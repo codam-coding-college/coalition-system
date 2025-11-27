@@ -196,7 +196,7 @@ export const syncDataCB = async function(api: Fast42, syncDate: Date, lastSyncDa
 	await fetchMultiple42ApiPagesCallback(api, path, params, callback);
 }
 
-const getLastSyncTimestamp = async function(): Promise<Date> {
+export const getLastSyncTimestamp = async function(): Promise<Date> {
 	return new Promise((resolve, reject) => {
 		fs.readFile('.sync-timestamp', 'utf8', (err, data) => {
 			if (err) {

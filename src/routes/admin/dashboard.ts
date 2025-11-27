@@ -1,6 +1,7 @@
 import { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { CoalitionScore, getBlocAtDate, getCoalitionScore, getScoresPerType } from '../../utils';
+import { getLastSyncTimestamp } from '../../sync/base';
 
 export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin', async (req, res) => {
@@ -46,12 +47,16 @@ export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaCl
 			coalitionScoresPerFixedType[coalition.id] = await getScoresPerType(prisma, coalition.id);
 		}
 
+		// Get last synchronization timestamps
+		const lastSyncTimestamp = await getLastSyncTimestamp();
+
 		return res.render('admin/dashboard.njk', {
 			currentBlocDeadline,
 			blocDeadlines,
 			coalitions,
 			coalitionScores,
 			coalitionScoresPerFixedType,
+			lastSyncTimestamp,
 		});
 	});
 };

@@ -118,6 +118,18 @@
 				</div>
 			</div>
 		</div>
+
+		<div class="col-md-6">
+			<div class="card h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">Last synchronization</h5>
+				</div>
+				<div class="card-body">
+					<p>The last synchronization with the 42 API was <u id="last-sync-timestamp" style="cursor: help;" title="{{ lastSyncTimestamp | datetimeISO }}" data-date="{{ lastSyncTimestamp | timestamp }}">{{ lastSyncTimestamp | timeAgo }}</u></p>
+					<p>Webhooks keep the system up to date otherwise.</p>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 {% endblock %}

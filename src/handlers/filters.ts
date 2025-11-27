@@ -51,6 +51,14 @@ export const setupNunjucksFilters = function(app: Express): void {
 		return date.toISOString().split('T')[0];
 	});
 
+	// Add formatting filter to format a date as an ISO string
+	nunjucksEnv.addFilter('datetimeISO', (date: Date | null) => {
+		if (!date) {
+			return '';
+		}
+		return date.toISOString();
+	});
+
 	// Add formatting to get a percentage based on two numbers
 	nunjucksEnv.addFilter('perc', (num: number, total: number) => {
 		return +((num / total) * 100).toFixed(2); // + in front changes to string to a number again
