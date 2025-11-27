@@ -1,7 +1,40 @@
 import { CodamCoalition, PrismaClient } from '@prisma/client';
 import { Express } from 'express';
-import { createCanvas, loadImage, registerFont } from 'canvas';
+import { CanvasRenderingContext2D, createCanvas, loadImage, registerFont } from 'canvas';
 import { CoalitionScore, getBlocAtDate, getCoalitionScore, getRanking, SingleRanking } from '../utils';
+
+const drawUserProfilePicture = async (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, imageUrl: string | null) => {
+	try {
+		if (!imageUrl) {
+			throw new Error('No image URL provided');
+		}
+		const image = await loadImage(imageUrl);
+		// Draw circle clip
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2, true);
+		ctx.closePath();
+		ctx.clip();
+		// Draw the image, make sure to cover the entire circle but remain the aspect ratio and centered. Like CSS background-size: cover.
+		// ctx.drawImage(image, x, y, size, size);
+		const scale = Math.max(size / image.width, size / image.height);
+		const imageWidth = image.width * scale;
+		const imageHeight = image.height * scale;
+		const imageX = x + (size - imageWidth) / 2;
+		const imageY = y + (size - imageHeight) / 2;
+		ctx.drawImage(image, imageX, imageY, imageWidth, imageHeight);
+		ctx.restore();
+	}
+	catch (error) {
+		console.error('Failed to load user profile picture:', error);
+		// Draw a placeholder circle
+		ctx.fillStyle = '#CCCCCC';
+		ctx.beginPath();
+		ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2, true);
+		ctx.closePath();
+		ctx.fill();
+	}
+}
 
 export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/board', async (req, res) => {
@@ -147,7 +180,7 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		ctx.fillText('Coalition Leaderboard', leaderboardX + padding, leaderboardY + padding + Math.floor(leaderboardHeight * 0.06));
 
 		// Define the height of each coalition entry
-		const entryHeight = (leaderboardHeight - padding * 3 - Math.floor(leaderboardHeight * 0.075)) / coalitions.length;
+		const entryHeight = (leaderboardHeight - padding * 2.6 - Math.floor(leaderboardHeight * 0.075)) / coalitions.length;
 
 		// Draw each coalition entry
 		let currentY = leaderboardY + padding * 2 + Math.floor(leaderboardHeight * 0.075);
@@ -161,13 +194,16 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 
 			// Draw position
 			const textY = currentY + entryHeight * 0.5 + Math.floor(entryHeight * 0.1);
+			ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+			ctx.font = `bold ${Math.floor(entryHeight)}px "Bebas Neue"`;
+			ctx.fillText(`${rank}`, leaderboardX + padding + Math.floor(entryHeight * 0.05), textY + padding + Math.floor(entryHeight * 0.08));
+
+			// Draw coalition name + points
 			ctx.fillStyle = '#FFFFFF';
-			ctx.font = `bold ${Math.floor(entryHeight * 0.4)}px "Bebas Neue"`;
-			ctx.fillText(`${rank}.`, leaderboardX + padding * 2, textY);
 			ctx.font = `bold ${Math.floor(entryHeight * 0.35)}px "Museo Sans"`;
 			ctx.fillText(`${coalition.intra_coalition.name}`, leaderboardX + padding * 5, textY);
 			ctx.font = `bold ${Math.floor(entryHeight * 0.2)}px "Museo Sans"`;
-			ctx.fillText(`${score.score} pts`, leaderboardX + leaderboardWidth - padding * 2 - ctx.measureText(`${score.score} pts`).width, textY);
+			ctx.fillText(`${score.score} pts.`, leaderboardX + leaderboardWidth - padding * 2 - ctx.measureText(`${score.score} pts`).width, textY);
 
 			// Draw coalition logo
 			// TODO: make this work! The logos are SVG, which is not supported properly by canvas loadImage
@@ -192,26 +228,47 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		ctx.fillText('Rankings', rankingsX + padding, rankingsY + padding + Math.floor(rankingsHeight * 0.06));
 
 		// Define the height of each ranking entry
-		const rankingEntryHeight = (rankingsHeight - padding * 3 - Math.floor(rankingsHeight * 0.075)) / rankingTypes.length;
+		const rankingEntryHeight = (rankingsHeight - padding * 2.6 - Math.floor(rankingsHeight * 0.075)) / rankingTypes.length;
+		const rankingEntryInnerHeight = rankingEntryHeight - padding / 2;
 
 		// Draw each ranking entry
 		let currentRankingY = rankingsY + padding * 2 + Math.floor(rankingsHeight * 0.075);
 		for (const rankingType of rankingTypes) {
+			const rankingPadding = padding * 0.5;
 			const topRanking = rankings[rankingType.type][0];
+			const profilePicSize = rankingEntryInnerHeight - rankingPadding * 2;
+
 			// Draw ranking entry background based on the top user's coalition color
 			ctx.fillStyle = (topRanking && topRanking.coalition && topRanking.coalition.color ? topRanking.coalition.color : '#AAAAAA');
-			ctx.fillRect(rankingsX + padding, currentRankingY, rankingsWidth - padding * 2, rankingEntryHeight - padding / 2);
+			ctx.fillRect(rankingsX + padding, currentRankingY, rankingsWidth - padding * 2, rankingEntryInnerHeight);
+			ctx.fillStyle = 'rgba(0, 0, 0, 0.33)'; // Add some shade
+			ctx.fillRect(rankingsX + padding, currentRankingY, 5, rankingEntryInnerHeight);
+
+			// Calculate where the text should start for the entry
+			const rankingEntryTextX = rankingsX + profilePicSize + rankingPadding * 4;
+			// const rankingEntryTextY = currentRankingY + rankingPadding * 3;
+			const rankingEntryTextY = currentRankingY + rankingEntryInnerHeight * 0.5;
 
 			// Draw ranking entry title
 			ctx.fillStyle = '#FFFFFF';
-			ctx.font = `bold ${Math.floor(rankingEntryHeight * 0.25)}px "Bebas Neue"`;
-			ctx.fillText(`${rankingType.name}`, rankingsX + padding * 2, currentRankingY + padding * 0.75 + ctx.measureText(`${rankingType.name}`).actualBoundingBoxAscent);
+			ctx.textBaseline = 'bottom';
+			ctx.font = `bold ${Math.floor(rankingEntryInnerHeight * 0.25)}px "Bebas Neue"`;
+			ctx.fillText(`${rankingType.name}`, rankingEntryTextX, rankingEntryTextY);
 
-			// Draw ranking entry text
-			ctx.font = `bold ${Math.floor(rankingEntryHeight * 0.2)}px "Museo Sans"`;
-			const rankingEntryText = (topRanking ? `${topRanking.rank}st: ${topRanking.user.login} - ${topRanking.score} pts` : 'No data available');
-			ctx.fillText(rankingEntryText, rankingsX + padding * 2, currentRankingY + padding + ctx.measureText(`${rankingType.name}`).actualBoundingBoxAscent + padding);
+			// Draw ranking entry text: rank, user login and score
+			ctx.font = `bold ${Math.floor(rankingEntryInnerHeight * 0.2)}px "Museo Sans"`;
+			ctx.textBaseline = 'top';
+			if (topRanking) {
+				// Draw user profile picture in the vertical center of the ranking entry
+				await drawUserProfilePicture(ctx, rankingsX + padding + rankingPadding, currentRankingY + rankingPadding + (rankingEntryInnerHeight - padding) / 2 - profilePicSize / 2, profilePicSize, topRanking.user.image || '');
 
+				// Draw login and score next to profile picture
+				ctx.fillText(`${topRanking.rank}. ${topRanking.user.login} - ${topRanking.score} pts.`, rankingEntryTextX, rankingEntryTextY);
+			} else {
+				ctx.fillText('No data available', rankingEntryTextX, rankingEntryTextY);
+			}
+
+			ctx.textBaseline = 'alphabetic'; // Reset baseline
 			currentRankingY += rankingEntryHeight;
 		}
 
