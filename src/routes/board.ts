@@ -264,10 +264,10 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 			ctx.fillStyle = '#FFFFFF';
 			ctx.font = `bold ${Math.floor(entryHeight * 0.28)}px "Museo Sans"`;
 			ctx.textBaseline = 'alphabetic';
-			ctx.fillText(`${coalition.intra_coalition.name} `, textX, textY - entryHeight * 0.1);
+			ctx.fillText(`${coalition.intra_coalition.name} `, textX, textY - entryHeight * 0.15);
 			const nameWidth = ctx.measureText(`${coalition.intra_coalition.name} `).width;
 			ctx.font = `bold ${Math.floor(entryHeight * 0.18)}px "Museo Sans"`;
-			ctx.fillText(`${score.score} pts.`, textX + nameWidth, textY - entryHeight * 0.1);
+			ctx.fillText(`${score.score} pts.`, textX + nameWidth, textY - entryHeight * 0.15);
 
 			// Draw coalition logo
 			// TODO: make this work! The logos are SVG, which is not supported properly by canvas loadImage
@@ -276,7 +276,7 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 			if (topContributors[coalition.id].length > 0) {
 				const topContributor = topContributors[coalition.id][0];
 				const profilePicX = textX;
-				const profilePicY = textY;
+				const profilePicY = textY - entryHeight * 0.05;
 				const profilePicSize = entryHeight * 0.33;
 
 				// Draw profile picture
