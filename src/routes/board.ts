@@ -155,6 +155,8 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		// Recurring variables for drawing
 		const padding = canvas.width * 0.02;
 		const overlayInnerWidth = canvas.width * 0.05;
+		const bottomBarHeight = padding * 1.5;
+		const bigboxHeight = canvas.height - padding * 3 - bottomBarHeight;
 
 		// Fill background with a gradient based on the top coalition color, or with the background image of the coalition if it exists
 		const topCoalitionId = parseInt(sortedCoalitionScores[0][0], 10);
@@ -221,26 +223,58 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		ctx.fillText('SCAN FOR MORE', qrCodeSize / 2, canvas.height - qrCodeSize - padding * 0.1);
 		ctx.textAlign = 'start'; // Reset alignment
 
+		// Bottom bar: a progress bar indicating time left until the end of the current bloc
+		const bottombarX = overlayInnerWidth + padding * 3;
+		const bottombarY = canvas.height - bottomBarHeight - padding;
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+		ctx.fillRect(bottombarX, bottombarY, canvas.width - bottombarX - padding, bottomBarHeight);
+
+		ctx.fillStyle = '#FFFFFF';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		const bottombarTextY = bottombarY + bottomBarHeight / 2;
+		if (currentBlocDeadline) {
+			// Draw progress bar
+			const totalTime = currentBlocDeadline.end_at.getTime() - currentBlocDeadline.begin_at.getTime();
+			const timePassed = now.getTime() - currentBlocDeadline.begin_at.getTime();
+			const progress = Math.min(Math.max(timePassed / totalTime, 0), 1);
+			const barHeight = padding * 1.5;
+			ctx.fillStyle = topCoalition.intra_coalition.color || '#DDDDDD';
+			ctx.fillRect(bottombarX, bottombarY, (canvas.width - bottombarX - padding) * progress, barHeight);
+
+			// Draw text indicating time left until the end of the current bloc
+			const timeLeft = currentBlocDeadline.end_at.getTime() - now.getTime();
+			const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+			const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+			ctx.fillStyle = '#FFFFFF';
+			ctx.fillText(`The current season ends in ${daysLeft} days & ${hoursLeft} hours`, bottombarX + (canvas.width - bottombarX - padding) / 2, bottombarTextY);
+			ctx.textAlign = 'start'; // Reset alignment
+		}
+		else {
+			ctx.fillText('No season currently ongoing', bottombarX + (canvas.width - bottombarX - padding) / 2, bottombarTextY);
+		}
+		ctx.textBaseline = 'alphabetic'; // Reset baseline
+		ctx.textAlign = 'start'; // Reset alignment
+
 		// Left side of the remaining space: coalition leaderboard
 		const leaderboardX = overlayInnerWidth + padding * 3;
 		const leaderboardY = padding;
 		const leaderboardWidth = (canvas.width - leaderboardX - padding) * 0.5;
-		const leaderboardHeight = canvas.height - padding * 2;
 
 		// Draw coalition leaderboard box
-		ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-		ctx.fillRect(leaderboardX, leaderboardY, leaderboardWidth, leaderboardHeight);
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+		ctx.fillRect(leaderboardX, leaderboardY, leaderboardWidth, bigboxHeight);
 
 		// Draw coalition leaderboard title
-		ctx.fillStyle = '#000000';
-		ctx.font = `bold ${Math.floor(leaderboardHeight * 0.075)}px "Bebas Neue"`;
-		ctx.fillText('Coalition Leaderboard', leaderboardX + padding, leaderboardY + padding + Math.floor(leaderboardHeight * 0.06));
+		ctx.fillStyle = '#FFFFFF';
+		ctx.font = `bold ${Math.floor(bigboxHeight * 0.075)}px "Bebas Neue"`;
+		ctx.fillText('Coalition Leaderboard', leaderboardX + padding, leaderboardY + padding + Math.floor(bigboxHeight * 0.06));
 
 		// Define the height of each coalition entry
-		const entryHeight = (leaderboardHeight - padding * 2.6 - Math.floor(leaderboardHeight * 0.075)) / coalitions.length;
+		const entryHeight = (bigboxHeight - padding * 2.6 - Math.floor(bigboxHeight * 0.075)) / coalitions.length;
 
 		// Draw each coalition entry
-		let currentY = leaderboardY + padding * 2 + Math.floor(leaderboardHeight * 0.075);
+		let currentY = leaderboardY + padding * 2 + Math.floor(bigboxHeight * 0.075);
 		let rank = 1;
 		for (const [coalitionId, score] of sortedCoalitionScores) {
 			const coalition = coalitionsObject[parseInt(coalitionId, 10)];
@@ -302,23 +336,22 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		const rankingsX = leaderboardX + leaderboardWidth + padding;
 		const rankingsY = padding;
 		const rankingsWidth = canvas.width - rankingsX - padding;
-		const rankingsHeight = canvas.height - padding * 2;
 
 		// Draw rankings box
-		ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-		ctx.fillRect(rankingsX, rankingsY, rankingsWidth, rankingsHeight);
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+		ctx.fillRect(rankingsX, rankingsY, rankingsWidth, bigboxHeight);
 
 		// Draw rankings title
-		ctx.fillStyle = '#000000';
-		ctx.font = `bold ${Math.floor(rankingsHeight * 0.075)}px "Bebas Neue"`;
-		ctx.fillText('Individual Rankings', rankingsX + padding, rankingsY + padding + Math.floor(rankingsHeight * 0.06));
+		ctx.fillStyle = '#FFFFFF';
+		ctx.font = `bold ${Math.floor(bigboxHeight * 0.075)}px "Bebas Neue"`;
+		ctx.fillText('Individual Rankings', rankingsX + padding, rankingsY + padding + Math.floor(bigboxHeight * 0.06));
 
 		// Define the height of each ranking entry
-		const rankingEntryHeight = (rankingsHeight - padding * 2.6 - Math.floor(rankingsHeight * 0.075)) / rankingTypes.length;
+		const rankingEntryHeight = (bigboxHeight - padding * 2.6 - Math.floor(bigboxHeight * 0.075)) / rankingTypes.length;
 		const rankingEntryInnerHeight = rankingEntryHeight - padding / 2;
 
 		// Draw each ranking entry
-		let currentRankingY = rankingsY + padding * 2 + Math.floor(rankingsHeight * 0.075);
+		let currentRankingY = rankingsY + padding * 2 + Math.floor(bigboxHeight * 0.075);
 		for (const rankingType of rankingTypes) {
 			const rankingPadding = padding * 0.5;
 			const topRanking = rankings[rankingType.type][0];
