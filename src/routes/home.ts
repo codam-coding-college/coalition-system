@@ -3,7 +3,7 @@ import passport from 'passport';
 import { CodamCoalition, PrismaClient } from '@prisma/client';
 import { isQuizAvailable } from './quiz';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, scoreSumsToRanking } from '../utils';
+import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors } from '../utils';
 
 export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/', passport.authenticate('session', {
@@ -141,27 +141,8 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			return res.redirect('/');
 		}
 
-		// Get the top contributors of this season
-		const topScores = await prisma.codamCoalitionScore.groupBy({
-			by: ['user_id'],
-			_sum: {
-				amount: true,
-			},
-			orderBy: {
-				_sum: {
-					amount: 'desc',
-				},
-			},
-			where: {
-				coalition_id: coalition.id,
-				created_at: {
-					gte: bloc.begin_at,
-					lte: bloc.end_at,
-				},
-			},
-			take: 10,
-		});
-		const topContributors = await scoreSumsToRanking(prisma, topScores, 'Top contributors of this season');
+		// Get the top contributors of this seasona
+		const topContributors = await getCoalitionTopContributors(prisma, coalition.id, 'Top contributors of this season');
 
 		// Get the top contributors of the past 7 days
 		const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);

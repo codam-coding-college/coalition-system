@@ -1,7 +1,7 @@
 import { CodamCoalition, PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { CanvasRenderingContext2D, createCanvas, loadImage, registerFont } from 'canvas';
-import { CoalitionScore, getBlocAtDate, getCoalitionScore, getRanking, SingleRanking } from '../utils';
+import { CoalitionScore, getBlocAtDate, getCoalitionScore, getCoalitionTopContributors, getRanking, SingleRanking } from '../utils';
 
 const drawUserProfilePicture = async (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, imageUrl: string | null) => {
 	try {
@@ -41,6 +41,19 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		const now = new Date();
 
 		// DATA FETCH START
+		// Get current bloc deadline
+		const currentBlocDeadline = await getBlocAtDate(prisma, now);
+		const nextBlocDeadline = await prisma.intraBlocDeadline.findFirst({
+			orderBy: {
+				begin_at: 'asc',
+			},
+			where: {
+				begin_at: {
+					gt: now,
+				},
+			},
+		});
+
 		// Get all coalitions
 		const coalitions = await prisma.codamCoalition.findMany({
 			select: {
@@ -74,6 +87,12 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		// Sort the coalitions by score
 		const sortedCoalitionScores = Object.entries(coalitionScores).sort((a, b) => b[1].score - a[1].score);
 
+		// Get the top scorer per coalition
+		const topContributors: { [key: number]: SingleRanking[] } = {};
+		for (const coalition of coalitions) {
+			topContributors[coalition.id] = await getCoalitionTopContributors(prisma, coalition.id, 'Top 1', now, 1);
+		}
+
 		// Get rankings
 		const rankingTypes = await prisma.codamCoalitionRanking.findMany({
 			select: {
@@ -89,19 +108,6 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		for (const rankingType of rankingTypes) {
 			rankings[rankingType.type] = await getRanking(prisma, rankingType.type, now, 1);
 		}
-
-		// Get current bloc deadline
-		const currentBlocDeadline = await getBlocAtDate(prisma, now);
-		const nextBlocDeadline = await prisma.intraBlocDeadline.findFirst({
-			orderBy: {
-				begin_at: 'asc',
-			},
-			where: {
-				begin_at: {
-					gt: now,
-				},
-			},
-		});
 
 		// DRAWING START
 		// Create canvas of 1920 x 1080
@@ -193,21 +199,45 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 			ctx.fillRect(leaderboardX + padding, currentY, leaderboardWidth - padding * 2, entryHeight - padding / 2);
 
 			// Draw position
-			const textY = currentY + entryHeight * 0.5 + Math.floor(entryHeight * 0.1);
+			const positionY = currentY + entryHeight * 0.5;
 			ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
 			ctx.font = `bold ${Math.floor(entryHeight)}px "Bebas Neue"`;
-			ctx.fillText(`${rank}`, leaderboardX + padding + Math.floor(entryHeight * 0.05), textY + padding + Math.floor(entryHeight * 0.08));
+			const positionWidth = ctx.measureText(`${rank}`).width;
+			ctx.textBaseline = 'middle';
+			ctx.fillText(`${rank}`, leaderboardX + padding * 1.5, positionY);
 
 			// Draw coalition name + points
+			const textX = leaderboardX + positionWidth + padding * 2.5;
+			const textY = positionY;
+
 			ctx.fillStyle = '#FFFFFF';
 			ctx.font = `bold ${Math.floor(entryHeight * 0.35)}px "Museo Sans"`;
-			ctx.fillText(`${coalition.intra_coalition.name}`, leaderboardX + padding * 5, textY);
+			ctx.textBaseline = 'alphabetic';
+			ctx.fillText(`${coalition.intra_coalition.name} `, textX, textY - entryHeight * 0.1);
+			const nameWidth = ctx.measureText(`${coalition.intra_coalition.name} `).width;
 			ctx.font = `bold ${Math.floor(entryHeight * 0.2)}px "Museo Sans"`;
-			ctx.fillText(`${score.score} pts.`, leaderboardX + leaderboardWidth - padding * 2 - ctx.measureText(`${score.score} pts`).width, textY);
+			ctx.fillText(`${score.score} pts.`, textX + nameWidth, textY - entryHeight * 0.1);
 
 			// Draw coalition logo
 			// TODO: make this work! The logos are SVG, which is not supported properly by canvas loadImage
 
+			// Draw coalition top contributor
+			ctx.textBaseline = 'middle';
+			ctx.font = `${Math.floor(entryHeight * 0.15)}px "Museo Sans"`;
+			if (topContributors[coalition.id].length > 0) {
+				const topContributor = topContributors[coalition.id][0];
+				const profilePicX = textX;
+				const profilePicY = textY;
+				const profilePicSize = entryHeight * 0.33;
+
+				// Draw profile picture
+				await drawUserProfilePicture(ctx, profilePicX, profilePicY, profilePicSize, topContributor.user.image || '');
+				ctx.fillText(`1. ${(topContributor.user.login)} - ${topContributor.score} pts.`, profilePicX + profilePicSize + padding * 0.5, profilePicY + profilePicSize / 2);
+			} else {
+				ctx.fillText(`Top scorer: N/A`, textX, textY + entryHeight * 0.1);
+			}
+
+			ctx.textBaseline = 'alphabetic'; // Reset baseline
 			currentY += entryHeight;
 			rank += 1;
 		}
@@ -253,7 +283,7 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 			ctx.fillStyle = '#FFFFFF';
 			ctx.textBaseline = 'bottom';
 			ctx.font = `bold ${Math.floor(rankingEntryInnerHeight * 0.25)}px "Bebas Neue"`;
-			ctx.fillText(`${rankingType.name}`, rankingEntryTextX, rankingEntryTextY);
+			ctx.fillText(`#1 ${rankingType.name}`, rankingEntryTextX, rankingEntryTextY);
 
 			// Draw ranking entry text: rank, user login and score
 			ctx.font = `bold ${Math.floor(rankingEntryInnerHeight * 0.2)}px "Museo Sans"`;
@@ -263,7 +293,7 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 				await drawUserProfilePicture(ctx, rankingsX + padding + rankingPadding, currentRankingY + rankingPadding + (rankingEntryInnerHeight - padding) / 2 - profilePicSize / 2, profilePicSize, topRanking.user.image || '');
 
 				// Draw login and score next to profile picture
-				ctx.fillText(`${topRanking.rank}. ${topRanking.user.login} - ${topRanking.score} pts.`, rankingEntryTextX, rankingEntryTextY);
+				ctx.fillText(`${topRanking.user.login} - ${topRanking.score} pts.`, rankingEntryTextX, rankingEntryTextY);
 			} else {
 				ctx.fillText('No data available', rankingEntryTextX, rankingEntryTextY);
 			}

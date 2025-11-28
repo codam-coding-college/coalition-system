@@ -536,6 +536,34 @@ export const scoreSumsToRanking = async function(prisma: PrismaClient, scores: {
 	return ranking;
 };
 
+export const getCoalitionTopContributors = async function(prisma: PrismaClient, coalitionId: number, rankingName: string, untilDate: Date = new Date(), topAmount: number = RANKING_MAX): Promise<SingleRanking[]> {
+	const bloc = await getBlocAtDate(prisma, untilDate);
+	if (!bloc) { // No season currently ongoing
+		return [];
+	}
+	const topScores = await prisma.codamCoalitionScore.groupBy({
+		by: ['user_id'],
+		_sum: {
+			amount: true,
+		},
+		orderBy: {
+			_sum: {
+				amount: 'desc',
+			},
+		},
+		where: {
+			coalition_id: coalitionId,
+			created_at: {
+				gte: bloc.begin_at,
+				lte: bloc.end_at,
+			},
+		},
+		take: topAmount,
+	});
+	const topContributors = await scoreSumsToRanking(prisma, topScores, rankingName);
+	return topContributors;
+};
+
 export const getRanking = async function(prisma: PrismaClient, rankingType: string, atDateTime: Date = new Date(), topAmount: number = 10): Promise<SingleRanking[]> {
 	const ranking = await prisma.codamCoalitionRanking.findFirst({
 		where: {
