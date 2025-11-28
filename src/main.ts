@@ -23,13 +23,14 @@ import { setupPassport, usePassport } from './handlers/authentication';
 import { setupNunjucksFilters } from './handlers/filters';
 import { setupExpressMiddleware } from './handlers/middleware';
 import { setupLoginRoutes } from './routes/login';
+import { setupHomeRoutes } from './routes/home';
+import { setupProfileRoutes } from './routes/profile';
+import { setupResultsRoutes } from './routes/results';
+import { setupChartRoutes } from './routes/charts';
 import { setupQuizRoutes } from './routes/quiz';
 import { setupAdminRoutes } from './routes/admin';
-import { setupHomeRoutes } from './routes/home';
 import { setupWebhookRoutes } from './routes/hooks';
-import { setupProfileRoutes } from './routes/profile';
-import { setupChartRoutes } from './routes/charts';
-import { setupResultsRoutes } from './routes/results';
+import { setupCanvasRoutes } from './routes/canvas';
 
 export let api: Fast42 | null = null;
 
@@ -101,6 +102,7 @@ const main = async () => {
 	setupQuizRoutes(app, prisma);
 	setupAdminRoutes(app, prisma);
 	setupWebhookRoutes(app, prisma);
+	setupCanvasRoutes(app, prisma);
 
 	// Start the Express server
 	app.listen(4000, async () => {
