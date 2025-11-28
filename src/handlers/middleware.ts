@@ -14,6 +14,12 @@ const checkIfAuthenticated = function(req: Request, res: Response, next: NextFun
 	if (req.path.startsWith('/hooks/')) {
 		return next(); // Don't require authentication for webhooks
 	}
+	if (req.path.startsWith('/static/')) {
+		return next(); // Don't require authentication for static resources
+	}
+	if (req.path.startsWith('/canvas')) {
+		return next(); // Don't require authentication for the canvas generated leaderboard
+	}
 	if (req.isAuthenticated()) {
 		return next();
 	}

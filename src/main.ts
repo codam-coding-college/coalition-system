@@ -30,7 +30,7 @@ import { setupChartRoutes } from './routes/charts';
 import { setupQuizRoutes } from './routes/quiz';
 import { setupAdminRoutes } from './routes/admin';
 import { setupWebhookRoutes } from './routes/hooks';
-import { setupBoardRoutes } from './routes/board';
+import { setupCanvasRoutes } from './routes/canvas';
 
 export let api: Fast42 | null = null;
 
@@ -102,7 +102,7 @@ const main = async () => {
 	setupQuizRoutes(app, prisma);
 	setupAdminRoutes(app, prisma);
 	setupWebhookRoutes(app, prisma);
-	setupBoardRoutes(app, prisma);
+	setupCanvasRoutes(app, prisma);
 
 	// Start the Express server
 	app.listen(4000, async () => {

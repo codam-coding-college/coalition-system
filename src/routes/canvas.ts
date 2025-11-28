@@ -69,8 +69,8 @@ const drawCoalitionBackground = async (ctx: CanvasRenderingContext2D, x: number,
 	ctx.restore();
 };
 
-export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): void {
-	app.get('/board', async (req, res) => {
+export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): void {
+	app.get('/canvas', async (req, res) => {
 		try {
 			const now = new Date();
 
