@@ -299,16 +299,17 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 				// @ts-ignore
 				await drawCoalitionBackground(ctx, leaderboardX + padding, currentY, leaderboardWidth - padding * 2, entryHeight - padding / 2, coalition.intra_coalition);
 
-				// Draw position
+				// Draw position on the right of the entry
 				const positionY = currentY + entryHeight * 0.5;
 				ctx.fillStyle = 'rgba(255, 255, 255, 0.33)';
 				ctx.font = `bold ${Math.floor(entryHeight)}px "Bebas Neue"`;
-				const positionWidth = ctx.measureText(`${rank}`).width;
 				ctx.textBaseline = 'middle';
-				ctx.fillText(`${rank}`, leaderboardX + padding * 1.5, positionY);
+				ctx.textAlign = 'right';
+				ctx.fillText(`${rank}`, leaderboardX + leaderboardWidth - padding * 2, positionY);
+				ctx.textAlign = 'start'; // Reset alignment
 
 				// Draw coalition name + points
-				const textX = leaderboardX + positionWidth + padding * 2.5;
+				const textX = leaderboardX + padding * 2;
 				const textY = positionY;
 
 				ctx.fillStyle = '#FFFFFF';
