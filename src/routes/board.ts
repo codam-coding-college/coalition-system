@@ -63,7 +63,7 @@ const drawCoalitionBackground = async (ctx: CanvasRenderingContext2D, x: number,
 		}
 	}
 	if (!backgroundDrawn) {
-		ctx.fillStyle = intra_coalition.color || '#DDDDDD';
+		ctx.fillStyle = intra_coalition.color || '#424242';
 		ctx.fillRect(x, y, width, height);
 	}
 	ctx.restore();
@@ -229,30 +229,45 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
 		ctx.fillRect(bottombarX, bottombarY, canvas.width - bottombarX - padding, bottomBarHeight);
 
+		// Draw season progress bar
 		ctx.fillStyle = '#FFFFFF';
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
+		let progressBarText = '';
 		const bottombarTextY = bottombarY + bottomBarHeight / 2;
 		if (currentBlocDeadline) {
-			// Draw progress bar
 			const totalTime = currentBlocDeadline.end_at.getTime() - currentBlocDeadline.begin_at.getTime();
 			const timePassed = now.getTime() - currentBlocDeadline.begin_at.getTime();
 			const progress = Math.min(Math.max(timePassed / totalTime, 0), 1);
 			const barHeight = padding * 1.5;
-			ctx.fillStyle = topCoalition.intra_coalition.color || '#DDDDDD';
+			ctx.fillStyle = topCoalition.intra_coalition.color || '#424242';
 			ctx.fillRect(bottombarX, bottombarY, (canvas.width - bottombarX - padding) * progress, barHeight);
 
 			// Draw text indicating time left until the end of the current bloc
 			const timeLeft = currentBlocDeadline.end_at.getTime() - now.getTime();
 			const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-			const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+			const totalHoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
 			ctx.fillStyle = '#FFFFFF';
-			ctx.fillText(`The current season ends in ${daysLeft} days & ${hoursLeft} hours`, bottombarX + (canvas.width - bottombarX - padding) / 2, bottombarTextY);
-			ctx.textAlign = 'start'; // Reset alignment
+			progressBarText += `Season ends in `;
+			if (daysLeft > 2) {
+				progressBarText += `${daysLeft} days`;
+			}
+			else {
+				progressBarText += `${totalHoursLeft} hours`;
+			}
+		}
+		else if (nextBlocDeadline) {
+			// Draw text indicating when the next bloc starts
+			const timeUntil = nextBlocDeadline.begin_at.getTime() - now.getTime();
+			const daysUntil = Math.floor(timeUntil / (1000 * 60 * 60 * 24));
+			const hoursUntil = Math.floor((timeUntil % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+			ctx.fillStyle = '#FFFFFF';
+			progressBarText = `Next season starts in ${daysUntil} days & ${hoursUntil} hours`;
 		}
 		else {
-			ctx.fillText('No season currently ongoing', bottombarX + (canvas.width - bottombarX - padding) / 2, bottombarTextY);
+			progressBarText = 'No upcoming season scheduled';
 		}
+		ctx.fillText(progressBarText, bottombarX + (canvas.width - bottombarX - padding) / 2, bottombarTextY);
 		ctx.textBaseline = 'alphabetic'; // Reset baseline
 		ctx.textAlign = 'start'; // Reset alignment
 
@@ -358,7 +373,7 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 			const profilePicSize = rankingEntryInnerHeight - rankingPadding * 2;
 
 			// Draw ranking entry background based on the top user's coalition color
-			ctx.fillStyle = (topRanking && topRanking.coalition && topRanking.coalition.color ? topRanking.coalition.color : '#AAAAAA');
+			ctx.fillStyle = (topRanking && topRanking.coalition && topRanking.coalition.color ? topRanking.coalition.color : '#424242');
 			ctx.fillRect(rankingsX + padding, currentRankingY, rankingsWidth - padding * 2, rankingEntryInnerHeight);
 			ctx.fillStyle = 'rgba(0, 0, 0, 0.33)'; // Add some shade
 			ctx.fillRect(rankingsX + padding, currentRankingY, 5, rankingEntryInnerHeight);
