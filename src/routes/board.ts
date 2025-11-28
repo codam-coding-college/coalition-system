@@ -1,4 +1,4 @@
-import { CodamCoalition, PrismaClient } from '@prisma/client';
+import { CodamCoalition, IntraCoalition, PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { CanvasRenderingContext2D, createCanvas, loadImage, registerFont } from 'canvas';
 import { CoalitionScore, getBlocAtDate, getCoalitionScore, getCoalitionTopContributors, getRanking, SingleRanking } from '../utils';
@@ -35,6 +35,39 @@ const drawUserProfilePicture = async (ctx: CanvasRenderingContext2D, x: number, 
 		ctx.fill();
 	}
 }
+
+const drawCoalitionBackground = async (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, intra_coalition: IntraCoalition) => {
+	let backgroundDrawn = false;
+	ctx.save();
+	if (intra_coalition.cover_url) {
+		try {
+			const backgroundImage = await loadImage(intra_coalition.cover_url);
+			// Draw area clip
+			ctx.beginPath();
+			ctx.rect(x, y, width, height);
+			ctx.closePath();
+			ctx.clip();
+			// Draw the image, make sure to cover the entire area but remain the aspect ratio and centered. Like CSS background-size: cover.
+			const scale = Math.max(width / backgroundImage.width, height / backgroundImage.height);
+			const imageWidth = backgroundImage.width * scale;
+			const imageHeight = backgroundImage.height * scale;
+			const imageX = x + (width - imageWidth) / 2;
+			const imageY = y + (height - imageHeight) / 2;
+			ctx.drawImage(backgroundImage, imageX, imageY, imageWidth, imageHeight);
+			backgroundDrawn = true;
+			ctx.restore();
+		}
+		catch (error) {
+			console.error('Failed to load coalition cover image, falling back to color:', error);
+			// Fallback to color by not setting backgroundDrawn to true
+		}
+	}
+	if (!backgroundDrawn) {
+		ctx.fillStyle = intra_coalition.color || '#DDDDDD';
+		ctx.fillRect(x, y, width, height);
+	}
+	ctx.restore();
+};
 
 export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/board', async (req, res) => {
@@ -121,7 +154,7 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 
 		// Recurring variables for drawing
 		const padding = canvas.width * 0.02;
-		const overlayWidth = canvas.width * 0.05;
+		const overlayInnerWidth = canvas.width * 0.05;
 
 		// Fill background with a gradient based on the top coalition color, or with the background image of the coalition if it exists
 		const topCoalitionId = parseInt(sortedCoalitionScores[0][0], 10);
@@ -152,26 +185,44 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 
 		// Draw an overlay bar on the left side, for the logo and the text "Coalition System"
 		ctx.fillStyle = '#000000';
-		ctx.fillRect(0, 0, overlayWidth + padding * 2, canvas.height);
+		ctx.fillRect(0, 0, overlayInnerWidth + padding * 2, canvas.height);
 
 		// Draw campus logo in the top left
 		const image = await loadImage('static/img/logo.png');
 		const imageWidth = image.width;
 		const imageHeight = image.height;
-		const newImageHeight = overlayWidth;
+		const newImageHeight = overlayInnerWidth;
 		const newImageWidth = (imageWidth / imageHeight) * newImageHeight;
 		ctx.drawImage(image, padding, padding, newImageWidth, newImageHeight);
 
 		// Draw Coalition System title under the logo, rotated 270 degrees
 		// ctx.fillStyle = '#3f3f3f';
-		// ctx.font = `bold ${overlayWidth}px "Bebas Neue"`;
+		// ctx.font = `bold ${overlayInnerWidth}px "Bebas Neue"`;
 		// ctx.save();
 		// ctx.rotate(-Math.PI / 2 * 3);
 		// ctx.fillText('C O A L I T I O N   S Y S T E M', newImageHeight + padding * 2, -padding - 20, canvas.height - newImageHeight - padding * 3);
 		// ctx.restore();
 
+		// Draw a QR code to the Coalition System home page at the bottom left
+		const qrCodeImage = await loadImage('static/img/qr.png');
+		const qrCodeSize = overlayInnerWidth + padding * 2; // same width as the overlay
+		ctx.imageSmoothingEnabled = false;
+		ctx.drawImage(qrCodeImage, 0, canvas.height - qrCodeSize, qrCodeSize, qrCodeSize);
+		ctx.imageSmoothingEnabled = true;
+		// Invert the QR code to make its background black
+		ctx.globalCompositeOperation = 'difference';
+		ctx.fillStyle = '#FFFFFF';
+		ctx.fillRect(0, canvas.height - qrCodeSize, qrCodeSize, qrCodeSize);
+		ctx.globalCompositeOperation = 'source-over';
+		// Draw text "Scan me!" above the QR code
+		ctx.fillStyle = '#9A9A9A';
+		ctx.textAlign = 'center';
+		ctx.font = `bold ${Math.floor(padding * 0.8)}px "Bebas Neue"`;
+		ctx.fillText('SCAN FOR MORE', qrCodeSize / 2, canvas.height - qrCodeSize - padding * 0.1);
+		ctx.textAlign = 'start'; // Reset alignment
+
 		// Left side of the remaining space: coalition leaderboard
-		const leaderboardX = overlayWidth + padding * 3;
+		const leaderboardX = overlayInnerWidth + padding * 3;
 		const leaderboardY = padding;
 		const leaderboardWidth = (canvas.width - leaderboardX - padding) * 0.5;
 		const leaderboardHeight = canvas.height - padding * 2;
@@ -195,12 +246,12 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 			const coalition = coalitionsObject[parseInt(coalitionId, 10)];
 
 			// Draw coalition entry background
-			ctx.fillStyle = coalition.intra_coalition.color || '#DDDDDD';
-			ctx.fillRect(leaderboardX + padding, currentY, leaderboardWidth - padding * 2, entryHeight - padding / 2);
+			// @ts-ignore
+			await drawCoalitionBackground(ctx, leaderboardX + padding, currentY, leaderboardWidth - padding * 2, entryHeight - padding / 2, coalition.intra_coalition);
 
 			// Draw position
 			const positionY = currentY + entryHeight * 0.5;
-			ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.33)';
 			ctx.font = `bold ${Math.floor(entryHeight)}px "Bebas Neue"`;
 			const positionWidth = ctx.measureText(`${rank}`).width;
 			ctx.textBaseline = 'middle';
@@ -211,19 +262,17 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 			const textY = positionY;
 
 			ctx.fillStyle = '#FFFFFF';
-			ctx.font = `bold ${Math.floor(entryHeight * 0.35)}px "Museo Sans"`;
+			ctx.font = `bold ${Math.floor(entryHeight * 0.28)}px "Museo Sans"`;
 			ctx.textBaseline = 'alphabetic';
 			ctx.fillText(`${coalition.intra_coalition.name} `, textX, textY - entryHeight * 0.1);
 			const nameWidth = ctx.measureText(`${coalition.intra_coalition.name} `).width;
-			ctx.font = `bold ${Math.floor(entryHeight * 0.2)}px "Museo Sans"`;
+			ctx.font = `bold ${Math.floor(entryHeight * 0.18)}px "Museo Sans"`;
 			ctx.fillText(`${score.score} pts.`, textX + nameWidth, textY - entryHeight * 0.1);
 
 			// Draw coalition logo
 			// TODO: make this work! The logos are SVG, which is not supported properly by canvas loadImage
 
 			// Draw coalition top contributor
-			ctx.textBaseline = 'middle';
-			ctx.font = `${Math.floor(entryHeight * 0.15)}px "Museo Sans"`;
 			if (topContributors[coalition.id].length > 0) {
 				const topContributor = topContributors[coalition.id][0];
 				const profilePicX = textX;
@@ -232,9 +281,16 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 
 				// Draw profile picture
 				await drawUserProfilePicture(ctx, profilePicX, profilePicY, profilePicSize, topContributor.user.image || '');
-				ctx.fillText(`1. ${(topContributor.user.login)} - ${topContributor.score} pts.`, profilePicX + profilePicSize + padding * 0.5, profilePicY + profilePicSize / 2);
-			} else {
-				ctx.fillText(`Top scorer: N/A`, textX, textY + entryHeight * 0.1);
+
+				// Draw "TOP CONTRIBUTOR" text
+				ctx.font = `bold ${Math.floor(entryHeight * 0.1)}px "Bebas Neue"`;
+				ctx.textBaseline = 'bottom';
+				ctx.fillText('TOP CONTRIBUTOR', profilePicX + profilePicSize + padding * 0.5, profilePicY + profilePicSize * 0.47);
+
+				// Draw login and score next to profile picture
+				ctx.font = `${Math.floor(entryHeight * 0.13)}px "Museo Sans"`;
+				ctx.textBaseline = 'middle';
+				ctx.fillText(`${(topContributor.user.login)}`, profilePicX + profilePicSize + padding * 0.5, profilePicY + profilePicSize * 0.62);
 			}
 
 			ctx.textBaseline = 'alphabetic'; // Reset baseline
@@ -255,7 +311,7 @@ export const setupBoardRoutes = function(app: Express, prisma: PrismaClient): vo
 		// Draw rankings title
 		ctx.fillStyle = '#000000';
 		ctx.font = `bold ${Math.floor(rankingsHeight * 0.075)}px "Bebas Neue"`;
-		ctx.fillText('Rankings', rankingsX + padding, rankingsY + padding + Math.floor(rankingsHeight * 0.06));
+		ctx.fillText('Individual Rankings', rankingsX + padding, rankingsY + padding + Math.floor(rankingsHeight * 0.06));
 
 		// Define the height of each ranking entry
 		const rankingEntryHeight = (rankingsHeight - padding * 2.6 - Math.floor(rankingsHeight * 0.075)) / rankingTypes.length;
