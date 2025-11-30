@@ -52,6 +52,9 @@ const main = async () => {
 	// Set up the Express app
 	const app = express();
 
+	// Adding size limit to json request (DoS); 10kb seems to be standard
+	app.use(express.json({ limit: "10kb" }));
+
 	// Adding helmet
 	app.use(helmet.contentSecurityPolicy({
 		directives: {
