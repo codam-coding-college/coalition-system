@@ -865,7 +865,7 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			await shiftScore(prisma, score.id, blocDeadline.begin_at);
 		}
 
-		console.log(`User ${user.login} has shifted ${scoresToShift.length} scores to the start of season ${seasonId} - ${blocDeadline.begin_at.toLocaleString()}`);
+		console.log(`User ${user.login} has shifted ${scoresToShift.length} scores to the start of season ${seasonId} - ${blocDeadline.begin_at.toISOString()}`);
 
 		// Done, redirect back to the form
 		return res.redirect('/admin/points/shift');

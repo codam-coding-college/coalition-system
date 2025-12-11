@@ -60,7 +60,7 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 	}
 	const coalitionUser = user.coalition_users[0];
 
-	console.log(`Creating score for user ${userId} in coalition ${coalitionUser.coalition_id} with ${points} points for reason "${reason}" (connected to Intra object ${typeIntraId} for fixed type ${(type ? type.type : "null")}), at score creation date ${scoreDate}...`);
+	console.log(`Creating score for user ${userId} in coalition ${coalitionUser.coalition_id} with ${points} points for reason "${reason}" (connected to Intra object ${typeIntraId} for fixed type ${(type ? type.type : "null")}), at score creation date ${scoreDate.toISOString()}...`);
 	const score = await prisma.codamCoalitionScore.create({
 		data: {
 			amount: points,
