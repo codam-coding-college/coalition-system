@@ -79,6 +79,11 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 			desc: "Each advanced event organized will grant the student with this amount of points.",
 			points: 6000, // recommended
 		},
+		{
+			type: "ranking_bonus",
+			desc: "Bonus points awarded hourly during the final week of a season to top ranking users. This value is not used directly, as the actual points awarded depend on the ranking settings.",
+			points: 0, // not used directly
+		}
 	];
 
 	for (const fixedType of fixedTypes) {

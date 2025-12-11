@@ -87,6 +87,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 				type: true,
 				name: true,
 				description: true,
+				bonus_points: true,
 			},
 			orderBy: {
 				type: 'asc',
@@ -203,12 +204,12 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 					{
 						NOT: {
 							fixed_type_id: {
-								in: ['logtime', 'evaluation'], // Exclude logtime and evaluation scores, they are usually low
+								in: ['logtime', 'evaluation', 'idle_logout', 'ranking_bonus'], // Exclude logtime, ranking bonus and evaluation scores, they are usually low individual scores
 							}
 						},
 					},
 					{
-						fixed_type_id: null, // Include scores that are not fixed types
+						fixed_type_id: null, // Do include scores that are not fixed types
 					}
 				],
 				amount: {

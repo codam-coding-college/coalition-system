@@ -40,14 +40,15 @@ model CodamCoalition {
 }
 
 // A cross-coalition ranking for each fixed-point type.
-// At the end of the yearly tournament the #1 in each ranking will gain all ranking_bonus points towards their coalition, spicing up the last season.
+// During the last week of each season, every hour a specific amount of points will be awarded to the #1 spot(s) in each ranking.
 model CodamCoalitionRanking {
 	type             String   @id
 	name             String   // The name of the cross-coalition ranking that this type of score contributes to (e.g. Guiding Stars)
 	description      String   @default("")
 	top_title        String   // The title of the top of the ranking (e.g. #1 Guiding Star)
-	bonus_points     Int?     // Bonus points for the #1 spot in the ranking at the end of the full tournament (not a season)
+	bonus_points     Int?     // Total bonus points to distribute for this ranking (will be divided into 168 hours = 1 week and distributed each hour)
 	disabled         Boolean  @default(false) // If disabled, this ranking will not be calculated at the end of a tournament
+	last_bonus_run   DateTime? // The last time bonus points were awarded for this ranking
 
 	fixed_types      CodamCoalitionFixedType[] // The #1 is calculated by the sum of all fixed types of the same ranking type
 	results          CodamCoalitionRankingResult[]
@@ -55,7 +56,7 @@ model CodamCoalitionRanking {
 
 // Fixed type of score for the coalition system
 model CodamCoalitionFixedType {
-	type             String   @id // should not contain spaces. e.g. "project", "eval", "point_donated", "logtime", "idle_logout", "exam", "basic_event", "intermediate_event", "advanced_event"
+	type             String   @id // should not contain spaces. e.g. "project", "eval", "point_donated", "logtime", "idle_logout", "exam", "basic_event", "intermediate_event", "advanced_event", "ranking_bonus", etc.
 	description      String
 	point_amount     Int
 	ranking_type     String?  // The ranking type that this fixed type of score contributes to (leave empty to disable ranking, does not need to be unique)

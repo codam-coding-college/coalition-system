@@ -9,7 +9,7 @@
 	</ol>
 </nav>
 
-<p>Here you can edit the rankings system. Rankings are leaderboards spanning all coalitions. At the end of a tournament (not a season - these rankings span across all seasons), each #1 of each ranking will receive a bonus amount of points.</p>
+<p>Here you can edit the rankings system. Rankings are leaderboards spanning all coalitions. During the final week of a season, every hour, bonus points are awarded to the top-ranked students.</p>
 <p>Rankings are automatically calculated based on fixed point types. These fixed point types are the same as the ones used in the coalition scores. The students with the most points to a specified collection of fixed point types becomes #1 of a ranking.</p>
 
 <table class="table table-striped">
@@ -17,7 +17,8 @@
 		<th scope="col">Type</th>
 		<th scope="col">Name</th>
 		<th scope="col">Description</th>
-		<th scope="col">Bonus points</th>
+		<th scope="col">Total bonus points</th>
+		<th scope="col">Hourly bonus points</th>
 		<th scope="col">Disabled</th>
 		<th scope="col">Linked to fixed point types</th>
 		<th scope="col text-end" style="text-align: end;">Options</th> <!-- for some reason the text-end class doesn't work here -->
@@ -29,6 +30,7 @@
 				<td>{{ ranking.name | striptags(true) | escape }}</td>
 				<td>{{ ranking.description | striptags(true) | escape | nl2br }}</td>
 				<td>{{ ranking.bonus_points | thousands }}</td>
+				<td>{{ (ranking.bonus_points / 168) | round(0, 'floor') | thousands }}</td>
 				<td>{{ ranking.disabled | bool }}</td>
 				<td>{{ ranking.fixed_types | keyjoin('type', ', ') }}</td>
 				<td class="text-end">
@@ -64,8 +66,16 @@
 			</div>
 
 			<div class="mb-2">
-				<label for="bonus_points" class="form-label">Bonus points</label>
+				<label for="bonus_points" class="form-label">Total bonus points</label>
 				<input type="number" id="bonus_points" name="bonus_points" class="form-control" placeholder="Bonus point amount" required min="1">
+				<small class="form-text text-muted">Total amount of bonus points to be distributed during the final week of a season - the actually awarded points are divided by 168 (the amount of hours in 1 week). For the inputted amount, that means <code id="bonus_points_hours">0</code> points are awarded every hour.</small>
+				<script>
+				document.getElementById('bonus_points').addEventListener('input', function(event) {
+					const totalPoints = parseInt(event.target.value) || 0;
+					const pointsPerHour = Math.floor(totalPoints / 168);
+					document.getElementById('bonus_points_hours').textContent = pointsPerHour;
+				});
+				</script>
 			</div>
 
 			<div class="mt-4">

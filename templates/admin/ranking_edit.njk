@@ -27,8 +27,16 @@
 	</div>
 
 	<div class="mb-2">
-		<label for="bonus_points" class="form-label">Bonus points</label>
+		<label for="bonus_points" class="form-label">Total bonus points</label>
 		<input type="number" id="bonus_points" name="bonus_points" class="form-control" placeholder="Point amount" value="{{ ranking.bonus_points }}" required min="0">
+		<small class="form-text text-muted">Total amount of bonus points to be distributed during the final week of a season - the actually awarded points are divided by 168 (the amount of hours in 1 week). For the inputted amount, that means <code id="bonus_points_hours">{{ (ranking.bonus_points / 168) | round(2) }}</code> points are awarded every hour.</small>
+		<script>
+		document.getElementById('bonus_points').addEventListener('input', function(event) {
+			const totalPoints = parseInt(event.target.value) || 0;
+			const pointsPerHour = Math.floor(totalPoints / 168);
+			document.getElementById('bonus_points_hours').textContent = pointsPerHour;
+		});
+		</script>
 	</div>
 
 	<div class="mb-2 mt-3">
