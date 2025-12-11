@@ -123,6 +123,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			return res.status(400).send('Invalid coalition ID');
 		}
 		const user = req.user as ExpressIntraUser;
+		const now = new Date();
 
 		const coalition = await prisma.codamCoalition.findFirst({
 			where: {
@@ -136,17 +137,17 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			return res.status(404).send('Coalition not found');
 		}
 
-		const bloc = await getBlocAtDate(prisma, new Date());
+		const bloc = await getBlocAtDate(prisma, now);
 		if (!bloc) {
 			// No ongoing season, there's no point in viewing this page. Redirect to home.
 			return res.redirect('/');
 		}
 
-		// Get the top contributors of this seasona
-		const topContributors = await getCoalitionTopContributors(prisma, coalition.id, 'Top contributors of this season');
+		// Get the top 25 contributors of this season
+		const topContributors = await getCoalitionTopContributors(prisma, coalition.id, 'Top contributors of this season', now, 25);
 
 		// Get the top contributors of the past 7 days
-		const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+		const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 		if (sevenDaysAgo < bloc.begin_at) {
 			// If the season started less than 7 days ago, we can't get the top contributors of the past 7 days.
 			// Get the top contributors since the season's start instead.
@@ -167,7 +168,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 				coalition_id: coalition.id,
 				created_at: {
 					gte: sevenDaysAgo,
-					lte: new Date(),
+					lte: now,
 				},
 			},
 			take: 10,
@@ -217,7 +218,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 				},
 				created_at: {
 					gte: sevenDaysAgo,
-					lte: new Date(),
+					lte: now,
 				},
 			},
 			orderBy: {
