@@ -116,7 +116,7 @@
 							<th scope="col">Reason</th>
 						</thead>
 						<tbody>
-							{% for score in latestTopScores %}
+							{% for score in latestBigScores %}
 								<tr>
 									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
 									<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>

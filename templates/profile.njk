@@ -58,12 +58,41 @@
 		</div>
 	</div>
 
-	<!-- point history table (last 50 contributions) -->
+	<!-- point history table (last 25 big contributions) -->
 	<div class="row ms-0 me-0 mb-4">
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Last 50 contributions</h5>
+					<h5 class="card-title mb-0">Last 25 big contributions</h5>
+				</div>
+				<div class="card-body p-0">
+					<table class="table coalition-colored mb-0">
+						<thead>
+							<th scope="col">Date</th>
+							<th scope="col">Points</th>
+							<th scope="col">Reason</th>
+						</thead>
+						<tbody>
+							{% for score in latestBigScores %}
+								<tr style="background: {{ score.coalition.intra_coalition.color | rgba(0.25) }}">
+									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
+									<td>{{ score.amount | thousands }}</td>
+									<td style="white-space: normal; word-wrap: break-word;">{{ score.reason | striptags(true) | escape }}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- point history table (last 100 contributions) -->
+	<div class="row ms-0 me-0 mb-4">
+		<div class="col">
+			<div class="card h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">Last 100 contributions</h5>
 				</div>
 				<div class="card-body p-0">
 					<table class="table coalition-colored mb-0">

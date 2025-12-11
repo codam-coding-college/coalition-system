@@ -3,7 +3,7 @@ import passport from 'passport';
 import { CodamCoalition, PrismaClient } from '@prisma/client';
 import { isQuizAvailable } from './quiz';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors } from '../utils';
+import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors, SMALL_CONTRIBUTION_TYPES } from '../utils';
 
 export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/', passport.authenticate('session', {
@@ -198,14 +198,14 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			take: 50,
 		});
 
-		const latestTopScores = await prisma.codamCoalitionScore.findMany({
+		const latestBigScores = await prisma.codamCoalitionScore.findMany({
 			where: {
 				coalition_id: coalition.id,
 				OR: [
 					{
 						NOT: {
 							fixed_type_id: {
-								in: ['logtime', 'evaluation', 'idle_logout', 'ranking_bonus'], // Exclude logtime, ranking bonus and evaluation scores, they are usually low individual scores
+								in: SMALL_CONTRIBUTION_TYPES, // Exclude usually low individual scores
 							}
 						},
 					},
@@ -270,7 +270,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			topContributors,
 			topContributorsWeek,
 			latestScores,
-			latestTopScores,
+			latestBigScores,
 			staff,
 		});
 	});

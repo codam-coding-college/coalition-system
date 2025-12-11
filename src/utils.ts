@@ -6,6 +6,9 @@ import { CURSUS_ID } from "./env";
 import NodeCache from "node-cache";
 import { Request } from "express";
 
+export const RANKING_MAX = 100; // Maximum number of users to consider for rankings
+export const SMALL_CONTRIBUTION_TYPES = ['logtime', 'evaluation', 'idle_logout', 'ranking_bonus']; // Types of contributions that are usually small individual scores
+
 export const getAPIClient = async function(): Promise<Fast42> {
 	if (!api) {
 		throw new Error('API not initialized');
@@ -502,8 +505,6 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		activeContributors: activeScores.length,
 	};
 };
-
-export const RANKING_MAX = 100; // Maximum number of users to consider for rankings
 
 export interface SingleRanking {
 	rankingName: string;
