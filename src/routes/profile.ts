@@ -77,16 +77,15 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 				created_at: 'desc',
 			},
 			include: {
-				user: {
+				coalition: {
 					select: {
-						intra_user: {
+						intra_coalition: {
 							select: {
-								login: true,
-								usual_full_name: true,
-								image: true,
+								name: true,
+								color: true,
 							},
-						},
-					},
+						}
+					}
 				},
 			},
 			take: 25,
