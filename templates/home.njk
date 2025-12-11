@@ -60,7 +60,7 @@
 					</div>
 					<div class="card-body p-0">
 						<p class="p-4 pb-0 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
-						<p class="p-4 pt-0 mb-0"><small>Bonus points awarded this season to #1: {{ rankingType.bonus_points | thousands }} total ({{ (rankingType.bonus_points / 168) | round(0, 'floor') }} points/hour during the final week)</small></p>
+						<p class="p-4 pt-0 mb-0"><small>Bonus points awarded to #1: {{ rankingType.bonus_points | thousands }} total ({{ (rankingType.bonus_points / 168) | round(0, 'floor') }} points/hour during the final week)</small></p>
 						<table class="table coalition-colored mb-0">
 							<tbody>
 								{% for ranking in rankings[rankingType.type] %}
