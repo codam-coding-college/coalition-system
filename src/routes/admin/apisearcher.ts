@@ -241,6 +241,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, '/teams/', {
+				...API_DEFAULT_FILTERS_PROJECTS,
 				'filter[project_id]': projectId,
 				'page[size]': itemsPerPage.toString(),
 			}, pageNum);
@@ -349,10 +350,14 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	app.get('/admin/apisearch/exams/project_id/:projectId', async (req, res) => {
 		try {
 			const projectId = req.params.projectId;
+			if (!EXAM_PROJECT_IDS.includes(parseInt(projectId))) {
+				return res.status(400).json({ error: 'Invalid exam project ID' });
+			}
 			const itemsPerPage = 50;
 			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, '/teams/', {
+				...API_DEFAULT_FILTERS_EXAMS,
 				'filter[project_id]': projectId,
 				'page[size]': itemsPerPage.toString(),
 			}, pageNum);
