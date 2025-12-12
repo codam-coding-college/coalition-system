@@ -209,7 +209,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	});
 
 	// Projects (actually teams) by team ID
-	app.get('/admin/apisearch/projects/id/:teamId', async (req, res) => {
+	app.get('/admin/apisearch/projects/team_id/:teamId', async (req, res) => {
 		try {
 			const teamId = req.params.teamId;
 			const itemsPerPage = 50;
@@ -217,6 +217,31 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			const api = await getAPIClient();
 			const teams = await fetchSingleApiPage(api, '/teams/', {
 				'filter[id]': teamId,
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
+			return res.json({
+				data: modifiedTeams,
+				meta: {
+					pagination: getPaginationMeta(teams.headers),
+				},
+			});
+		}
+		catch (err) {
+			console.log(err);
+			return res.status(500).json({ error: err });
+		}
+	});
+
+	// Projects (actually teams) by project ID
+	app.get('/admin/apisearch/projects/project_id/:projectId', async (req, res) => {
+		try {
+			const projectId = req.params.projectId;
+			const itemsPerPage = 50;
+			const pageNum = getPageNumber(req, NaN);
+			const api = await getAPIClient();
+			const teams = await fetchSingleApiPage(api, '/teams/', {
+				'filter[project_id]': projectId,
 				'page[size]': itemsPerPage.toString(),
 			}, pageNum);
 			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
@@ -295,7 +320,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	});
 
 	// Exams (actually teams) by team ID
-	app.get('/admin/apisearch/exams/id/:teamId', async (req, res) => {
+	app.get('/admin/apisearch/exams/team_id/:teamId', async (req, res) => {
 		try {
 			const teamId = req.params.teamId;
 			const itemsPerPage = 50;
@@ -304,6 +329,31 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			const teams = await fetchSingleApiPage(api, '/teams/', {
 				'filter[id]': teamId,
 				'filter[project_id]': EXAM_PROJECT_IDS.join(','),
+				'page[size]': itemsPerPage.toString(),
+			}, pageNum);
+			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
+			return res.json({
+				data: modifiedTeams,
+				meta: {
+					pagination: getPaginationMeta(teams.headers),
+				},
+			});
+		}
+		catch (err) {
+			console.log(err);
+			return res.status(500).json({ error: err });
+		}
+	});
+
+	// Exams (actually teams) by project ID
+	app.get('/admin/apisearch/exams/project_id/:projectId', async (req, res) => {
+		try {
+			const projectId = req.params.projectId;
+			const itemsPerPage = 50;
+			const pageNum = getPageNumber(req, NaN);
+			const api = await getAPIClient();
+			const teams = await fetchSingleApiPage(api, '/teams/', {
+				'filter[project_id]': projectId,
 				'page[size]': itemsPerPage.toString(),
 			}, pageNum);
 			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
