@@ -65,7 +65,7 @@ const main = async () => {
 			"frameAncestors": ["'none'"],
 			"baseUri": ["'self'"],
 			"formAction": ["'self'"],
-			"upgradeInsecureRequests": [],
+			"upgradeInsecureRequests": (NODE_ENV === 'production') ? [] : null,
 		}
 	}));
 
