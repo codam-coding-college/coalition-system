@@ -3,7 +3,7 @@
 <nav aria-label="Page navigation" class="d-flex justify-content-center">
 	<ul class="pagination">
 		{% for pageNavItem in pageNav %}
-			<li class="page-item{{ ' active' if pageNavItem.active }}" {{ 'aria-current="page"' if pageNavItem.active }}><a class="page-link" href="/admin/points/history?page={{ pageNavItem.num }}">{{ pageNavItem.text }}</a></li>
+			<li class="page-item{{ ' active' if pageNavItem.active }}" {{ 'aria-current="page"' if pageNavItem.active }}><a class="page-link" href="?page={{ pageNavItem.num }}">{{ pageNavItem.text }}</a></li>
 		{% endfor %}
 	</ul>
 </nav>
