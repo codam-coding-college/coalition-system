@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { ExpressIntraUser } from '../sync/oauth';
 import { getUserScores, getUserRankingAcrossAllRankings, getUserTournamentRanking, SMALL_CONTRIBUTION_TYPES } from '../utils';
+import NodeCache from 'node-cache';
 
 export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/profile/:login', async (req, res) => {
@@ -103,5 +104,59 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 			ranking,
 			userRankings,
 		});
+	});
+
+	const autocompleteCache = new NodeCache({ stdTTL: 60 * 5, checkperiod: 60 * 5 });
+
+	app.get('/search/profile/autocomplete', async (req, res) => {
+		// Prepare and validate query
+		const query = req.query.q;
+		if (typeof query !== 'string') {
+			return res.status(400).json({ error: 'Invalid query parameter' });
+		}
+		const trimmedQuery = query.trim();
+		if (!trimmedQuery || trimmedQuery.length < 1) {
+			return res.json({ data: [] });
+		}
+
+		// Check cache first
+		const cachedResult = autocompleteCache.get<string[]>(trimmedQuery);
+		if (cachedResult) {
+			return res.json(cachedResult);
+		}
+
+		// Query database
+		const users = await prisma.intraUser.findMany({
+			where: {
+				OR: [
+					{
+						login: {
+							startsWith: trimmedQuery,
+							mode: 'insensitive',
+						},
+					},
+					{
+						usual_full_name: {
+							contains: trimmedQuery,
+							mode: 'insensitive',
+						},
+					},
+				]
+			},
+			select: {
+				login: true,
+			},
+			take: 10,
+			orderBy: {
+				login: 'asc',
+			},
+		});
+
+		// Update cache
+		const responseUsers = [...users.map(u => u.login)];
+		autocompleteCache.set(trimmedQuery, responseUsers);
+
+		// Return results
+		return res.json(responseUsers);
 	});
 };

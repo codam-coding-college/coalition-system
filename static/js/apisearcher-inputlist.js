@@ -59,6 +59,9 @@ const ApiSearcherInputList = function(options) {
 		if (this.options.loadImmediately != false) {
 			this.search();
 		}
+
+		// Log initialization
+		console.log('ApiSearcherInputList initialized for element', this.inputList, this.options);
 	};
 
 	this.clear = () => {
@@ -77,6 +80,12 @@ const ApiSearcherInputList = function(options) {
 			const option = document.createElement('option');
 			const optionValue = [];
 			for (const dataKey of this.dataKeys) {
+				const keyExists = dataKey['key'].reduce((obj, key) => (obj && key in obj) ? obj[key] : null, row) !== null;
+				if (!keyExists) {
+					console.warn('Key not found in data row', dataKey['key'], row);
+					optionValue.push('N/A');
+					continue;
+				}
 				const dataValue = dataKey['key'].reduce((obj, key) => obj[key], row);
 				switch (dataKey['format']) {
 					case 'text':
@@ -111,6 +120,8 @@ const ApiSearcherInputList = function(options) {
 		const req = await fetch(this.concatUrlPaths(this.url, query));
 		const results = await req.json();
 		this.clearAndLoadResults(results);
+		// Focus on the input to show the updated datalist
+		this.inputList.focus();
 	};
 
 	this.init();

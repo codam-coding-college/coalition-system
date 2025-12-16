@@ -56,7 +56,7 @@ const main = async () => {
 	app.use(helmet.contentSecurityPolicy({
 		directives: {
 			"defaultSrc": ["'self'"],
-			"scriptSrc": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://cdnjs.cloudflare.com/"],
+			"scriptSrc": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://cdnjs.cloudflare.com/", "https://code.jquery.com/"],
 			"styleSrc": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/"],
 			"imgSrc": ["'self'", "data:", "https://cdn.intra.42.fr/"],
 			"connectSrc": ["'self'", "https://cdn.jsdelivr.net/", "https://cdnjs.cloudflare.com/"], // For fetch, XMLHttpRequest, WebSocket, EventSource

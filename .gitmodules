@@ -1,3 +1,6 @@
 [submodule "static/js/renderjson"]
 	path = static/js/renderjson
 	url = https://github.com/caldwell/renderjson
+[submodule "static/js/bootstrap-autocomplete"]
+	path = static/js/bootstrap-autocomplete
+	url = https://github.com/iqbalfn/bootstrap-autocomplete.git
