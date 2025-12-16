@@ -200,6 +200,10 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 				return res.status(404).json({ error: 'Score not found' });
 			}
 
+			if (!await intraScoreSyncingPossible(prisma, score)) {
+				return res.status(400).json({ error: 'Score cannot be synchronized with Intra' });
+			}
+
 			const api = await getAPIClient();
 			await syncIntraScore(prisma, api, score, true);
 			return res.status(200).json({ status: 'ok' });

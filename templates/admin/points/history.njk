@@ -35,9 +35,9 @@
 				<td>{{ score.type_intra_id if score.type_intra_id else "" }}</td>
 				<td>{{ score.intra_score_id if score.intra_score_id else "not yet synced" }}</td>
 				<td class="text-end" style="white-space: nowrap;">
-					<a href="/admin/points/history/{{ score.id }}/sync" class="btn btn-sm btn-outline-secondary" title="Force synchronize with Intra" onclick="buttonHandler(event)" data-text="Sync">Sync</a>
-					<a href="/admin/points/history/{{ score.id }}/recalculate" class="btn btn-sm btn-outline-warning" title="Force recalculate this score with the current point system settings" onclick="buttonHandler(event)" data-text="Recalculate">Recalculate</a>
-					<a href="/admin/points/history/{{ score.id }}/delete" class="btn btn-sm btn-outline-danger" title="Remove this score and act like it never happened" onclick="buttonHandler(event)" data-text="Delete">Delete</a>
+					<a href="/admin/points/history/{{ score.id }}/sync" class="btn btn-history btn-sm btn-outline-secondary" title="Force synchronize with Intra" data-text="Sync">Sync</a>
+					<a href="/admin/points/history/{{ score.id }}/recalculate" class="btn btn-history btn-sm btn-outline-warning" title="Force recalculate this score with the current point system settings" data-text="Recalculate">Recalculate</a>
+					<a href="/admin/points/history/{{ score.id }}/delete" class="btn btn-history btn-sm btn-outline-danger" title="Remove this score and act like it never happened" data-text="Delete">Delete</a>
 				</td>
 			</tr>
 		{% endfor %}
@@ -48,10 +48,24 @@
 
 <script src="/js/reactive-button.js"></script>
 <script>
-function buttonHandler(event) {
-	event.preventDefault();
-	reactiveButtonHandler(event.target, event.target.getAttribute('data-text'), event.target.href);
+function setupHistoryButtons() {
+	const buttons = document.querySelectorAll('.btn-history');
+	buttons.forEach(button => {
+		button.addEventListener('click', buttonHandler);
+	});
+}
+
+function buttonHandler(ev) {
+	// Prevent the default link behavior
+	ev.preventDefault();
+	// Prevent the event from bubbling up to parent elements
+	ev.stopPropagation();
+	// Handle the button reactively
+	reactiveButtonHandler(ev.target, ev.target.getAttribute('data-text'), ev.target.href);
+	// Return false to further prevent default behavior
 	return false;
 }
+
+setupHistoryButtons();
 </script>
 {% endblock %}
