@@ -1,5 +1,5 @@
-import { Express } from 'express';
-import { CodamCoalitionScore, PrismaClient } from '@prisma/client';
+import { Express, Request, Response } from 'express';
+import { CodamCoalitionScore, Prisma, PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import { fetchSingleApiPage, getAPIClient, getBlocAtDate, getOffset, getPageNav, getPageNumber } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
@@ -8,73 +8,87 @@ import { deleteIntraScore, intraScoreSyncingPossible, syncIntraScore, syncTotalC
 
 const SCORES_PER_PAGE = 100;
 
-export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClient): void {
-	app.get('/admin/points/history', async (req, res) => {
-		// Calculate the total amount of pages
-		const totalScores = await prisma.codamCoalitionScore.count();
-		const totalPages = Math.ceil(totalScores / SCORES_PER_PAGE);
-		const pageNum = getPageNumber(req, totalPages);
-		const offset = getOffset(pageNum, SCORES_PER_PAGE);
+interface ScoreHistoryFilter {
+	field: 'login' | 'type' | 'intra_type_id' | 'date' | 'coalition' | 'reason' | 'none';
+	value?: string;
+};
 
-		// Retrieve the scores to be displayed on the page
-		const scores = await prisma.codamCoalitionScore.findMany({
-			select: {
-				id: true,
-				intra_score_id: true,
-				amount: true,
-				reason: true,
-				created_at: true,
-				fixed_type_id: true,
-				type_intra_id: true,
-				coalition_id: true,
-				coalition: false,
-				fixed_type: false,
-				user: {
-					select: {
-						intra_user: {
-							select: {
-								login: true,
-							}
-						}
+const getScoreHistory = async function(req: Request, res: Response, prisma: PrismaClient, prismaFilter: Prisma.CodamCoalitionScoreWhereInput, userVisibileFilter: ScoreHistoryFilter): Promise<void> {
+	// Calculate the total amount of pages
+	const totalScores = await prisma.codamCoalitionScore.count({
+		where: prismaFilter,
+	});
+	const totalPages = Math.ceil(totalScores / SCORES_PER_PAGE);
+	const pageNum = getPageNumber(req, totalPages);
+	const offset = getOffset(pageNum, SCORES_PER_PAGE);
+
+	// Retrieve the scores to be displayed on the page
+	const scores = await prisma.codamCoalitionScore.findMany({
+		where: prismaFilter,
+		select: {
+			id: true,
+			intra_score_id: true,
+			amount: true,
+			reason: true,
+			created_at: true,
+			fixed_type_id: true,
+			type_intra_id: true,
+			coalition_id: true,
+			coalition: false,
+			fixed_type: false,
+			user: {
+				select: {
+					intra_user: {
+						select: {
+							login: true,
+						},
 					},
 				},
 			},
-			orderBy: {
-				created_at: 'desc',
-			},
-			take: SCORES_PER_PAGE,
-			skip: offset,
-		});
-
-		// Retrieve all coalitions
-		const coalitionRows = await prisma.codamCoalition.findMany({
-			select: {
-				intra_coalition: true,
-			},
-		});
-
-		// Create a map of coalition id to coalition object
-		const coalitions: { [key: number]: any } = {};
-		for (const row of coalitionRows) {
-			coalitions[row.intra_coalition.id] = row;
-		}
-
-		// Create a list of pages for the pagination nav
-		const pageNav = getPageNav(pageNum, totalPages);
-
-		return res.render('admin/points/history.njk', {
-			scores,
-			coalitions,
-			pageNum,
-			totalPages,
-			pageNav,
-		});
+		},
+		orderBy: {
+			created_at: 'desc',
+		},
+		take: SCORES_PER_PAGE,
+		skip: offset,
 	});
 
-	app.get('/admin/points/history/user/:login', async (req, res) => {
+	// Retrieve all coalitions
+	const coalitionRows = await prisma.codamCoalition.findMany({
+		select: {
+			intra_coalition: true,
+		},
+	});
+
+	// Create a map of coalition id to coalition object
+	const coalitions: { [key: number]: any } = {};
+	for (const row of coalitionRows) {
+		coalitions[row.intra_coalition.id] = row;
+	}
+
+	// Create a list of pages for the pagination nav
+	const pageNav = getPageNav(pageNum, totalPages);
+
+	return res.render('admin/points/history.njk', {
+		scores,
+		coalitions,
+		pageNum,
+		totalPages,
+		pageNav,
+		searchFilter: userVisibileFilter.field,
+		searchFilterVal: userVisibileFilter.value,
+	});
+};
+
+export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClient): void {
+	app.get('/admin/points/history', async (req, res) => {
+		return getScoreHistory(req, res, prisma, {}, { field: 'none' });
+	});
+
+	app.get('/admin/points/history/login/:login', async (req, res) => {
 		const login = req.params.login;
 		if (!login) {
-			return res.status(400).json({ error: 'Invalid login' });
+			return res.status(400).send('Invalid login');
 		}
 
 		// Retrieve user
@@ -88,65 +102,115 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			},
 		});
 		if (!user) {
-			return res.status(404).json({ error: 'User not found' });
+			return res.status(404).send('User not found');
 		}
 
-		// Calculate the total amount of pages
-		const totalScores = await prisma.codamCoalitionScore.count({
+		return getScoreHistory(req, res, prisma, {
+			user_id: user.id,
+		}, { field: 'login', value: login });
+	});
+
+	app.get('/admin/points/history/type/:fixedTypeId', async (req, res) => {
+		const fixedTypeId = req.params.fixedTypeId;
+		if (!fixedTypeId) {
+			return res.status(400).send('Invalid fixed type ID');
+		}
+
+		if (fixedTypeId == "custom") {
+			return getScoreHistory(req, res, prisma, {
+				fixed_type_id: null,
+			}, { field: 'type', value: "custom" });
+		}
+
+		// Retrieve fixed type
+		const fixedType = await prisma.codamCoalitionFixedType.findFirst({
 			where: {
-				user_id: user.id,
+				type: fixedTypeId,
+			},
+			select: {
+				type: true,
 			},
 		});
-		const totalPages = Math.ceil(totalScores / SCORES_PER_PAGE);
-		const pageNum = getPageNumber(req, totalPages);
-		const offset = getOffset(pageNum, SCORES_PER_PAGE);
+		if (!fixedType) {
+			return res.status(404).send('Fixed type not found');
+		}
 
-		// Retrieve the scores to be displayed on the page
-		const scores = await prisma.codamCoalitionScore.findMany({
+		return getScoreHistory(req, res, prisma, {
+			fixed_type_id: fixedType.type,
+		}, { field: 'type', value: fixedType.type });
+	});
+
+	app.get('/admin/points/history/intra_type_id/:intraTypeId', async (req, res) => {
+		const intraTypeId = req.params.intraTypeId;
+		const parsedIntraTypeId = parseInt(intraTypeId);
+		if (!intraTypeId || isNaN(parsedIntraTypeId)) {
+			return res.status(400).send('Invalid Intra Type ID');
+		}
+
+		return getScoreHistory(req, res, prisma, {
+			type_intra_id: parsedIntraTypeId,
+		}, { field: 'intra_type_id', value: intraTypeId
+		});
+	});
+
+	app.get('/admin/points/history/date/:date', async (req, res) => {
+		const date = req.params.date;
+		const parsedDate = new Date(date);
+		if (!date || isNaN(parsedDate.getTime())) {
+			return res.status(400).json({ error: 'Invalid date' });
+		}
+
+		return getScoreHistory(req, res, prisma, {
+			created_at: {
+				gte: new Date(parsedDate.setHours(0, 0, 0, 0)),
+				lte: new Date(parsedDate.setHours(23, 59, 59, 999)),
+			}
+		}, { field: 'date', value: parsedDate.toISOString().split('T')[0] });
+	});
+
+	app.get('/admin/points/history/coalition/:coalitionName', async (req, res) => {
+		const coalitionName = req.params.coalitionName;
+		if (!coalitionName) {
+			return res.status(400).send('Invalid coalition name');
+		}
+
+		const coalition = await prisma.codamCoalition.findFirst({
 			where: {
-				user_id: user.id,
+				intra_coalition: {
+					name: {
+						equals: coalitionName,
+						mode: 'insensitive',
+					},
+				},
 			},
 			select: {
 				id: true,
-				intra_score_id: true,
-				amount: true,
-				reason: true,
-				created_at: true,
-				fixed_type_id: true,
-				type_intra_id: true,
-				coalition_id: true,
-				coalition: false,
-				fixed_type: false,
-			},
-			orderBy: {
-				created_at: 'desc',
-			},
-			take: SCORES_PER_PAGE,
-			skip: offset,
-		});
-
-		// Retrieve all coalitions
-		const coalitionRows = await prisma.codamCoalition.findMany({
-			select: {
-				intra_coalition: true,
 			},
 		});
 
-		// Create a map of coalition id to coalition object
-		const coalitions: { [key: number]: any } = {};
-		for (const row of coalitionRows) {
-			coalitions[row.intra_coalition.id] = row;
+		if (!coalition) {
+			return res.status(404).send('Coalition not found');
 		}
 
-		// Create a list of pages for the pagination nav
-		const pageNav = getPageNav(pageNum, totalPages);
+		return getScoreHistory(req, res, prisma, {
+			coalition_id: coalition.id,
+		}, { field: 'coalition', value: coalitionName
+		});
+	});
 
-		return res.render('admin/points/history.njk', {
-			scores,
-			coalitions,
-			pageNum,
-			totalPages,
-			pageNav,
+	app.get('/admin/points/history/reason/:partialReason', async (req, res) => {
+		const partialReason = req.params.partialReason;
+		if (!partialReason) {
+			return res.status(400).send('Invalid partial reason');
+		}
+
+		return getScoreHistory(req, res, prisma, {
+			reason: {
+				contains: partialReason,
+				mode: 'insensitive',
+
+			},
+		}, { field: 'reason', value: partialReason
 		});
 	});
 

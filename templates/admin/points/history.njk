@@ -9,6 +9,47 @@
 	</ol>
 </nav>
 
+<form class="row g-3 mb-3" id="searchfilterform" method="GET" action="/admin/points/history">
+	<div class="col">
+		<select id="searchfilter" name="searchfilter" class="form-select" required>
+			<option value="" {{ "selected" if searchFilter == "" or searchFilter == "none" }} disabled hidden>Choose a filter</option>
+			<option value="none">No filter</option>
+			<option value="login" {{ "selected" if searchFilter == "login" }}>Login</option>
+			<option value="type" {{ "selected" if searchFilter == "type" }}>Type</option>
+			<option value="reason" {{ "selected" if searchFilter == "reason" }}>Reason (includes text)</option>
+			<option value="intra_type_id" {{ "selected" if searchFilter == "intra_type_id" }}>Intra Type ID</option>
+			<option value="date" {{ "selected" if searchFilter == "date" }}>Date (format YYYY-MM-DD)</option>
+			<option value="coalition" {{ "selected" if searchFilter == "coalition" }}>Coalition Name</option>
+		</select>
+	</div>
+	<div class="col">
+		<input type="text" id="searchfilterval" name="searchfilterval" class="form-control" placeholder="Filter value..." value="{{ searchFilterVal | default('') }}" required>
+	</div>
+	<div class="col">
+		<button type="submit" class="btn btn-primary" id="searchfilterbtn">Search</button>
+	</div>
+</form>
+<script>
+document.getElementById('searchfilterform').addEventListener('submit', function(ev) {
+	// Prevent form submission
+	ev.preventDefault();
+
+	const filter = document.getElementById('searchfilter').value;
+	const value = document.getElementById('searchfilterval').value.trim();
+
+	if (filter === 'none') {
+		// No filter selected, proceed to regular point history
+		window.location.href = '/admin/points/history';
+	}
+	else {
+		// Redirect to the appropriate URL based on the selected filter
+		window.location.href = '/admin/points/history/' + encodeURIComponent(filter) + '/' + encodeURIComponent(value);
+	}
+
+	return false;
+});
+</script>
+
 <table class="table coalition-colored">
 	<thead>
 		<th scope="col">Internal ID</th>
