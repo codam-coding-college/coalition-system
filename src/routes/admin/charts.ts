@@ -3,9 +3,18 @@ import { PrismaClient } from '@prisma/client';
 import { CURSUS_ID } from '../../env';
 import { ChartConfiguration } from 'chart.js';
 import { getBlocAtDate } from '../../utils';
+import NodeCache from 'node-cache';
+
+const adminChartDataCache = new NodeCache({ stdTTL: 60 * 5, checkperiod: 60 * 5 });
 
 export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/charts/coalitions/users/distribution', async (req, res) => {
+		// Check cache first
+		const cachedData = adminChartDataCache.get<ChartConfiguration>('coalitionsUsersDistribution');
+		if (cachedData) {
+			return res.json(cachedData);
+		}
+
 		// Get the distribution of users per coalition
 		const distribution = await prisma.intraCoalitionUser.groupBy({
 			by: ['coalition_id'],
@@ -77,12 +86,23 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 				},
 			},
 		}
+
+		// Cache and return the data
+		adminChartDataCache.set('coalitionsUsersDistribution', chartJSData);
+
 		return res.json(chartJSData);
 	});
 
 	app.get('/admin/charts/coalitions/:coalitionId/scores/distribution', async (req, res) => {
 		try {
 			const coalitionId = parseInt(req.params.coalitionId);
+
+			// Check cache first
+			const cachedData = adminChartDataCache.get<ChartConfiguration>(`coalitionScoresDistribution_${coalitionId}`);
+			if (cachedData) {
+				return res.json(cachedData);
+			}
+
 			const coalition = await prisma.intraCoalition.findFirst({
 				where: {
 					id: coalitionId,
@@ -100,6 +120,7 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 			if (!currentBloc) {
 				throw new Error('No current bloc found');
 			}
+
 			const scores = await prisma.codamCoalitionScore.groupBy({
 				by: ['user_id'],
 				where: {
@@ -181,6 +202,9 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 					},
 				}
 			};
+
+			// Cache and return the data
+			adminChartDataCache.set(`coalitionScoresDistribution_${coalitionId}`, chartJSData);
 
 			return res.json(chartJSData);
 		}

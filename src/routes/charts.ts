@@ -2,10 +2,19 @@ import { PrismaClient } from '@prisma/client';
 import { ChartConfiguration } from 'chart.js';
 import { Express } from 'express';
 import { CoalitionScore, getBlocAtDate, getCoalitionScore } from '../utils';
+import NodeCache from 'node-cache';
+
+const chartDataCache = new NodeCache({ stdTTL: 60 * 5, checkperiod: 60 * 5 });
 
 export const setupChartRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/charts/coalitions/scores/history', async (req, res) => {
 		try {
+			// Check cache first
+			const cachedData = chartDataCache.get<ChartConfiguration>('coalitionsScoresHistory');
+			if (cachedData) {
+				return res.json(cachedData);
+			}
+
 			const now = new Date();
 			const currentBloc = await getBlocAtDate(prisma, now);
 			if (!currentBloc) {
@@ -82,6 +91,9 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 				});
 			}
 
+			// Cache and return the data
+			chartDataCache.set('coalitionsScoresHistory', chartJSData);
+
 			return res.json(chartJSData);
 		}
 		catch (err) {
@@ -92,12 +104,18 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 
 	app.get('/charts/coalitions/:coalitionId/scores/history', async (req, res) => {
 		try {
+			// Check cache first
+			const coalitionId = parseInt(req.params.coalitionId);
+			const cachedData = chartDataCache.get<ChartConfiguration>(`coalitionsScoresHistory_${coalitionId}`);
+			if (cachedData) {
+				return res.json(cachedData);
+			}
+
 			const now = new Date();
 			const currentBloc = await getBlocAtDate(prisma, now);
 			if (!currentBloc) {
 				throw new Error('No season is currently ongoing');
 			}
-			const coalitionId = parseInt(req.params.coalitionId);
 			const coalition = await prisma.intraCoalition.findFirst({
 				where: {
 					id: coalitionId,
@@ -200,6 +218,9 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 				}
 			};
 
+			// Cache and return the data
+			chartDataCache.set(`coalitionsScoresHistory_${coalitionId}`, chartJSData);
+
 			return res.json(chartJSData);
 		}
 		catch (err) {
@@ -232,6 +253,13 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			if (!user || !user.coalition_users || user.coalition_users.length === 0) {
 				return res.status(404).send('User not found or not in a coalition');
 			}
+
+			// Check cache first
+			const cachedData = chartDataCache.get<ChartConfiguration>(`coalitionsScoresHistory_${user.id}`);
+			if (cachedData) {
+				return res.json(cachedData);
+			}
+
 			const now = new Date();
 			const currentBloc = await getBlocAtDate(prisma, now);
 			if (!currentBloc) {
@@ -309,6 +337,9 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 				}
 			};
 
+			// Cache and return the data
+			chartDataCache.set(`coalitionsScoresHistory_${user.id}`, chartJSData);
+
 			return res.json(chartJSData);
 		}
 		catch (err) {
@@ -340,6 +371,12 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			});
 			if (!user || !user.coalition_users || user.coalition_users.length === 0) {
 				return res.status(404).send('User not found or not in a coalition');
+			}
+
+			// Check cache first
+			const cachedData = chartDataCache.get<ChartConfiguration>(`coalitionsScoresHistorySplit_${user.id}`);
+			if (cachedData) {
+				return res.json(cachedData);
 			}
 
 			const now = new Date();
@@ -435,6 +472,9 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 					},
 				}
 			};
+
+			// Cache and return the data
+			chartDataCache.set(`coalitionsScoresHistorySplit_${user.id}`, chartJSData);
 
 			return res.json(chartJSData);
 		}
