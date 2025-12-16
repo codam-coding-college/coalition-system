@@ -108,6 +108,9 @@
 					<h5 class="card-title mb-0">Most recent big contributions</h5>
 				</div>
 				<div class="card-body p-0">
+					{% if user.isStaff %}
+						<p class="m-2 text-end"><a href="/admin/points/history/coalition/{{ coalition.intra_coalition.name | lower | striptags(true) | escape }}">View and/or modify point history in admin panel</a></p>
+					{% endif %}
 					<table class="table table-striped mb-0">
 						<thead>
 							<th scope="col">Date</th>

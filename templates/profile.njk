@@ -12,7 +12,7 @@
 		<div class="col-md-5 text-center text-md-start mt-4 mt-md-0">
 			<h3>{{ profileUser.usual_full_name | striptags(true) | escape }}</h3>
 			<p><i>{{ profileUser.login | striptags(true) | escape }}</i></p>
-			<p><a href="https://profile.intra.42.fr/users/{{ profileUser.login }}" target="_blank">42 Profile</a></p>
+			<p><a href="https://profile.intra.42.fr/users/{{ profileUser.login | striptags(true) | escape }}" target="_blank">42 Profile</a></p>
 		</div>
 		<div class="col-md-4 text-center text-md-end mt-4 mt-md-0">
 			<ul class="list-unstyled">
@@ -95,6 +95,9 @@
 					<h5 class="card-title mb-0">Last 100 contributions</h5>
 				</div>
 				<div class="card-body p-0">
+					{% if user.isStaff %}
+						<p class="m-2 text-end"><a href="/admin/points/history/login/{{ profileUser.login | striptags(true) | escape }}">View and/or modify point history in admin panel</a></p>
+					{% endif %}
 					<table class="table coalition-colored mb-0">
 						<thead>
 							<th scope="col">Date</th>
