@@ -4,7 +4,7 @@ import { getBlocAtDate, getCoalitionScore, scoreBelongsToBloc } from '../utils';
 import { fetchSingle42ApiPage } from '../sync/base';
 import { CAMPUS_ID, CURSUS_ID } from '../env';
 
-const intraScoreSyncingPossible = async function(prisma: PrismaClient, score: CodamCoalitionScore | null): Promise<boolean> {
+export const intraScoreSyncingPossible = async function(prisma: PrismaClient, score: CodamCoalitionScore | null): Promise<boolean> {
 	// Intra scores can only be created in the present, not in the past, so we only care about scores
 	// that belong to the currently ongoing season.
 
