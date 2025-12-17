@@ -9,7 +9,7 @@ import { deleteIntraScore, intraScoreSyncingPossible, syncIntraScore, syncTotalC
 const SCORES_PER_PAGE = 100;
 
 interface ScoreHistoryFilter {
-	field: 'login' | 'type' | 'intra_type_id' | 'date' | 'coalition' | 'reason' | 'intra_score_id' | 'none';
+	field: 'login' | 'type' | 'intra_type_id' | 'date' | 'coalition' | 'reason' | 'intra_score_id' | 'internal_score_id' | 'none';
 	value?: string;
 };
 
@@ -212,6 +212,18 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			},
 		}, { field: 'reason', value: partialReason
 		});
+	});
+
+	app.get('/admin/points/history/internal_score_id/:codamScoreId', async (req, res) => {
+		const codamScoreId = req.params.codamScoreId;
+		const parsedCodamScoreId = parseInt(codamScoreId);
+		if (isNaN(parsedCodamScoreId)) {
+			return res.status(400).send('Invalid Codam Score ID');
+		}
+
+		return getScoreHistory(req, res, prisma, {
+			id: parsedCodamScoreId,
+		}, { field: 'internal_score_id', value: codamScoreId });
 	});
 
 	app.get('/admin/points/history/intra_score_id/:intraScoreId', async (req, res) => {
