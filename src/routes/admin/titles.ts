@@ -167,7 +167,7 @@ export const setupAdminTitleRoutes = function(app: Express, prisma: PrismaClient
 		try {
 			if (NODE_ENV === 'production' && title.intra_title_id) {
 				const api = await getAPIClient();
-				const patch = await api.patch(`/v2/titles/${title.intra_title_id}`, {
+				const patch = await api.patch(`/titles/${title.intra_title_id}`, {
 					name: req.body.title,
 				});
 				if (!patch.ok) {
