@@ -45,11 +45,6 @@ export const deleteIntraScore = async function(prisma: PrismaClient, api: Fast42
 				intra_score_id: null,
 			},
 		});
-		// await prisma.intraScore.delete({
-		// 	where: {
-		// 		id: score.intra_score_id,
-		// 	},
-		// });
 	}
 	else {
 		console.warn(`Failed to delete Intra score, HTTP status ${del.status} ${del.statusText}`);
@@ -83,20 +78,6 @@ const createIntraScore = async function(prisma: PrismaClient, api: Fast42, score
 	try {
 		const postBody = await post.json();
 		console.log(`Intra score created, id ${postBody.id}. Updating Codam coalition score...`);
-		// await prisma.intraScore.create({
-		// 	data: {
-		// 		id: postBody.id,
-		// 		coalition_id: postBody.coalition_id,
-		// 		scoreable_id: postBody.scoreable_id,
-		// 		scoreable_type: postBody.scoreable_type,
-		// 		coalitions_user_id: postBody.coalitions_user_id,
-		// 		calculation_id: postBody.calculation_id,
-		// 		value: postBody.value,
-		// 		reason: postBody.reason,
-		// 		created_at: new Date(postBody.created_at),
-		// 		updated_at: new Date(postBody.updated_at),
-		// 	},
-		// });
 		// Check if a score was created in the meantime due to multithreading
 		const currentIntraScoreId = await prisma.codamCoalitionScore.findFirst({
 			where: {

@@ -263,7 +263,6 @@ model IntraCoalition {
 	blocs            IntraBloc[]
 	coalition_users  IntraCoalitionUser[]
 	deadlines        IntraBlocDeadline[]
-	// scores           IntraScore[]
 
 	// Codam
 	codam_coalition  CodamCoalition?
@@ -284,7 +283,6 @@ model IntraCoalitionUser {
 	// Relations
 	user             IntraUser        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 	coalition        IntraCoalition   @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-	// scores           IntraScore[]
 }
 
 model IntraCursusUser {
@@ -302,29 +300,6 @@ model IntraCursusUser {
 	// Relations
 	user             IntraUser     @relation(fields: [user_id], references: [id])
 }
-
-// Intra Score
-// Defines a score that a user has received for their coalition
-// model IntraScore {
-// 	id               Int      @id
-// 	coalition_id     Int      // Coalition that scored the points
-// 	scoreable_id     Int?     // Id of the object that caused the score to be created
-// 	scoreable_type   String?  // Defines what the scoreable_id points to (e.g. ScaleTeam, ProjectsUser, can be anything really)
-// 	coalitions_user_id Int?   // Coalitions_user of the user who scored the points
-// 	calculation_id   Int?     // Calculation used to determine amount of points (null if coming from a manual action)
-// 	value            Int      // Points scored
-// 	reason           String   // (Visible) reason for the points being scored
-
-// 	created_at       DateTime
-// 	updated_at       DateTime
-
-// 	// Relations
-// 	coalition        IntraCoalition       @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-// 	coalitions_user  IntraCoalitionUser?  @relation(fields: [coalitions_user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-// 	// Codam
-// 	codam_score      CodamCoalitionScore?
-// }
 
 // Intra Project
 // Defines a project in Intra, used for the coalition system's point system
