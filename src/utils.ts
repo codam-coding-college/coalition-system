@@ -301,7 +301,7 @@ export const scoreBelongsToBloc = function(score: CodamCoalitionScore, bloc: Int
 	return score.created_at >= bloc.begin_at && score.created_at < bloc.end_at;
 };
 
-export const getUserTournamentRanking = async function(prisma: PrismaClient, userId: number, date: Date = new Date()): Promise<number> {
+export const getUserSeasonRanking = async function(prisma: PrismaClient, userId: number, date: Date = new Date()): Promise<number> {
 	const userCoalition = await prisma.intraCoalitionUser.findFirst({
 		where: {
 			user_id: userId,

@@ -1,5 +1,5 @@
 {% extends "base.njk" %}
-{% set title = "Edit ranking " + ranking.name %}
+{% set page_title = "Edit ranking " + ranking.name %}
 
 {% block content %}
 <nav aria-label="breadcrumb">
@@ -51,8 +51,11 @@
 				<option value="{{ fixedPointType.type }}" {{ "selected" if fixedPointType.type in selectedFixedPointTypes else "" }}>{{ fixedPointType.type }}</option>
 			{% endfor %}
 		</select>
+	</div>
 
-	<button type="submit" class="btn btn-primary">Save</button>
-	<a href="/admin/rankings" class="btn btn-secondary">Back to overview</a>
+	<div class="mt-4">
+		<button type="submit" class="btn btn-primary">Save</button>
+		<a href="/admin/rankings" class="btn btn-secondary">Back to overview</a>
+	</div>
 </form>
 {% endblock %}

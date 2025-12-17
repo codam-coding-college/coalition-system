@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getUserScores, getUserRankingAcrossAllRankings, getUserTournamentRanking, SMALL_CONTRIBUTION_TYPES } from '../utils';
+import { getUserScores, getUserRankingAcrossAllRankings, getUserSeasonRanking, SMALL_CONTRIBUTION_TYPES } from '../utils';
 import NodeCache from 'node-cache';
 
 export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): void {
@@ -31,7 +31,7 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 
 		const now = new Date();
 		const { userScores, totalScore } = await getUserScores(prisma, profileUser.id, now);
-		const ranking = await getUserTournamentRanking(prisma, profileUser.id);
+		const ranking = await getUserSeasonRanking(prisma, profileUser.id);
 
 		const latestScores = await prisma.codamCoalitionScore.findMany({
 			where: {

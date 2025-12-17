@@ -22,7 +22,7 @@ export const setupAdminRankingRoutes = function(app: Express, prisma: PrismaClie
 		}
 
 		try {
-			await prisma.codamCoalitionRanking.create({
+			const ranking = await prisma.codamCoalitionRanking.create({
 				data: {
 					type: req.body.name.toLowerCase().replace(/ /g, '_'),
 					name: req.body.name,
@@ -32,13 +32,13 @@ export const setupAdminRankingRoutes = function(app: Express, prisma: PrismaClie
 					disabled: req.body.disabled === 'true',
 				},
 			});
+
+			return res.redirect(`/admin/rankings/${ranking.type}/edit`);
 		}
 		catch (err) {
 			console.error(err);
 			return res.status(400).send('Failed to create ranking');
 		}
-
-		return res.redirect(`/admin/rankings`);
 	});
 
 	app.get('/admin/rankings/:type/edit', async function(req, res) {
@@ -83,7 +83,7 @@ export const setupAdminRankingRoutes = function(app: Express, prisma: PrismaClie
 		}
 
 		if (!req.body.name || !req.body.description || !req.body.top_title || !req.body.bonus_points || !req.body.fixed_types) {
-			return res.status(400).send('Missing body parts; required are name, description, top_title, and bonus_points');
+			return res.status(400).send('Missing body parts; required are name, description, top_title, bonus_points and fixed_types');
 		}
 
 		if (typeof req.body.fixed_types === 'string') {

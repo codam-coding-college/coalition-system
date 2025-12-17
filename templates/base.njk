@@ -13,7 +13,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>{{ title | e if title }}{{ " | " if title }}Codam Coalition System</title>
+	<title>{{ page_title | e if page_title }}{{ " | " if page_title }}Codam Coalition System</title>
 	<meta name="theme-color" content="#6610f2" />
 
 	<!-- dependencies -->
@@ -56,6 +56,7 @@
 							<li><a class="dropdown-item" href="/admin/points/history">Point history</a></li>
 							<li><a class="dropdown-item" href="/admin/points/shift">Points shifter</a></li>
 							<li><a class="dropdown-item" href="/admin/rankings">Edit rankings system</a></li>
+							<li><a class="dropdown-item" href="/admin/titles">Edit titles system</a></li>
 							<li><a class="dropdown-item" href="/admin/users">Users overview</a></li>
 							<li><a class="dropdown-item" href="/admin/quiz">Questionnaire settings</a></li>
 							<li><a class="dropdown-item" href="/admin/coalitions">Coalition settings</a></li>

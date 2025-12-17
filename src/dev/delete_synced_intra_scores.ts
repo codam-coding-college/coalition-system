@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import { INTRA_API_UID, INTRA_API_SECRET } from '../env';
 import Fast42 from '@codam/fast42';
 const prisma = new PrismaClient();
 import readline from 'readline';
@@ -28,8 +27,8 @@ const main = async function(): Promise<void> {
 	});
 
 	const api = await new Fast42([{
-		client_id: INTRA_API_UID,
-		client_secret: INTRA_API_SECRET,
+		client_id: process.env.INTRA_API_UID!,
+		client_secret: process.env.INTRA_API_SECRET!,
 	}]).init();
 
 	let i = 0;

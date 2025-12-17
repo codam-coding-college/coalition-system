@@ -1,0 +1,39 @@
+{% extends "base.njk" %}
+{% set page_title = "Edit title " + title.title %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/titles">Edit titles system</a></li>
+		<li class="breadcrumb-item active" aria-current="page">{{ title.title }}</li>
+	</ol>
+</nav>
+
+<form action="/admin/titles/{{ title.id }}/edit" method="post">
+	<div class="mb-2">
+		<label for="title" class="form-label">Title</label>
+		<input type="text" id="title" name="title" class="form-control" placeholder="Title" value="{{ title.title | striptags(true) | escape }}" required readonly>
+		<small class="form-text text-muted">Include <code>%login</code> in the title, as this piece of text gets replaced with the student's login.</small>
+	</div>
+
+	<div class="mb-2">
+		<label for="coalition_id" class="form-label">Coalition</label>
+		<select id="coalition_id" name="coalition_id" class="form-select" required>
+			{% for coalition in coalitions %}
+				<option value="{{ coalition.id }}" {{ "selected" if title.coalition_id == coalition.id else "" }}>{{ coalition.intra_coalition.name | striptags(true) | escape }}</option>
+			{% endfor %}
+		</select>
+	</div>
+
+	<div class="mb-2">
+		<label for="ranking" class="form-label">Ranking</label>
+		<input type="number" id="ranking" name="ranking" class="form-control" placeholder="#..." value="{{ title.ranking }}" required min="0" step="1">
+	</div>
+
+	<div class="mt-4">
+		<button type="submit" class="btn btn-primary">Save</button>
+		<a href="/admin/titles" class="btn btn-secondary">Back to overview</a>
+	</div>
+</form>
+{% endblock %}

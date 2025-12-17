@@ -13,6 +13,7 @@ import { syncCursusUsers } from './cursus_users';
 import { syncScores } from './scores';
 import { getBlocAtDate } from '../utils';
 import { handleRankingBonuses } from './rankings';
+import { syncTitles } from './titles';
 import { calculateResults } from './results';
 
 export const prisma = new PrismaClient();
@@ -231,6 +232,7 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 		await syncBlocs(api, now); // also syncs coalitions
 		await syncCoalitionUsers(api, lastSync, now);
 		await handleRankingBonuses();
+		await syncTitles(api);
 		await calculateResults();
 		await cleanupDB(api);
 
