@@ -78,7 +78,7 @@ const createIntraScore = async function(prisma: PrismaClient, api: Fast42, score
 		}
 	});
 	if (!post.ok) {
-		throw new Error(`Failed to create Intra score, HTTP status ${post.status} ${post.statusText}`);
+		throw new Error(`Failed to create Intra score for CodamCoalitionScore ${score.id}, HTTP status ${post.status} ${post.statusText}`);
 	}
 	try {
 		const postBody = await post.json();
