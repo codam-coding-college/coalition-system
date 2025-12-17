@@ -56,7 +56,7 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 			});
 			if (existingTitleUser) {
 				// Check if any changes were made
-				if (existingTitleUser.title_id === titleRecord.id) {
+				if (existingTitleUser.title_id === titleRecord.id && existingTitleUser.intra_title_user_id !== null) {
 					console.debug(`User ${rankings[i].user.login} already has title ID ${titleRecord.id} for coalition ${coalition.intra_coalition.name} rank ${rank}, skipping...`);
 					continue;
 				}
