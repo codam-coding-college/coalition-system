@@ -62,7 +62,7 @@ export const setupAdminTitleRoutes = function(app: Express, prisma: PrismaClient
 			let intraTitle = { id: null };
 			if (NODE_ENV === 'production') {
 				const api = await getAPIClient();
-				const post = await api.post('/v2/titles', {
+				const post = await api.post('/titles', {
 					name: req.body.title,
 				});
 				intraTitle = await post.json();

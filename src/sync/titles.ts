@@ -77,7 +77,7 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 					if (existingTitleUser.intra_title_user_id) {
 						// Existing title_user, just update the title_id connected to the user
 						console.debug(`Patching Intra TitlesUser ID ${existingTitleUser.intra_title_user_id} with Intra title id ${titleRecord.intra_title_id} for user ${rankings[i].user.login} on Intra...`);
-						const patch = await api.patch(`/v2/users/${rankings[i].user.login}`, {
+						const patch = await api.patch(`/titles_users/${existingTitleUser.intra_title_user_id}`, {
 							title_id: titleRecord.intra_title_id,
 						});
 						if (!patch.ok) {
@@ -86,7 +86,7 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 					} else {
 						// User hasn't had a coalition title on Intra yet, create it
 						console.debug(`Creating new Intra TitlesUser with Intra title id ${titleRecord.intra_title_id} for user ${rankings[i].user.login} on Intra...`);
-						const post = await api.post(`/v2/titles_users`, {
+						const post = await api.post(`/titles_users`, {
 							user_id: rankings[i].user.id,
 							title_id: titleRecord.intra_title_id,
 						});
@@ -123,7 +123,7 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 				// Award title on Intra
 				if (NODE_ENV === 'production') {
 					console.debug(`Creating new Intra TitlesUser with Intra title id ${titleRecord.intra_title_id} for user ${rankings[i].user.login} on Intra...`);
-					const post = await api.post(`/v2/titles_users`, {
+					const post = await api.post(`/titles_users`, {
 						user_id: rankings[i].user.id,
 						title_id: titleRecord.intra_title_id,
 					});
