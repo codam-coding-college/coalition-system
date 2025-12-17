@@ -9,7 +9,7 @@ import { deleteIntraScore, intraScoreSyncingPossible, syncIntraScore, syncTotalC
 const SCORES_PER_PAGE = 100;
 
 interface ScoreHistoryFilter {
-	field: 'login' | 'type' | 'intra_type_id' | 'date' | 'coalition' | 'reason' | 'none';
+	field: 'login' | 'type' | 'intra_type_id' | 'date' | 'coalition' | 'reason' | 'intra_score_id' | 'none';
 	value?: string;
 };
 
@@ -212,6 +212,25 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			},
 		}, { field: 'reason', value: partialReason
 		});
+	});
+
+	app.get('/admin/points/history/intra_score_id/:intraScoreId', async (req, res) => {
+		const intraScoreId = req.params.intraScoreId;
+
+		if (!intraScoreId || intraScoreId === "null") {
+			return getScoreHistory(req, res, prisma, {
+				intra_score_id: null,
+			}, { field: 'intra_score_id', value: "null" });
+		}
+
+		const parsedIntraScoreId = parseInt(intraScoreId);
+		if (isNaN(parsedIntraScoreId)) {
+			return res.status(400).send('Invalid Intra Score ID');
+		}
+
+		return getScoreHistory(req, res, prisma, {
+			intra_score_id: parsedIntraScoreId,
+		}, { field: 'intra_score_id', value: intraScoreId });
 	});
 
 	app.get('/admin/points/history/:id', async (req, res) => {
