@@ -1,6 +1,6 @@
 // Load the .env file
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env', debug: true });
+dotenv.config({ path: '.env', debug: (NODE_ENV === 'development') });
 
 // Imports for the server
 import express from 'express';
