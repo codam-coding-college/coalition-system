@@ -91,12 +91,25 @@ export const setupNunjucksFilters = function(app: Express): void {
 		return arr.join(separator);
 	});
 
-	// Add filter to join an array of objects with a separator, of a specific key
+	// Add filter to join an array of objects with a separator, of a specific key, or a key within a nested object
 	nunjucksEnv.addFilter('keyjoin', (arr: any[] | undefined | null, key: string, separator: string) => {
 		if (!arr || typeof arr !== 'object' || !Array.isArray(arr)) {
 			return '';
 		}
-		return arr.map((obj) => obj[key]).join(separator);
+		return arr.map((obj) => {
+			const keys = key.split('.');
+			let value = obj;
+			for (const k of keys) {
+				if (value && k in value) {
+					value = value[k];
+				}
+				else {
+					value = '';
+					break;
+				}
+			}
+			return value;
+		}).join(separator);
 	});
 
 	// Add filter to transform a boolean to a string

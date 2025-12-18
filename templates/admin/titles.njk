@@ -17,7 +17,7 @@
 		<th scope="col">Ranking</th>
 		<th scope="col">Title</th>
 		<th scope="col">Intra Title ID</th>
-		<th scope="col">Current user</th>
+		<th scope="col">Current user(s)</th>
 		<th scope="col text-end" style="text-align: end;">Options</th> <!-- for some reason the text-end class doesn't work here -->
 	</thead>
 	<tbody>
@@ -27,7 +27,8 @@
 				<td>{{ title.ranking }}</td>
 				<td>{{ title.title | striptags(true) | escape }}</td>
 				<td>{{ title.intra_title_id if title.intra_title_id else "N/A" }}</td>
-				<td>{{ title.title_users[0].user.intra_user.login if title.title_users.length > 0 else "N/A" }}</td>
+				{# <td>{{ title.title_users[0].user.intra_user.login if title.title_users.length > 0 else "N/A" }}</td> #}
+				<td>{{ title.title_users | keyjoin('user.intra_user.login', ', ') }}</td>
 				<td class="text-end">
 					<a href="/admin/titles/{{ title.id }}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
 				</td>
