@@ -13,7 +13,7 @@
 <form action="/admin/titles/{{ title.id }}/edit" method="post">
 	<div class="mb-2">
 		<label for="title" class="form-label">Title</label>
-		<input type="text" id="title" name="title" class="form-control" placeholder="Title" value="{{ title.title | striptags(true) | escape }}" required readonly>
+		<input type="text" id="title" name="title" class="form-control" placeholder="Title" value="{{ title.title | striptags(true) | escape }}" required>
 		<small class="form-text text-muted">Include <code>%login</code> in the title, as this piece of text gets replaced with the student's login.</small>
 	</div>
 
