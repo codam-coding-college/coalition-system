@@ -1,8 +1,8 @@
 import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import { INTRA_TEST_ACCOUNTS } from '../env';
 import { syncIntraScore } from './intrascores';
-import Fast42 from '@codam/fast42';
 import { getAPIClient, getBlocAtDate } from '../utils';
+import { generateChartAllCoalitionScoreHistory, generateChartCoalitionScoreHistory } from '../routes/charts';
 
 const INCLUDE_IN_SCORE_RETURN_DATA = {
 	user: {
@@ -82,6 +82,11 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 			console.error(`Failed to sync Intra score for Codam score ${score.id}. Error:`, err);
 		}
 	}
+
+	// Start caching updated charts, but don't wait for that to finish
+	generateChartAllCoalitionScoreHistory(prisma);
+	generateChartCoalitionScoreHistory(prisma, coalitionUser.coalition_id);
+
 	return score;
 }
 
@@ -100,6 +105,10 @@ export const updateScore = async function(prisma: PrismaClient, score: CodamCoal
 
 	const api = await getAPIClient();
 	await syncIntraScore(prisma, api, score, true);
+
+	// Start caching updated charts, but don't wait for that to finish
+	generateChartAllCoalitionScoreHistory(prisma);
+	generateChartCoalitionScoreHistory(prisma, score.coalition_id);
 
 	return await prisma.codamCoalitionScore.findFirstOrThrow({
 		where: {
@@ -123,6 +132,10 @@ export const shiftScore = async function(prisma: PrismaClient, scoreId: number, 
 
 	const api = await getAPIClient();
 	await syncIntraScore(prisma, api, score, false); // Sync this score but not the total coalition score, as we often move many points at once when shifting scores. Better to sync the total score once at the end.
+
+	// Start caching updated charts, but don't wait for that to finish
+	generateChartAllCoalitionScoreHistory(prisma);
+	generateChartCoalitionScoreHistory(prisma, score.coalition_id);
 
 	return score;
 }

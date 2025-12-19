@@ -6,95 +6,221 @@ import NodeCache from 'node-cache';
 
 const chartDataCache = new NodeCache({ stdTTL: 60 * 5, checkperiod: 60 * 5 });
 
-export const setupChartRoutes = function(app: Express, prisma: PrismaClient): void {
-	app.get('/charts/coalitions/scores/history', async (req, res) => {
-		try {
-			// Check cache first
-			const cachedData = chartDataCache.get<ChartConfiguration>('coalitionsScoresHistory');
-			if (cachedData) {
-				return res.json(cachedData);
-			}
+export const generateChartAllCoalitionScoreHistory = async function(prisma: PrismaClient, invalidateCache: boolean = false): Promise<ChartConfiguration> {
+	// Check cache first
+	if (!invalidateCache) {
+		const cachedData = chartDataCache.get<ChartConfiguration>('coalitionsScoresHistory');
+		if (cachedData) {
+			return cachedData;
+		}
+	}
 
-			const now = new Date();
-			const currentBloc = await getBlocAtDate(prisma, now);
-			if (!currentBloc) {
-				throw new Error('No season is currently ongoing');
-			}
-			const coalitions = await prisma.intraCoalition.findMany({
-				select: {
-					id: true,
-					name: true,
-					color: true,
-				}
-			});
-			if (coalitions.length === 0) {
-				throw new Error('No coalitions found');
-			}
-			// Get the scores since the beginning of the season, 1 data point per day
-			const dates = [];
-			const blocStart = currentBloc.begin_at;
-			const dailyBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (24 * 60 * 60 * 1000));
-			for (let i = 0; i <= dailyBlocsSinceBlocStart; i++) {
-				dates.push(new Date(blocStart.getTime() + i * 24 * 60 * 60 * 1000));
-			}
-			dates.push(now); // always add the current score
+	const now = new Date();
+	const currentBloc = await getBlocAtDate(prisma, now);
+	if (!currentBloc) {
+		throw new Error('No season is currently ongoing');
+	}
+	const coalitions = await prisma.intraCoalition.findMany({
+		select: {
+			id: true,
+			name: true,
+			color: true,
+		}
+	});
+	if (coalitions.length === 0) {
+		throw new Error('No coalitions found');
+	}
+	// Get the scores since the beginning of the season, 1 data point per day
+	const dates = [];
+	const blocStart = currentBloc.begin_at;
+	const dailyBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (24 * 60 * 60 * 1000));
+	for (let i = 0; i <= dailyBlocsSinceBlocStart; i++) {
+		dates.push(new Date(blocStart.getTime() + i * 24 * 60 * 60 * 1000));
+	}
+	dates.push(now); // always add the current score
 
-			// Get the scores for each coalition
-			const coalitionDataPoints: { [key: number]: CoalitionScore[] } = {};
-			for (const coalition of coalitions) {
-				const dataPoints: CoalitionScore[] = [];
-				for (const date of dates) {
-					dataPoints[date.getTime()] = await getCoalitionScore(prisma, coalition.id, date);
-				}
-				coalitionDataPoints[coalition.id] = dataPoints;
-			}
+	// Get the scores for each coalition
+	const coalitionDataPoints: { [key: number]: CoalitionScore[] } = {};
+	for (const coalition of coalitions) {
+		const dataPoints: CoalitionScore[] = [];
+		for (const date of dates) {
+			dataPoints[date.getTime()] = await getCoalitionScore(prisma, coalition.id, date);
+		}
+		coalitionDataPoints[coalition.id] = dataPoints;
+	}
 
-			// Compose the returnable data (in a format Chart.js can understand)
-			const chartJSData: ChartConfiguration = {
-				type: 'line',
-				data: {
-					labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`),
-					datasets: [],
-				},
-				options: {
-					showLines: true,
-					scales: {
-						// @ts-ignore
-						x: {
-							title: {
-								display: false,
-								text: 'Date',
-							},
-							// hide x-xaxis labels
-							ticks: {
-								display: false,
-							},
-						},
-						y: {
-							title: {
-								display: true,
-								text: 'Amount of points',
-							},
-						},
+	// Compose the returnable data (in a format Chart.js can understand)
+	const chartJSData: ChartConfiguration = {
+		type: 'line',
+		data: {
+			labels: dates.map((date) => `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`),
+			datasets: [],
+		},
+		options: {
+			showLines: true,
+			scales: {
+				// @ts-ignore
+				x: {
+					title: {
+						display: false,
+						text: 'Date',
 					},
-				}
-			};
-			for (const coalition of coalitions) {
-				chartJSData.data!.datasets!.push({
-					label: coalition.name,
-					data: Object.values(coalitionDataPoints[coalition.id]).map((score) => score.score),
-					borderColor: coalition.color ? coalition.color : '#808080',
-					backgroundColor: coalition.color ? coalition.color : '#808080',
+					// hide x-xaxis labels
+					ticks: {
+						display: false,
+					},
+				},
+				y: {
+					title: {
+						display: true,
+						text: 'Amount of points',
+					},
+				},
+			},
+		}
+	};
+	for (const coalition of coalitions) {
+		chartJSData.data!.datasets!.push({
+			label: coalition.name,
+			data: Object.values(coalitionDataPoints[coalition.id]).map((score) => score.score),
+			borderColor: coalition.color ? coalition.color : '#808080',
+			backgroundColor: coalition.color ? coalition.color : '#808080',
+			fill: false,
+			// @ts-ignore
+			tension: 0.25,
+		});
+	}
+
+	// Cache and return the data
+	chartDataCache.set('coalitionsScoresHistory', chartJSData);
+	return chartJSData;
+};
+
+export const generateChartCoalitionScoreHistory = async function(prisma: PrismaClient, coalitionId: number, invalidateCache: boolean = false): Promise<ChartConfiguration> {
+	// Check cache first
+	if (!invalidateCache) {
+		const cachedData = chartDataCache.get<ChartConfiguration>(`coalitionsScoresHistory_${coalitionId}`);
+		if (cachedData) {
+			return cachedData;
+		}
+	}
+
+	const now = new Date();
+	const currentBloc = await getBlocAtDate(prisma, now);
+	if (!currentBloc) {
+		throw new Error('No season is currently ongoing');
+	}
+	const coalition = await prisma.intraCoalition.findFirst({
+		where: {
+			id: coalitionId,
+		},
+		select: {
+			id: true,
+			name: true,
+			color: true,
+		}
+	});
+	if (!coalition) {
+		throw new Error('Invalid coalition ID');
+	}
+	// Get the scores since the beginning of the season, 2 data points per day
+	const dataPoints: CoalitionScore[] = [];
+	const blocStart = currentBloc.begin_at;
+	const twelveHourBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (12 * 60 * 60 * 1000));
+	for (let i = 0; i < twelveHourBlocsSinceBlocStart; i++) {
+		const date = new Date(blocStart.getTime() + i * 12 * 60 * 60 * 1000);
+		dataPoints[date.getTime()] = await getCoalitionScore(prisma, coalitionId, date);
+	}
+	dataPoints[now.getTime()] = await getCoalitionScore(prisma, coalitionId, now); // always add the current score
+
+	// Compose the returnable data (in a format Chart.js can understand)
+	const chartJSData: ChartConfiguration = {
+		type: 'line',
+		data: {
+			labels: Object.keys(dataPoints).map((timestamp) => {
+				const date = new Date(parseInt(timestamp));
+				return `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+			}),
+			datasets: [
+				{
+					label: 'Score',
+					data: Object.values(dataPoints).map((score) => score.score),
+					// borderColor: coalition.color ? coalition.color : '#808080',
+					// backgroundColor: coalition.color ? coalition.color : '#808080',
 					fill: false,
 					// @ts-ignore
 					tension: 0.25,
-				});
-			}
+				},
+				/*
+				{
+					label: 'Average points',
+					data: Object.values(dataPoints).map((score) => score.avgPoints),
+					// borderColor: coalition.color ? coalition.color : '#808080',
+					// backgroundColor: coalition.color ? coalition.color : '#808080',
+					fill: false,
+					// @ts-ignore
+					tension: 0.25,
+				},
+				{
+					label: 'Standard deviation',
+					data: Object.values(dataPoints).map((score) => score.stdDevPoints),
+					// borderColor: coalition.color ? coalition.color : '#808080',
+					// backgroundColor: coalition.color ? coalition.color : '#808080',
+					fill: false,
+					// @ts-ignore
+					tension: 0.25,
+				},
+				{
+					label: 'Min active points',
+					data: Object.values(dataPoints).map((score) => score.minActivePoints),
+					// borderColor: coalition.color ? coalition.color : '#808080',
+					// backgroundColor: coalition.color ? coalition.color : '#808080',
+					fill: false,
+					// @ts-ignore
+					tension: 0.25,
+				},
+				*/
+			],
+		},
+		options: {
+			showLines: true,
+			scales: {
+				// @ts-ignore
+				x: {
+					title: {
+						display: true,
+						text: 'Date',
+					},
+					// hide x-xaxis labels
+					ticks: {
+						display: false,
+					},
+				},
+				y: {
+					title: {
+						display: true,
+						text: 'Amount of points',
+					},
+					min: 0,
+				},
+			},
+			plugins: {
+				legend: {
+					display: true,
+				}
+			},
+		}
+	};
 
-			// Cache and return the data
-			chartDataCache.set('coalitionsScoresHistory', chartJSData);
+	// Cache and return the data
+	chartDataCache.set(`coalitionsScoresHistory_${coalitionId}`, chartJSData);
+	return chartJSData;
+};
 
-			return res.json(chartJSData);
+export const setupChartRoutes = function(app: Express, prisma: PrismaClient): void {
+	app.get('/charts/coalitions/scores/history', async (req, res) => {
+		try {
+			return res.json(await generateChartAllCoalitionScoreHistory(prisma));
 		}
 		catch (err) {
 			console.error(err);
@@ -104,124 +230,11 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 
 	app.get('/charts/coalitions/:coalitionId/scores/history', async (req, res) => {
 		try {
-			// Check cache first
 			const coalitionId = parseInt(req.params.coalitionId);
-			const cachedData = chartDataCache.get<ChartConfiguration>(`coalitionsScoresHistory_${coalitionId}`);
-			if (cachedData) {
-				return res.json(cachedData);
+			if (!coalitionId || isNaN(coalitionId) || coalitionId <= 0) {
+				return res.status(400).json({ error: 'Invalid coalition ID' });
 			}
-
-			const now = new Date();
-			const currentBloc = await getBlocAtDate(prisma, now);
-			if (!currentBloc) {
-				throw new Error('No season is currently ongoing');
-			}
-			const coalition = await prisma.intraCoalition.findFirst({
-				where: {
-					id: coalitionId,
-				},
-				select: {
-					id: true,
-					name: true,
-					color: true,
-				}
-			});
-			if (!coalition) {
-				throw new Error('Invalid coalition ID');
-			}
-			// Get the scores since the beginning of the season, 2 data points per day
-			const dataPoints: CoalitionScore[] = [];
-			const blocStart = currentBloc.begin_at;
-			const twelveHourBlocsSinceBlocStart = Math.floor((now.getTime() - blocStart.getTime()) / (12 * 60 * 60 * 1000));
-			for (let i = 0; i < twelveHourBlocsSinceBlocStart; i++) {
-				const date = new Date(blocStart.getTime() + i * 12 * 60 * 60 * 1000);
-				dataPoints[date.getTime()] = await getCoalitionScore(prisma, coalitionId, date);
-			}
-			dataPoints[now.getTime()] = await getCoalitionScore(prisma, coalitionId, now); // always add the current score
-
-			// Compose the returnable data (in a format Chart.js can understand)
-			const chartJSData: ChartConfiguration = {
-				type: 'line',
-				data: {
-					labels: Object.keys(dataPoints).map((timestamp) => {
-						const date = new Date(parseInt(timestamp));
-						return `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-					}),
-					datasets: [
-						{
-							label: 'Score',
-							data: Object.values(dataPoints).map((score) => score.score),
-							// borderColor: coalition.color ? coalition.color : '#808080',
-							// backgroundColor: coalition.color ? coalition.color : '#808080',
-							fill: false,
-							// @ts-ignore
-							tension: 0.25,
-						},
-						/*
-						{
-							label: 'Average points',
-							data: Object.values(dataPoints).map((score) => score.avgPoints),
-							// borderColor: coalition.color ? coalition.color : '#808080',
-							// backgroundColor: coalition.color ? coalition.color : '#808080',
-							fill: false,
-							// @ts-ignore
-							tension: 0.25,
-						},
-						{
-							label: 'Standard deviation',
-							data: Object.values(dataPoints).map((score) => score.stdDevPoints),
-							// borderColor: coalition.color ? coalition.color : '#808080',
-							// backgroundColor: coalition.color ? coalition.color : '#808080',
-							fill: false,
-							// @ts-ignore
-							tension: 0.25,
-						},
-						{
-							label: 'Min active points',
-							data: Object.values(dataPoints).map((score) => score.minActivePoints),
-							// borderColor: coalition.color ? coalition.color : '#808080',
-							// backgroundColor: coalition.color ? coalition.color : '#808080',
-							fill: false,
-							// @ts-ignore
-							tension: 0.25,
-						},
-						*/
-					],
-				},
-				options: {
-					showLines: true,
-					scales: {
-						// @ts-ignore
-						x: {
-							title: {
-								display: true,
-								text: 'Date',
-							},
-							// hide x-xaxis labels
-							ticks: {
-								display: false,
-							},
-						},
-						y: {
-							title: {
-								display: true,
-								text: 'Amount of points',
-							},
-							min: 0,
-						},
-					},
-					plugins: {
-						legend: {
-							display: true,
-						}
-					},
-				}
-			};
-
-			// Cache and return the data
-			chartDataCache.set(`coalitionsScoresHistory_${coalitionId}`, chartJSData);
-
-			return res.json(chartJSData);
+			return res.json(await generateChartCoalitionScoreHistory(prisma, coalitionId));
 		}
 		catch (err) {
 			console.error(err);
