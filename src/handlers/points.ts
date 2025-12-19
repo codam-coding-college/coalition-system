@@ -84,8 +84,8 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 	}
 
 	// Start caching updated charts, but don't wait for that to finish
-	generateChartAllCoalitionScoreHistory(prisma);
-	generateChartCoalitionScoreHistory(prisma, coalitionUser.coalition_id);
+	generateChartAllCoalitionScoreHistory(prisma, true);
+	generateChartCoalitionScoreHistory(prisma, coalitionUser.coalition_id, true);
 
 	return score;
 }
@@ -107,8 +107,8 @@ export const updateScore = async function(prisma: PrismaClient, score: CodamCoal
 	await syncIntraScore(prisma, api, score, true);
 
 	// Start caching updated charts, but don't wait for that to finish
-	generateChartAllCoalitionScoreHistory(prisma);
-	generateChartCoalitionScoreHistory(prisma, score.coalition_id);
+	generateChartAllCoalitionScoreHistory(prisma, true);
+	generateChartCoalitionScoreHistory(prisma, score.coalition_id, true);
 
 	return await prisma.codamCoalitionScore.findFirstOrThrow({
 		where: {
@@ -134,8 +134,8 @@ export const shiftScore = async function(prisma: PrismaClient, scoreId: number, 
 	await syncIntraScore(prisma, api, score, false); // Sync this score but not the total coalition score, as we often move many points at once when shifting scores. Better to sync the total score once at the end.
 
 	// Start caching updated charts, but don't wait for that to finish
-	generateChartAllCoalitionScoreHistory(prisma);
-	generateChartCoalitionScoreHistory(prisma, score.coalition_id);
+	generateChartAllCoalitionScoreHistory(prisma, true);
+	generateChartCoalitionScoreHistory(prisma, score.coalition_id, true);
 
 	return score;
 }
