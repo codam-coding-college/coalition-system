@@ -69,6 +69,7 @@ export const usePassport = function(app: any, prisma: PrismaClient): void {
 		cookie: {
 			maxAge: 1000 * 60 * 60 * 24 * 7, // ms
 			secure: (NODE_ENV === 'production'), // Secure HTTPS cookies only in production
+			sameSite: "lax", // Bound the cookie to be sent only from self frontend (reduce exposurse to CSRF)
 		},
 		name: 'nl.codam.coalitions.session',
 		proxy: (NODE_ENV === 'production'), // Trust the X-Forwarded-Proto header
