@@ -78,7 +78,9 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 						// Existing title_user, just update the title_id connected to the user
 						console.debug(`Patching Intra TitlesUser ID ${existingTitleUser.intra_title_user_id} with Intra title id ${titleRecord.intra_title_id} for user ${rankings[i].user.login} on Intra...`);
 						const patch = await api.patch(`/titles_users/${existingTitleUser.intra_title_user_id}`, {
-							title_id: titleRecord.intra_title_id,
+							titles_user: {
+								title_id: titleRecord.intra_title_id,
+							},
 						});
 						if (!patch.ok) {
 							console.error(`Failed to update Intra user ${rankings[i].user.login} with title ID ${titleRecord.intra_title_id}, HTTP status ${patch.status} ${patch.statusText}`);
@@ -87,8 +89,10 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 						// User hasn't had a coalition title on Intra yet, create it
 						console.debug(`Creating new Intra TitlesUser with Intra title id ${titleRecord.intra_title_id} for user ${rankings[i].user.login} on Intra...`);
 						const post = await api.post(`/titles_users`, {
-							user_id: rankings[i].user.id,
-							title_id: titleRecord.intra_title_id,
+							titles_user: {
+								user_id: rankings[i].user.id,
+								title_id: titleRecord.intra_title_id,
+							},
 						});
 						if (!post.ok) {
 							console.error(`Failed to create Intra title_user for user ${rankings[i].user.login} with title ID ${titleRecord.intra_title_id}, HTTP status ${post.status} ${post.statusText}`);
@@ -124,8 +128,10 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 				if (NODE_ENV === 'production') {
 					console.debug(`Creating new Intra TitlesUser with Intra title id ${titleRecord.intra_title_id} for user ${rankings[i].user.login} on Intra...`);
 					const post = await api.post(`/titles_users`, {
-						user_id: rankings[i].user.id,
-						title_id: titleRecord.intra_title_id,
+						titles_user: {
+							user_id: rankings[i].user.id,
+							title_id: titleRecord.intra_title_id,
+						},
 					});
 					if (!post.ok) {
 						console.error(`Failed to create Intra title_user for user ${rankings[i].user.login} with title ID ${titleRecord.intra_title_id}, HTTP status ${post.status} ${post.statusText}`);
