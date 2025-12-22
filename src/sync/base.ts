@@ -12,7 +12,7 @@ import { syncProjects } from "./projects";
 import { syncCursusUsers } from './cursus_users';
 import { syncScores } from './scores';
 import { getBlocAtDate } from '../utils';
-import { handleRankingBonuses } from './rankings';
+import { handleRankingTitleCreation, handleRankingBonuses } from './rankings';
 import { syncTitles } from './titles';
 import { calculateResults } from './results';
 
@@ -231,9 +231,10 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 		await syncCursusUsers(api, lastSync, now);
 		await syncBlocs(api, now); // also syncs coalitions
 		await syncCoalitionUsers(api, lastSync, now);
+		await handleRankingTitleCreation(api);
 		await handleRankingBonuses();
 		await syncTitles(api);
-		await calculateResults();
+		await calculateResults(api);
 		await cleanupDB(api);
 
 		const currentBloc = await getBlocAtDate(prisma, new Date()); // Check if a season is currently ongoing (only then we can sync)

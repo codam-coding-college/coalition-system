@@ -1,7 +1,9 @@
+import Fast42 from '@codam/fast42';
+import { NODE_ENV } from '../env';
 import { getRanking, getScoresNormalDistribution, getUsersScores, RANKING_MAX } from '../utils';
 import { prisma } from './base';
 
-export const calculateResults = async function(): Promise<void> {
+export const calculateResults = async function(api: Fast42): Promise<void> {
 	console.log('Checking if any seasons have finished but have no results stored yet...');
 	// Check if a season has ended but no results have been calculated yet
 	const seasonsToCalculate = await prisma.intraBlocDeadline.findMany({
@@ -105,6 +107,23 @@ export const calculateResults = async function(): Promise<void> {
 						score: userRanking.score,
 					}
 				});
+				if (NODE_ENV === 'production' && ranking.top_title_intra_id && userRanking.rank === 1) {
+					console.log(`       - User ${userRanking.user.login} is a winner of ranking ${ranking.type} for season ${seasonName}. Awarding Intra title...`);
+					try {
+						const post = await api.post(`/titles_users`, {
+							titles_user: {
+								user_id: userRanking.user.id,
+								title_id: ranking.top_title_intra_id,
+							},
+						});
+						if (!post.ok) {
+							throw new Error(`Intra titles_user creation failed with HTTP ${post.status} ${post.statusText}`);
+						}
+					}
+					catch (err) {
+						console.error(`Error while awarding Intra title "${ranking.top_title}" (${ranking.top_title_intra_id}) to user ${userRanking.user.login} for ranking ${ranking.type}:`, err);
+					}
+				}
 			}
 		}
 	}

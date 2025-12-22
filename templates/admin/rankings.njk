@@ -57,7 +57,8 @@
 
 			<div class="mb-2">
 				<label for="top_title" class="form-label">Title of #1</label>
-				<input type="text" id="top_title" name="top_title" class="form-control" placeholder="#1 Name" required>
+				<input type="text" id="top_title" name="top_title" class="form-control" placeholder="#1 Name" pattern=".*%login.*" required>
+				<small class="form-text text-muted">Include <code>%login</code> in the title, as this piece of text gets replaced with the student's login.</small>
 			</div>
 
 			<div class="mb-2">

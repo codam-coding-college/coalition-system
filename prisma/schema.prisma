@@ -48,6 +48,7 @@ model CodamCoalitionRanking {
 	name             String   // The name of the cross-coalition ranking that this type of score contributes to (e.g. Guiding Stars)
 	description      String   @default("")
 	top_title        String   // The title of the top of the ranking (e.g. #1 Guiding Star)
+	top_title_intra_id Int?   // The id of the Title in Intra for the top of this ranking. Null if it has not been created yet.
 	bonus_points     Int?     // Total bonus points to distribute for this ranking (will be divided into 168 hours = 1 week and distributed each hour)
 	disabled         Boolean  @default(false) // If disabled, this ranking will not be calculated at the end of a tournament
 	last_bonus_run   DateTime? // The last time bonus points were awarded for this ranking

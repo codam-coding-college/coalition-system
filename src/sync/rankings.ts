@@ -2,6 +2,8 @@ import { getRanking, RANKING_MAX, getBlocAtDate } from '../utils';
 import { handleFixedPointScore } from '../handlers/points';
 import { prisma } from './base';
 import { CodamCoalitionRanking } from '@prisma/client';
+import Fast42 from '@codam/fast42';
+import { NODE_ENV } from '../env';
 
 const handleRankingBonusForDateTime = async function(ranking: CodamCoalitionRanking, atDateTime: Date = new Date()): Promise<void> {
 	console.log(` - Applying bonus points for ranking ${ranking.name} at ${atDateTime.toISOString()}...`);
@@ -94,6 +96,52 @@ export const handleRankingBonuses = async function(): Promise<void> {
 		// Apply bonus points for each hour since last run up until now
 		for (let bonusDateTime = new Date(ranking.last_bonus_run.getTime() + 60 * 60 * 1000); bonusDateTime <= now; bonusDateTime = new Date(bonusDateTime.getTime() + 60 * 60 * 1000)) {
 			await handleRankingBonusForDateTime(ranking, bonusDateTime);
+		}
+	}
+};
+
+export const handleRankingTitleCreation = async function(api: Fast42): Promise<void> {
+	if (NODE_ENV !== 'production') {
+		console.log('Not in production environment, skipping ranking title creation...');
+		return;
+	}
+	const rankingsWithoutIntraTitleId = await prisma.codamCoalitionRanking.findMany({
+		where: {
+			top_title_intra_id: null,
+		},
+	});
+
+	for (const ranking of rankingsWithoutIntraTitleId) {
+		console.log(`Creating Intra Title for ranking ${ranking.name}...`);
+		if (ranking.top_title === null || ranking.top_title.trim() === '') {
+			console.warn(` - Ranking top title is not set for ranking ${ranking.name}, skipping...`);
+			continue;
+		}
+		if (!ranking.top_title.includes('%login')) {
+			console.warn(` - Ranking top title is not set or does not contain '%login' placeholder, cannot create Intra Title for ranking ${ranking.name}, skipping...`);
+			continue;
+		}
+		try {
+			const post = await api.post('/titles', {
+				title: {
+					name: ranking.top_title,
+				},
+			});
+			if (!post.ok) {
+				throw new Error(`Intra API returned status ${post.status} during ranking title creation for ranking ${ranking.name}`);
+			}
+			const intraTitle = await post.json();
+			await prisma.codamCoalitionRanking.update({
+				where: {
+					type: ranking.type,
+				},
+				data: {
+					top_title_intra_id: intraTitle.id,
+				},
+			});
+			console.log(` - Created Intra Title with id ${intraTitle.id} for ranking ${ranking.name}`);
+		} catch (error) {
+			console.error(` - Failed to create Intra Title for ranking ${ranking.name}:`, error);
 		}
 	}
 };

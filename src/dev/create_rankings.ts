@@ -1,5 +1,4 @@
-import { CodamCoalitionFixedType, CodamCoalitionRanking, PrismaClient } from '@prisma/client';
-import { getCoalitionIds } from '../utils';
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const deleteExistingRankings = async function(): Promise<void> {
@@ -27,11 +26,11 @@ const createRanking = async function(name: string, description: string, topTitle
 };
 
 const createRankings = async function(): Promise<void> {
-	await createRanking('Guiding Stars', 'Based on points gained through evaluations', 'Guiding Star', 12600, ['evaluation']);
-	await createRanking('Top Performers', 'Based on points gained through projects', 'Top Performer', 8400, ['project', 'exam']);
-	await createRanking('Top Endeavors', 'Based on points gained through logtime', 'Top Endeavor', 16800, ['logtime', 'idle_logout']);
-	await createRanking('Philanthropists', 'Based on points gained through donating evaluation points to the pool', 'Philanthropist', 16800, ['point_donated']);
-	await createRanking('Community Leaders', 'Based on points gained through organizing events', 'Community Leader', 12600, ['event_basic', 'event_intermediate', 'event_advanced']);
+	await createRanking('Guiding Stars', 'Based on points gained through evaluations', 'Guiding Star %login', 12600, ['evaluation']);
+	await createRanking('Top Performers', 'Based on points gained through projects', 'Top Performer %login', 8400, ['project', 'exam']);
+	await createRanking('Top Endeavors', 'Based on points gained through logtime', 'Top Endeavor %login', 16800, ['logtime', 'idle_logout']);
+	await createRanking('Philanthropists', 'Based on points gained through donating evaluation points to the pool', 'Philanthropist %login', 16800, ['point_donated']);
+	await createRanking('Community Leaders', 'Based on points gained through organizing events', 'Community Leader %login', 12600, ['event_basic', 'event_intermediate', 'event_advanced']);
 };
 
 const main = async function(): Promise<void> {
