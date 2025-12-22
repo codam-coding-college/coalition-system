@@ -60,7 +60,16 @@
 					</div>
 					<div class="card-body p-0">
 						<p class="p-4 pb-0 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
-						<p class="p-4 pt-0 mb-0"><small>{{ (rankingType.bonus_points / 168) | round(0, 'floor') }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season</i>!</small></p>
+						{% if bonusPointsAwardingStarted and rankingBonusPoints[rankingType.type] %}
+							<!-- bonus points awarded progress bar -->
+							<p>&nbsp;</p>
+							<div class="progress mb-2" role="progressbar" aria-label="Bonus points awarded for {{ rankingType.name }}" aria-valuenow="{{ rankingBonusPoints[rankingType.type].awarded }}" aria-valuemin="0" aria-valuemax="{{ rankingBonusPoints[rankingType.type].total }}">
+								<div class="progress-bar" style="width: {{ (rankingBonusPoints[rankingType.type].awarded / rankingBonusPoints[rankingType.type].total) * 100 }}%; background-color: var(--bs-yellow);"></div>
+							</div>
+							<p style="text-align: center;"><b>Bonus points awarding is ongoing!</b> {{ rankingBonusPoints[rankingType.type].awarded | thousands }} out of {{ rankingBonusPoints[rankingType.type].total | thousands }} bonus points awarded, with {{ rankingBonusPoints[rankingType.type].remaining | thousands }} remaining. Bonus points are awarded <i>every hour</i> until the end of the season.</p>
+						{% else %}
+							<p class="p-4 pt-0 mb-0"><small>{{ (rankingType.bonus_points / 168) | round(0, 'floor') }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season</i>!</small></p>
+						{% endif %}
 						<table class="table coalition-colored mb-0">
 							<tbody>
 								{% for ranking in rankings[rankingType.type] %}

@@ -98,6 +98,47 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			rankings[rankingType.type] = await getRanking(prisma, rankingType.type);
 		}
 
+		// Calculate when the bonus points awarding will start (7 days prior to end of the bloc)
+		const bonusPointsAwardingStartTime = currentBlocDeadline ? new Date(currentBlocDeadline.end_at.getTime() - 7 * 24 * 60 * 60 * 1000) : null;
+		const bonusPointsAwardingStarted = bonusPointsAwardingStartTime ? (now >= bonusPointsAwardingStartTime) : false;
+		const rankingBonusPoints: { [key: string]: {
+			total: number;
+			awarded: number;
+			remaining: number;
+		} } = {};
+		if (bonusPointsAwardingStartTime && bonusPointsAwardingStarted) {
+			// Calculate how many bonus points are left to award per ranking type
+			for (const rankingType of rankingTypes) {
+				const totalBonusPoints = rankingType.bonus_points;
+				if (!totalBonusPoints || totalBonusPoints <= 0) {
+					continue;
+				}
+				const bonusPointsPerHour = totalBonusPoints / (7 * 24);
+				// Bonus points are awarded every hour during the last 7 days
+				const awardedBonusPoints = Math.floor(((now.getTime() - bonusPointsAwardingStartTime.getTime()) / (60 * 60 * 1000)) * bonusPointsPerHour);
+				const remainingBonusPoints = totalBonusPoints - awardedBonusPoints;
+				rankingBonusPoints[rankingType.type] = {
+					total: totalBonusPoints,
+					awarded: Math.min(awardedBonusPoints, totalBonusPoints),
+					remaining: Math.max(remainingBonusPoints, 0),
+				};
+			}
+		}
+		else {
+			// No bonus points have been awarded yet
+			for (const rankingType of rankingTypes) {
+				const totalBonusPoints = rankingType.bonus_points;
+				if (!totalBonusPoints || totalBonusPoints <= 0) {
+					continue;
+				}
+				rankingBonusPoints[rankingType.type] = {
+					total: totalBonusPoints,
+					awarded: 0,
+					remaining: totalBonusPoints,
+				};
+			}
+		}
+
 		// Check if quiz is currently available
 		const quiz_available = await isQuizAvailable(user, prisma);
 
@@ -112,6 +153,8 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			sortedCoalitionScores,
 			rankingTypes,
 			rankings,
+			bonusPointsAwardingStarted,
+			rankingBonusPoints,
 		});
 	});
 
