@@ -3,7 +3,7 @@ import passport from 'passport';
 import { CodamCoalition, PrismaClient } from '@prisma/client';
 import { isQuizAvailable } from './quiz';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors, SMALL_CONTRIBUTION_TYPES } from '../utils';
+import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors, SMALL_CONTRIBUTION_TYPES, getCoalitionTopRankingTitles, getMinimumContributorRankForTitle } from '../utils';
 
 export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/', passport.authenticate('session', {
@@ -143,8 +143,11 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			return res.redirect('/');
 		}
 
-		// Get the top 25 contributors of this season
-		const topContributors = await getCoalitionTopContributors(prisma, coalition.id, 'Top contributors of this season', now, 25);
+		// Get the titles for each rank of this coalition
+		const minRankForTitle = await getMinimumContributorRankForTitle(prisma, coalition.id);
+
+		// Get the top x contributors of this season, preferably the same amount as the amount of titles defined for the coalition
+		const topContributors = await getCoalitionTopContributors(prisma, coalition.id, 'Top contributors of this season', now, (minRankForTitle !== Infinity && minRankForTitle > 10) ? minRankForTitle : 25);
 
 		// Get the top contributors of the past 7 days
 		const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

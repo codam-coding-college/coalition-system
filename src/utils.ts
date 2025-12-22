@@ -512,6 +512,7 @@ export interface SingleRanking {
 	coalition: IntraCoalition | null;
 	score: number;
 	rank: number;
+	title: string | null;
 }
 
 export const scoreSumsToRanking = async function(prisma: PrismaClient, scores: { user_id: number, _sum: { amount: number | null } }[], rankingName: string): Promise<SingleRanking[]> {
@@ -526,12 +527,18 @@ export const scoreSumsToRanking = async function(prisma: PrismaClient, scores: {
 		if (!user || !score._sum.amount) {
 			continue;
 		}
+		const titleForRank = await prisma.codamCoalitionTitle.findFirst({
+			where: {
+				ranking: rank,
+			},
+		});
 		ranking.push({
 			user,
 			rankingName: rankingName,
 			score: score._sum.amount,
 			coalition: null,
 			rank: rank++,
+			title: (titleForRank ? titleForRank.title.replace("%login", user.login) : null),
 		});
 	}
 	return ranking;
@@ -564,6 +571,44 @@ export const getCoalitionTopContributors = async function(prisma: PrismaClient, 
 	const topContributors = await scoreSumsToRanking(prisma, topScores, rankingName);
 	return topContributors;
 };
+
+export const getMinimumContributorRankForTitle = async function(prisma: PrismaClient, coalitionId: number): Promise<number> {
+	const titles = await prisma.codamCoalitionTitle.aggregate({
+		where: {
+			coalition_id: coalitionId,
+		},
+		_max: {
+			ranking: true,
+		},
+	});
+	return (titles._max.ranking ? titles._max.ranking : Infinity);
+};
+
+export const getCoalitionTopRankingTitles = async function(prisma: PrismaClient, coalitionId: number) {
+	const titles = await prisma.codamCoalitionTitle.findMany({
+		where: {
+			coalition_id: coalitionId,
+		},
+		include: {
+			title_users: {
+				include: {
+					user: {
+						include: {
+							intra_user: true,
+						},
+					},
+				},
+			},
+		},
+		orderBy: {
+			ranking: 'asc',
+		},
+	});
+	// Get the lowest possible rank for a title (max of "ranking")
+	const minRankForTitle = Math.max(...titles.map(t => t.ranking));
+	return { titles, minRankForTitle };
+};
+
 
 export const getRanking = async function(prisma: PrismaClient, rankingType: string, atDateTime: Date = new Date(), topAmount: number = 10): Promise<SingleRanking[]> {
 	const ranking = await prisma.codamCoalitionRanking.findFirst({
@@ -636,6 +681,7 @@ export const getRanking = async function(prisma: PrismaClient, rankingType: stri
 			score: score._sum.amount ? score._sum.amount : 0,
 			rank: currentRank,
 			coalition: (user.coalition_users.length > 0 ? user.coalition_users[0].coalition : null),
+			title: null,
 		});
 	}
 

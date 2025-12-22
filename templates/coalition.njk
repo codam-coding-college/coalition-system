@@ -69,7 +69,7 @@
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
 											<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light" style="text-decoration: none;">
 												<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-												<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
+												<span>{{ (ranking.title if ranking.title else ranking.user.login) | striptags(true) | escape }}</span>
 											</a>
 										</div>
 									</td>
@@ -100,7 +100,6 @@
 		</div>
 	</div>
 
-	<!-- top contributions history table (last 25 top contributions) -->
 	<div class="row ms-0 me-0 mb-4">
 		<div class="col">
 			<div class="card h-100">
