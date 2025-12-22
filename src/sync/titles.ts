@@ -1,5 +1,5 @@
 import Fast42 from '@codam/fast42';
-import { prisma } from './base';
+import { fetchMultiple42ApiPages, prisma } from './base';
 import { getCoalitionTopContributors } from '../utils';
 import { NODE_ENV } from '../env';
 
@@ -96,6 +96,31 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 						});
 						if (!post.ok) {
 							console.error(`Failed to create Intra title_user for user ${rankings[i].user.login} with title ID ${titleRecord.intra_title_id}, HTTP status ${post.status} ${post.statusText}`);
+							if (post.status == 422) {
+								try {
+									const data = await post.json();
+									if (data && data.errors && data.errors["title_id"] == 'has already been taken') {
+										console.warn(`Intra title_user for user ${rankings[i].user.login} with title ID ${titleRecord.intra_title_id} already exists on Intra. Fetching the used titles_user ID...`);
+										const titleUsers = await fetchMultiple42ApiPages(api, `/users/${rankings[i].user.id}/titles_users`);
+										for (const titleUser of titleUsers) {
+											if (titleUser.title_id === titleRecord.intra_title_id) {
+												console.log(` - Found existing Intra title_user ID ${titleUser.id} for user ${rankings[i].user.login} with title ID ${titleRecord.intra_title_id}. Saving to database...`);
+												await prisma.codamCoalitionTitleUser.update({
+													where: {
+														id: existingTitleUser.id,
+													},
+													data: {
+														intra_title_user_id: titleUser.id,
+													},
+												});
+												break;
+											}
+										}
+									}
+								} catch (err) {
+									console.error(` - Failed to parse Intra API response for existing title_user for user ${rankings[i].user.login}:`, err);
+								}
+							}
 						} else {
 							const titleUserData = await post.json();
 							// Save intra_title_user_id
