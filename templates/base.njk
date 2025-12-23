@@ -67,6 +67,9 @@
 					</li>
 					{% endif %}
 				</ul>
+				{% if user.isStaff %}
+					<a href="/admin/points/manual" class="btn btn-sm btn-outline-primary me-3">Assign points</a>
+				{% endif %}
 				<form role="search" method="GET" action="/profile/" id="user-search-form">
 					<div class="form-group">
 						<input class="form-control me-2" type="search" placeholder="Search user..." aria-label="User search query" id="user-search-input" required />
