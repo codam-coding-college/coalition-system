@@ -664,6 +664,14 @@ export const getUserRankingAcrossAllRankings = async function(prisma: PrismaClie
 	return userRankings.sort((a, b) => a.rank - b.rank);
 };
 
+export const bonusPointsAwardingStarted = async function(prisma: PrismaClient, atDateTime: Date = new Date()): Promise<{ started: boolean, startTime: Date | null }> {
+	// Calculate when the bonus points awarding will start (7 days prior to end of the bloc)
+	const blocAtDate = await getBlocAtDate(prisma, atDateTime);
+	const bonusPointsAwardingStartTime = blocAtDate ? new Date(blocAtDate.end_at.getTime() - 7 * 24 * 60 * 60 * 1000) : null;
+	const bonusPointsAwardingStarted = bonusPointsAwardingStartTime ? (atDateTime >= bonusPointsAwardingStartTime) : false;
+	return { started: bonusPointsAwardingStarted, startTime: bonusPointsAwardingStartTime };
+};
+
 export const getEndedSeasons = async function(prisma: PrismaClient): Promise<(IntraBlocDeadline & { coalition: IntraCoalition | null })[]> {
 	const now = new Date();
 	const seasons = await prisma.intraBlocDeadline.findMany({

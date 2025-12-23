@@ -43,10 +43,10 @@
 					<div class="mb-4">
 						<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
 					</div>
-					<div class="progress mb-2" role="progressbar" aria-label="Progress of the current season" aria-valuenow="{{ now | timestamp }}" aria-valuemin="{{ currentBlocDeadline.begin_at | timestamp }}" aria-valuemax="{{ currentBlocDeadline.end_at | timestamp }}">
-						<div class="progress-bar" style="width: {{ now | timestamp | perc3(currentBlocDeadline.begin_at | timestamp, currentBlocDeadline.end_at | timestamp) }}%;"></div>
+					<div class="progress mb-2 with-center-label extra-thick" role="progressbar" aria-label="Progress of the current season" aria-valuenow="{{ now | timestamp }}" aria-valuemin="{{ currentBlocDeadline.begin_at | timestamp }}" aria-valuemax="{{ currentBlocDeadline.end_at | timestamp }}">
+						<div class="progress-bar" style="width: {{ now | timestamp | perc3(currentBlocDeadline.begin_at | timestamp, currentBlocDeadline.end_at | timestamp) }}%; background-color: {{ coalitionsObject[sortedCoalitionScores[0][0]].intra_coalition.color }}"></div>
+						<div class="center-label">The current season <b title="{{ currentBlocDeadline.end_at }}">ends {{ currentBlocDeadline.end_at | timeFromNow }}</b>!</div>
 					</div>
-					<p style="text-align: center;">The current season <b title="{{ currentBlocDeadline.end_at }}">ends {{ currentBlocDeadline.end_at | timeFromNow }}</b>!</p>
 				</div>
 			</div>
 
@@ -60,15 +60,17 @@
 					</div>
 					<div class="card-body p-0">
 						<p class="p-4 pb-0 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
-						{% if bonusPointsAwardingStarted and rankingBonusPoints[rankingType.type] %}
+						{% if bonusPointsAwarding.started and rankingBonusPoints[rankingType.type] %}
 							<!-- bonus points awarded progress bar -->
-							<p>&nbsp;</p>
-							<div class="progress mb-2" role="progressbar" aria-label="Bonus points awarded for {{ rankingType.name }}" aria-valuenow="{{ rankingBonusPoints[rankingType.type].awarded }}" aria-valuemin="0" aria-valuemax="{{ rankingBonusPoints[rankingType.type].total }}">
-								<div class="progress-bar" style="width: {{ (rankingBonusPoints[rankingType.type].awarded / rankingBonusPoints[rankingType.type].total) * 100 }}%; background-color: var(--bs-yellow);"></div>
+							<div class="alert alert-primary m-4 p-4">
+								<div class="progress mb-2 with-center-label" role="progressbar" aria-label="Bonus points awarded for {{ rankingType.name }}" aria-valuenow="{{ rankingBonusPoints[rankingType.type].awarded }}" aria-valuemin="0" aria-valuemax="{{ rankingBonusPoints[rankingType.type].total }}">
+									<div class="progress-bar" style="width: {{ (rankingBonusPoints[rankingType.type].awarded / rankingBonusPoints[rankingType.type].total) * 100 }}%; background-color: var(--bs-yellow);"></div>
+									<div class="center-label">{{ rankingBonusPoints[rankingType.type].awarded | thousands }} / {{ rankingBonusPoints[rankingType.type].total | thousands }} points awarded</div>
+								</div>
+								<p class="mb-0 text-center"><b>Bonus points are being awarded!</b><br>Bonus points are awarded <i>every hour</i> during the final week of the season.</p>
 							</div>
-							<p style="text-align: center;"><b>Bonus points awarding is ongoing!</b> {{ rankingBonusPoints[rankingType.type].awarded | thousands }} out of {{ rankingBonusPoints[rankingType.type].total | thousands }} bonus points awarded, with {{ rankingBonusPoints[rankingType.type].remaining | thousands }} remaining. Bonus points are awarded <i>every hour</i> until the end of the season.</p>
-						{% else %}
-							<p class="p-4 pt-0 mb-0"><small>{{ (rankingType.bonus_points / 168) | round(0, 'floor') }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season</i>!</small></p>
+						{% elif bonusPointsAwarding.startTime %}
+							<p class="p-4 pt-0 mb-0"><small>{{ (rankingType.bonus_points / 168) | round(0, 'floor') }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season {{ bonusPointAwarding.startTime | timeFromNow }}</i>!</small></p>
 						{% endif %}
 						<table class="table coalition-colored mb-0">
 							<tbody>

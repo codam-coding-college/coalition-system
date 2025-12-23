@@ -1,7 +1,7 @@
 import { IntraCoalition, PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { CanvasRenderingContext2D, createCanvas, loadImage, registerFont } from 'canvas';
-import { CoalitionScore, getBlocAtDate, getCoalitionScore, getCoalitionTopContributors, getRanking, SingleRanking, SMALL_CONTRIBUTION_TYPES, timeAgo } from '../utils';
+import { bonusPointsAwardingStarted, CoalitionScore, getBlocAtDate, getCoalitionScore, getCoalitionTopContributors, getRanking, SingleRanking, SMALL_CONTRIBUTION_TYPES, timeAgo } from '../utils';
 
 const CANVAS_WIDTH = 1920;
 const CANVAS_HEIGHT = 1080;
@@ -184,14 +184,6 @@ const drawInitialCanvas = async function(prisma: PrismaClient, ctx: CanvasRender
 	const newImageWidth = (imageWidth / imageHeight) * newImageHeight;
 	ctx.drawImage(image, PADDING, PADDING, newImageWidth, newImageHeight);
 
-	// Draw Coalition System title under the logo, rotated 270 degrees
-	// ctx.fillStyle = '#3f3f3f';
-	// ctx.font = `bold ${overlayInnerWidth}px "Bebas Neue"`;
-	// ctx.save();
-	// ctx.rotate(-Math.PI / 2 * 3);
-	// ctx.fillText('C O A L I T I O N   S Y S T E M', newImageHeight + padding * 2, -padding - 20, canvas.height - newImageHeight - padding * 3);
-	// ctx.restore();
-
 	// Draw a QR code to the Coalition System home page at the bottom left
 	const qrCodeImage = await loadImage('static/img/qr.png');
 	const qrCodeSize = OVERLAY_INNER_WIDTH + PADDING * 2; // same width as the overlay
@@ -241,6 +233,12 @@ const drawInitialCanvas = async function(prisma: PrismaClient, ctx: CanvasRender
 		}
 		else {
 			progressBarText += `${totalHoursLeft} hours`;
+		}
+
+		// Check if bonus points awarding for rankings has started (7 days prior to end of the bloc)
+		const bonusPointsAwarding = await bonusPointsAwardingStarted(prisma, now);
+		if (bonusPointsAwarding.started) {
+			progressBarText += ` / Bonus points for rankings are currently being awarded!`;
 		}
 	}
 	else if (nextBlocDeadline) {

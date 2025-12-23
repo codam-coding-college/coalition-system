@@ -3,7 +3,7 @@ import passport from 'passport';
 import { CodamCoalition, PrismaClient } from '@prisma/client';
 import { isQuizAvailable } from './quiz';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors, SMALL_CONTRIBUTION_TYPES } from '../utils';
+import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors, SMALL_CONTRIBUTION_TYPES, bonusPointsAwardingStarted } from '../utils';
 
 export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/', passport.authenticate('session', {
@@ -98,15 +98,14 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			rankings[rankingType.type] = await getRanking(prisma, rankingType.type);
 		}
 
-		// Calculate when the bonus points awarding will start (7 days prior to end of the bloc)
-		const bonusPointsAwardingStartTime = currentBlocDeadline ? new Date(currentBlocDeadline.end_at.getTime() - 7 * 24 * 60 * 60 * 1000) : null;
-		const bonusPointsAwardingStarted = bonusPointsAwardingStartTime ? (now >= bonusPointsAwardingStartTime) : false;
+		// Check if bonus points awarding for rankings has started (7 days prior to end of the bloc)
+		const bonusPointsAwarding = await bonusPointsAwardingStarted(prisma, now);
 		const rankingBonusPoints: { [key: string]: {
 			total: number;
 			awarded: number;
 			remaining: number;
 		} } = {};
-		if (bonusPointsAwardingStartTime && bonusPointsAwardingStarted) {
+		if (bonusPointsAwarding.startTime && bonusPointsAwarding.started) {
 			// Calculate how many bonus points are left to award per ranking type
 			for (const rankingType of rankingTypes) {
 				const totalBonusPoints = rankingType.bonus_points;
@@ -115,7 +114,10 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 				}
 				const bonusPointsPerHour = totalBonusPoints / (7 * 24);
 				// Bonus points are awarded every hour during the last 7 days
-				const awardedBonusPoints = Math.floor(((now.getTime() - bonusPointsAwardingStartTime.getTime()) / (60 * 60 * 1000)) * bonusPointsPerHour);
+				let awardedBonusPoints = 0;
+				for (let dt = new Date(bonusPointsAwarding.startTime); dt < now; dt.setHours(dt.getHours() + 1)) {
+					awardedBonusPoints += bonusPointsPerHour;
+				}
 				const remainingBonusPoints = totalBonusPoints - awardedBonusPoints;
 				rankingBonusPoints[rankingType.type] = {
 					total: totalBonusPoints,
@@ -153,7 +155,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			sortedCoalitionScores,
 			rankingTypes,
 			rankings,
-			bonusPointsAwardingStarted,
+			bonusPointsAwarding,
 			rankingBonusPoints,
 		});
 	});
