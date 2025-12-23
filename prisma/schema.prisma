@@ -97,7 +97,7 @@ model CodamCoalitionScore {
 model CodamCoalitionSeasonResult {
 	id               Int      @id @default(autoincrement())
 	coalition_id     Int
-	score            Int      // NOT the same as the sum of all scores, but the score after applying the normal distribution
+	score            Int      // NOT the same as the sum of all scores, but the average score of all active contributors at the end of the season
 	bloc_deadline_id Int
 
 	created_at       DateTime @default(now())

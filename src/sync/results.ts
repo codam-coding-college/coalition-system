@@ -1,6 +1,6 @@
 import Fast42 from '@codam/fast42';
 import { NODE_ENV } from '../env';
-import { getRanking, getScoresNormalDistribution, getUsersScores, RANKING_MAX } from '../utils';
+import { getRanking, getScoreStatistics, getUsersScores, RANKING_MAX } from '../utils';
 import { prisma } from './base';
 
 export const calculateResults = async function(api: Fast42): Promise<void> {
@@ -56,7 +56,7 @@ export const calculateResults = async function(api: Fast42): Promise<void> {
 			}
 
 			// Entire coalition score
-			const score = await getScoresNormalDistribution(prisma, coalition.id, season.end_at);
+			const score = await getScoreStatistics(prisma, coalition.id, season.end_at);
 			console.log(`   - Final score for coalition ${coalition.name} in season ${seasonName}: ${score.mean}`);
 			const result = await prisma.codamCoalitionSeasonResult.create({
 				data: {

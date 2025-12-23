@@ -151,35 +151,6 @@ export const generateChartCoalitionScoreHistory = async function(prisma: PrismaC
 					// @ts-ignore
 					tension: 0.25,
 				},
-				/*
-				{
-					label: 'Average points',
-					data: Object.values(dataPoints).map((score) => score.avgPoints),
-					// borderColor: coalition.color ? coalition.color : '#808080',
-					// backgroundColor: coalition.color ? coalition.color : '#808080',
-					fill: false,
-					// @ts-ignore
-					tension: 0.25,
-				},
-				{
-					label: 'Standard deviation',
-					data: Object.values(dataPoints).map((score) => score.stdDevPoints),
-					// borderColor: coalition.color ? coalition.color : '#808080',
-					// backgroundColor: coalition.color ? coalition.color : '#808080',
-					fill: false,
-					// @ts-ignore
-					tension: 0.25,
-				},
-				{
-					label: 'Min active points',
-					data: Object.values(dataPoints).map((score) => score.minActivePoints),
-					// borderColor: coalition.color ? coalition.color : '#808080',
-					// backgroundColor: coalition.color ? coalition.color : '#808080',
-					fill: false,
-					// @ts-ignore
-					tension: 0.25,
-				},
-				*/
 			],
 		},
 		options: {

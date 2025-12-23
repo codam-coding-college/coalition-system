@@ -338,11 +338,11 @@ export const getUserSeasonRanking = async function(prisma: PrismaClient, userId:
 	return userRanking + 1;
 };
 
-export interface NormalDistribution {
+export interface ScoreStatistics {
 	dataPoints: number[];
+	sum: number;
 	mean: number;
 	median: number;
-	stdDev: number;
 	min: number;
 	max: number;
 };
@@ -424,21 +424,21 @@ export const getUserScores = async function(prisma: PrismaClient, userId: number
 	return { userScores, totalScore };
 };
 
-const getEmptyNormalDistribution = function(): NormalDistribution {
+const getEmptyScoreStatistics = function(): ScoreStatistics {
 	return {
 		dataPoints: [],
+		sum: 0,
 		mean: 0,
 		median: 0,
-		stdDev: 0,
 		min: 0,
 		max: 0,
 	};
 };
 
-export const getScoresNormalDistribution = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<NormalDistribution> {
+export const getScoreStatistics = async function(prisma: PrismaClient, coalitionId: number, untilDate: Date = new Date()): Promise<ScoreStatistics> {
 	const bloc = await getBlocAtDate(prisma, untilDate);
 	if (!bloc) { // No season currently ongoing
-		return getEmptyNormalDistribution();
+		return getEmptyScoreStatistics();
 	}
 	const scores = await prisma.codamCoalitionScore.groupBy({
 		by: ['user_id'],
@@ -459,22 +459,20 @@ export const getScoresNormalDistribution = async function(prisma: PrismaClient, 
 		},
 	});
 	if (scores.length === 0) { // No scores for this coalition
-		return getEmptyNormalDistribution();
+		return getEmptyScoreStatistics();
 	}
 	// console.log(scores);
 	const scoresArray = scores.map(s => s._sum.amount ? s._sum.amount : 0);
 	const scoresSum = scoresArray.reduce((a, b) => a + b, 0);
 	const scoresMean = scoresSum / scoresArray.length;
 	const scoresMedian = scoresArray[Math.floor(scoresArray.length / 2)];
-	const scoresVariance = scoresArray.reduce((a, b) => a + Math.pow(b - scoresMean, 2), 0) / scoresArray.length;
-	const scoresStdDev = Math.sqrt(scoresVariance);
 	const scoresMin = Math.min(...scoresArray);
 	const scoresMax = Math.max(...scoresArray);
 	return {
 		dataPoints: scoresArray,
+		sum: scoresSum,
 		mean: scoresMean,
 		median: scoresMedian,
-		stdDev: scoresStdDev,
 		min: scoresMin,
 		max: scoresMax,
 	};
@@ -486,19 +484,14 @@ export interface CoalitionScore {
 	totalPoints: number;
 	avgPoints: number;
 	medianPoints: number;
-	stdDevPoints: number;
-	minActivePoints: number; // Minimum score for a user to be considered active
+	totalMembers: number;
 	totalContributors: number;
-	activeContributors: number;
 };
 
 export const getCoalitionScore = async function(prisma: PrismaClient, coalitionId: number, atDateTime: Date = new Date()): Promise<CoalitionScore> {
-	const normalDist = await getScoresNormalDistribution(prisma, coalitionId, atDateTime);
-	const minScore = Math.floor(normalDist.mean - normalDist.stdDev);
-	const activeScores = normalDist.dataPoints.filter(s => s >= minScore);
-	const fairScore = Math.floor(activeScores.reduce((a, b) => a + b, 0) / activeScores.length);
+	const scoreStatistics = await getScoreStatistics(prisma, coalitionId, atDateTime);
 
-	const totalActiveMembers = await prisma.intraCoalitionUser.count({
+	const totalMembers = await prisma.intraCoalitionUser.count({
 		where: {
 			coalition_id: coalitionId,
 			user: {
@@ -513,16 +506,16 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		},
 	});
 
+	const totalContributors = Math.min(scoreStatistics.dataPoints.length, totalMembers);
+
 	return {
 		coalition_id: coalitionId,
-		totalPoints: normalDist.dataPoints.reduce((a, b) => a + b, 0),
-		avgPoints: normalDist.mean,
-		medianPoints: normalDist.median,
-		stdDevPoints: normalDist.stdDev,
-		minActivePoints: minScore,
-		score: Math.floor(normalDist.mean), // fairScore can jump down too easily when there are a couple of really well scoring students on top of the leaderboard (scores dataset is not a normal distribution)
-		totalContributors: Math.min(normalDist.dataPoints.length, totalActiveMembers),
-		activeContributors: Math.min(activeScores.length, totalActiveMembers),
+		totalPoints: scoreStatistics.sum,
+		avgPoints: scoreStatistics.mean,
+		medianPoints: scoreStatistics.median,
+		score: Math.floor(scoreStatistics.sum / totalContributors),
+		totalMembers: totalMembers,
+		totalContributors: totalContributors,
 	};
 };
 
