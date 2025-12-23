@@ -1,18 +1,18 @@
 @font-face {
 	font-family: "Bebas Neue";
-	src: url('/static/fonts/BebasNeue.otf');
+	src: url('/fonts/bebas-neue/BebasNeue-Regular.ttf');
 	font-weight: normal;
 }
 
 @font-face {
 	font-family: "Museo Sans";
-	src: url('/static/fonts/MuseoSans_500.otf');
+	src: url('/fonts/MuseoSans_500.otf');
 	font-weight: normal;
 }
 
 @font-face {
 	font-family: "Museo Sans";
-	src: url('/static/fonts/MuseoSans_700.otf');
+	src: url('/fonts/MuseoSans_700.otf');
 	font-weight: bold;
 }
 

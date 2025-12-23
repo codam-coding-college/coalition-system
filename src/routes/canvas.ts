@@ -81,7 +81,7 @@ const initCanvas = function() {
 	const ctx = canvas.getContext('2d');
 
 	// Register fonts
-	registerFont('static/fonts/BebasNeue.otf', { family: 'Bebas Neue', weight: 'normal' });
+	registerFont('static/fonts/bebas-neue/BebasNeue-Regular.ttf', { family: 'Bebas Neue', weight: 'normal' });
 	registerFont('static/fonts/MuseoSans_500.otf', { family: 'Museo Sans', weight: 'normal' });
 	registerFont('static/fonts/MuseoSans_700.otf', { family: 'Museo Sans', weight: 'bold' });
 
