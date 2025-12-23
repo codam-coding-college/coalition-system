@@ -188,6 +188,9 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			return res.redirect('/');
 		}
 
+		// Get current coalition score
+		const coalitionScore = await getCoalitionScore(prisma, coalition.id);
+
 		// Get the top 25 contributors of this season
 		const topContributors = await getCoalitionTopContributors(prisma, coalition.id, 'Top contributors of this season', now, 25);
 
@@ -316,6 +319,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			topContributorsWeek,
 			latestScores,
 			latestBigScores,
+			coalitionScore,
 			staff,
 		});
 	});

@@ -192,6 +192,24 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- statistics -->
+	<div class="row ms-0 me-0 mb-4">
+		<div class="col">
+			<div class="card h-100">
+				<div class="card-header">
+					<h4 class="card-title mb-0">Statistics</h4>
+				</div>
+				<div class="card-body p-2">
+					<ul>
+						<li>Total points: {{ coalitionScore.totalPoints | thousands }}</li>
+						<li>Active contributors: {{ coalitionScore.activeContributors | thousands }} <small class="text-muted">(any member who has contributed at least 1 point this season)</small></li>
+						<li>Average points: {{ coalitionScore.score | thousands }} <small class="text-muted">(this becomes the coalition score)</small></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
 {% endblock %}
