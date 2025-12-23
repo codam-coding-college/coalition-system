@@ -22,6 +22,7 @@ export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): 
 		const { seasonResults, rankings } = await getSeasonResults(prisma, season.id, 10);
 
 		return res.render('results.njk', {
+			seasonId: season.id,
 			endedSeasons,
 			season,
 			seasonResults,

@@ -45,98 +45,98 @@
 	{% endif %}
 
 	<!-- leaderboard result -->
-	{% if seasonResults | length == 0 %}
+	{% if seasonResults | length == 0 or seasonId == 1838 %} {# seasonId 1838 is hidden due to broken data #}
 		<p class="text-muted p-4"><i>No individual coalition results available for this season.</i></p>
+	{% else %}
+		<!-- leaderboards per coalition -->
+		<!-- this data comes from Codam's coalition system, not from Intra directly -->
+		{% for seasonResult in seasonResults %}
+			<div class="card w-100 mb-4" id="leaderboards" style="overflow: hidden;">
+				<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ seasonResult.coalition.intra_coalition.color | rgba(0.5) }};">
+					<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }} Leaderboards</h4>
+					<div class="d-inline-block">
+
+					</div>
+				</div>
+				<div class="">
+					<ol class="list-group list-group-numbered custom-number noborder">
+						<li data-number="{{ loop.index }}" class="list-group-item big-coalition-row" style="background-color: {{ seasonResult.coalition.intra_coalition.color | rgba(0.5) }}; background-image: url({{ seasonResult.coalition.intra_coalition.cover_url }})">
+							<a href="/coalitions/{{ seasonResult.coalition.intra_coalition.id }}">
+								<div class="big-coalition-logo">
+									<img src="{{ seasonResult.coalition.intra_coalition.image_url }}" style="filter: invert(1);" />
+								</div>
+								<div class="big-coalition-content">
+									<h4 class="coalition-name"><b>{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }}</b></h4>
+									<p class="coalition-description">{{ seasonResult.score | thousands }} points</p>
+								</div>
+							</a>
+						</li>
+					</ol>
+					<table class="table table-striped mb-0">
+						<tbody>
+							{% for userScore in seasonResult.scores %}
+								<tr style="vertical-align: middle;">
+									<td class="fs-5 p-2" style="width: 25px;">{{ userScore.coalition_rank }}.</td>
+									<td class="p-0">
+										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
+											<a href="/profile/{{ userScore.user.intra_user.login }}" class="p-2 text-light" style="text-decoration: none;">
+												<img loading="lazy" src="{{ userScore.user.intra_user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+												<span>{{ userScore.user.intra_user.usual_full_name | striptags(true) | escape }}</span>
+											</a>
+										</div>
+									</td>
+									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ userScore.score | thousands }}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					{# if no rankings, display a message #}
+					{% if seasonResult.scores | length == 0 %}
+						<p class="text-muted p-4"><i>No individual leaderboards available for this coalition.</i></p>
+					{% endif %}
+				</div>
+			</div>
+		{% endfor %}
+
+		<!-- rankings -->
+		<!-- this data comes from Codam's coalition system, not from Intra directly -->
+		{% for ranking in rankings %}
+			<div class="card w-100 mb-4" id="ranking-{{ ranking.type }}">
+				<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+					<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">{{ ranking.name | striptags(true) | escape }}</h4>
+					<div class="d-inline-block">
+
+					</div>
+				</div>
+				<div class="card-body p-0">
+					<p class="p-4 pb-2">{{ ranking.description | striptags(true) | escape | nl2br }}</p>
+					<table class="table coalition-colored mb-0">
+						<tbody>
+							{# TODO: build a nice big highlight of the winner(s) #}
+							{% for result in ranking.results %}
+								<tr style="background: {{ result.coalition.intra_coalition.color | rgba(0.25) if result.coalition else 'transparent' }}; vertical-align: middle;">
+									<td class="fs-5 p-2" style="width: 25px;">{{ result.rank }}.</td>
+									<td class="p-0">
+										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
+											<a href="/profile/{{ result.user.intra_user.login | striptags(true) | escape }}" class="p-2 text-light" style="text-decoration: none;">
+												<img loading="lazy" src="{{ result.user.intra_user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+												<span>{{ result.user.intra_user.usual_full_name | striptags(true) | escape }}</span>
+											</a>
+										</div>
+									</td>
+									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ result.score | thousands }}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					{# if no rankings, display a message #}
+					{% if ranking.results | length == 0 %}
+						<p class="text-muted p-4"><i>No rankings available for this season.</i></p>
+					{% endif %}
+				</div>
+			</div>
+		{% endfor %}
 	{% endif %}
-
-	<!-- leaderboards per coalition -->
-	<!-- this data comes from Codam's coalition system, not from Intra directly -->
-	{% for seasonResult in seasonResults %}
-		<div class="card w-100 mb-4" id="leaderboards" style="overflow: hidden;">
-			<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ seasonResult.coalition.intra_coalition.color | rgba(0.5) }};">
-				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }} Leaderboards</h4>
-				<div class="d-inline-block">
-
-				</div>
-			</div>
-			<div class="">
-				<ol class="list-group list-group-numbered custom-number noborder">
-					<li data-number="{{ loop.index }}" class="list-group-item big-coalition-row" style="background-color: {{ seasonResult.coalition.intra_coalition.color | rgba(0.5) }}; background-image: url({{ seasonResult.coalition.intra_coalition.cover_url }})">
-						<a href="/coalitions/{{ seasonResult.coalition.intra_coalition.id }}">
-							<div class="big-coalition-logo">
-								<img src="{{ seasonResult.coalition.intra_coalition.image_url }}" style="filter: invert(1);" />
-							</div>
-							<div class="big-coalition-content">
-								<h4 class="coalition-name"><b>{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }}</b></h4>
-								<p class="coalition-description">{{ seasonResult.score | thousands }} points</p>
-							</div>
-						</a>
-					</li>
-				</ol>
-				<table class="table table-striped mb-0">
-					<tbody>
-						{% for userScore in seasonResult.scores %}
-							<tr style="vertical-align: middle;">
-								<td class="fs-5 p-2" style="width: 25px;">{{ userScore.coalition_rank }}.</td>
-								<td class="p-0">
-									<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-										<a href="/profile/{{ userScore.user.intra_user.login }}" class="p-2 text-light" style="text-decoration: none;">
-											<img loading="lazy" src="{{ userScore.user.intra_user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-											<span>{{ userScore.user.intra_user.usual_full_name | striptags(true) | escape }}</span>
-										</a>
-									</div>
-								</td>
-								<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ userScore.score | thousands }}</td>
-							</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-				{# if no rankings, display a message #}
-				{% if seasonResult.scores | length == 0 %}
-					<p class="text-muted p-4"><i>No individual leaderboards available for this coalition.</i></p>
-				{% endif %}
-			</div>
-		</div>
-	{% endfor %}
-
-	<!-- rankings -->
-	<!-- this data comes from Codam's coalition system, not from Intra directly -->
-	{% for ranking in rankings %}
-		<div class="card w-100 mb-4" id="ranking-{{ ranking.type }}">
-			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">{{ ranking.name | striptags(true) | escape }}</h4>
-				<div class="d-inline-block">
-
-				</div>
-			</div>
-			<div class="card-body p-0">
-				<p class="p-4 pb-2">{{ ranking.description | striptags(true) | escape | nl2br }}</p>
-				<table class="table coalition-colored mb-0">
-					<tbody>
-						{# TODO: build a nice big highlight of the winner(s) #}
-						{% for result in ranking.results %}
-							<tr style="background: {{ result.coalition.intra_coalition.color | rgba(0.25) if result.coalition else 'transparent' }}; vertical-align: middle;">
-								<td class="fs-5 p-2" style="width: 25px;">{{ result.rank }}.</td>
-								<td class="p-0">
-									<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-										<a href="/profile/{{ result.user.intra_user.login | striptags(true) | escape }}" class="p-2 text-light" style="text-decoration: none;">
-											<img loading="lazy" src="{{ result.user.intra_user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-											<span>{{ result.user.intra_user.usual_full_name | striptags(true) | escape }}</span>
-										</a>
-									</div>
-								</td>
-								<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ result.score | thousands }}</td>
-							</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-				{# if no rankings, display a message #}
-				{% if ranking.results | length == 0 %}
-					<p class="text-muted p-4"><i>No rankings available for this season.</i></p>
-				{% endif %}
-			</div>
-		</div>
-	{% endfor %}
 </div>
 
 {% endblock %}
