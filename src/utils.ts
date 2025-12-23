@@ -488,7 +488,19 @@ export interface CoalitionScore {
 	totalContributors: number;
 };
 
+const scoreCache = new NodeCache({
+	stdTTL: 60 * 10, // 10 minutes
+	checkperiod: 60 * 2, // 2 minutes
+	useClones: false,
+});
+
 export const getCoalitionScore = async function(prisma: PrismaClient, coalitionId: number, atDateTime: Date = new Date()): Promise<CoalitionScore> {
+	// Check cache first
+	const cachedScore = scoreCache.get<CoalitionScore>(`coalitionScore_${coalitionId}_${atDateTime.getTime()}`);
+	if (cachedScore) {
+		return cachedScore;
+	}
+
 	const scoreStatistics = await getScoreStatistics(prisma, coalitionId, atDateTime);
 
 	const totalMembers = await prisma.intraCoalitionUser.count({
@@ -508,7 +520,7 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 
 	const totalContributors = Math.min(scoreStatistics.dataPoints.length, totalMembers);
 
-	return {
+	const score: CoalitionScore = {
 		coalition_id: coalitionId,
 		totalPoints: scoreStatistics.sum,
 		avgPoints: scoreStatistics.mean,
@@ -517,6 +529,30 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		totalMembers: totalMembers,
 		totalContributors: totalContributors,
 	};
+
+	// Cache the result, depending on how long ago it was, cache it for longer and longer periods of time.
+	// Past week: do not cache (scores could still change due to late submissions)
+	// 1 week ago: cache for 1 hour
+	// 2 weeks ago: cache for 6 hours
+	// 3 weeks ago: cache for 1 day
+	const now = new Date();
+	const diffMs = now.getTime() - atDateTime.getTime();
+	const diffDays = diffMs / (1000 * 60 * 60 * 24);
+	let cacheTime = 0;
+	if (diffDays >= 21) {
+		cacheTime = 60 * 60 * 24; // 1 day
+	}
+	else if (diffDays >= 14) {
+		cacheTime = 60 * 60 * 6; // 6 hours
+	}
+	else if (diffDays >= 7) {
+		cacheTime = 60 * 60; // 1 hour
+	}
+	if (cacheTime > 0) {
+		scoreCache.set(`coalitionScore_${coalitionId}_${atDateTime.getTime()}`, score, cacheTime);
+	}
+
+	return score;
 };
 
 export interface SingleRanking {
