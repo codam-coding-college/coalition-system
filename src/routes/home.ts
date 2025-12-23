@@ -104,6 +104,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			total: number;
 			awarded: number;
 			remaining: number;
+			perHour: number;
 		} } = {};
 		if (bonusPointsAwarding.startTime && bonusPointsAwarding.started) {
 			// Calculate how many bonus points are left to award per ranking type
@@ -123,6 +124,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 					total: totalBonusPoints,
 					awarded: Math.min(awardedBonusPoints, totalBonusPoints),
 					remaining: Math.max(remainingBonusPoints, 0),
+					perHour: bonusPointsPerHour,
 				};
 			}
 		}
@@ -137,6 +139,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 					total: totalBonusPoints,
 					awarded: 0,
 					remaining: totalBonusPoints,
+					perHour: Math.floor(totalBonusPoints / (7 * 24))
 				};
 			}
 		}
