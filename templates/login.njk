@@ -1,8 +1,19 @@
 {% extends "base.njk" %}
 {% set noheader = true %}
+{% set nomargin = true %}
 {% set page_title = "Log in" %}
 
 {% block content %}
-	<h1>Log in to Codam's Coalition System</h1>
-	<p><a href="/login/42">Click here to log in with your 42 account.</a></p>
+	<div class="login-page-bg">
+		{% for coalition in coalitions %}
+			<div class="coalition" style="background-image: url('{{ coalition.intra_coalition.cover_url }}'); background-color: {{ coalition.intra_coalition.color }};">
+
+			</div>
+		{% endfor %}
+	</div>
+	<div class="login-page-content">
+		<img src="/img/logo.png" alt="CODAM" height="128" class="d-inline-block align-text-top" />
+		<h1 class="mt-2 mb-4">Coalition System</h1>
+		<a class="btn btn-primary btn-lg" href="/login/42">Log in with 42</a>
+	</div>
 {% endblock %}

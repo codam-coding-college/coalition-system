@@ -22,7 +22,7 @@
 	{% if season.coalition_id %}
 		<div class="card w-100 mb-4" id="winner" style="overflow: hidden;">
 			<div class="card-header pe-2 d-flex align-items-center" style="border-bottom: none; background: radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 30%, #8A6E2F 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1B464 25%, #5d4a1f 62.5%, #5d4a1f 100%);">
-				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #000; font-weight: bold;">Season Winner</div>
+				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-black">Season Winner</h4>
 				<div class="d-inline-block">
 
 				</div>
@@ -54,7 +54,7 @@
 	{% for seasonResult in seasonResults %}
 		<div class="card w-100 mb-4" id="leaderboards" style="overflow: hidden;">
 			<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ seasonResult.coalition.intra_coalition.color | rgba(0.5) }};">
-				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }} Leaderboards</div>
+				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }} Leaderboards</h4>
 				<div class="d-inline-block">
 
 				</div>
@@ -67,7 +67,7 @@
 								<img src="{{ seasonResult.coalition.intra_coalition.image_url }}" style="filter: invert(1);" />
 							</div>
 							<div class="big-coalition-content">
-								<h5 class="coalition-name"><b>{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }}</b></h5>
+								<h4 class="coalition-name"><b>{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }}</b></h4>
 								<p class="coalition-description">{{ seasonResult.score | thousands }} points</p>
 							</div>
 						</a>
@@ -104,7 +104,7 @@
 	{% for ranking in rankings %}
 		<div class="card w-100 mb-4" id="ranking-{{ ranking.type }}">
 			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-				<div class="d-inline-block pe-3 lh-lg flex-grow-1" style="color: #fff; font-weight: bold;">{{ ranking.name | striptags(true) | escape }}</div>
+				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">{{ ranking.name | striptags(true) | escape }}</h4>
 				<div class="d-inline-block">
 
 				</div>

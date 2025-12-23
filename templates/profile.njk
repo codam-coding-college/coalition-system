@@ -34,7 +34,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Point history</h5>
+					<h4 class="card-title mb-0">Point history</h4>
 				</div>
 				<div class="card-body">
 					<canvas height="300" class="codam-chart" data-url="/charts/users/{{ profileUser.login | striptags(true) | escape }}/points/split" id="user-points-split"></canvas>
@@ -49,7 +49,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Total point history</h5>
+					<h4 class="card-title mb-0">Total point history</h4>
 				</div>
 				<div class="card-body">
 					<canvas height="300" class="codam-chart" data-url="/charts/users/{{ profileUser.login | striptags(true) | escape }}/points/total" id="user-points-total"></canvas>
@@ -63,7 +63,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Last 25 big contributions</h5>
+					<h4 class="card-title mb-0">Last 25 big contributions</h4>
 				</div>
 				<div class="card-body p-0">
 					<table class="table coalition-colored mb-0">
@@ -92,7 +92,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Last 100 contributions</h5>
+					<h4 class="card-title mb-0">Last 100 contributions</h4>
 				</div>
 				<div class="card-body p-0">
 					{% if user.isStaff %}

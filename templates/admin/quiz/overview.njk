@@ -12,7 +12,7 @@
 <h2 class="mt-4">Basic settings</h2>
 <div class="card w-100 mb-4">
 	<div class="card-header pe-2 d-flex align-items-center">
-		<div class="d-inline-block pe-3 lh-lg flex-grow-1">Questionnaire settings</div>
+		<h4 class="d-inline-block pe-3 lh-lg flex-grow-1">Questionnaire settings</h4>
 	</div>
 	<div class="card-body">
 		<form action="/admin/quiz" method="post" class="row g-3 mb-3">
@@ -58,7 +58,7 @@ document.getElementById('quiz_start').addEventListener('change', limitQuizDateRa
 {% for question in questions %}
 <div class="card w-100 mb-4" id="question-{{ question.id }}">
 	<div class="card-header pe-2 d-flex align-items-center">
-		<div class="d-inline-block pe-3 lh-lg flex-grow-1">Question {{ question.id }}</div>
+		<h4 class="d-inline-block pe-3 lh-lg flex-grow-1">Question {{ question.id }}</h4>
 		<div class="d-inline-block">
 			<a href="/admin/quiz/questions/{{ question.id }}/edit" class="btn btn-sm btn-secondary">Edit question</a>
 			<form class="d-inline-block" action="/admin/quiz/questions/{{ question.id }}/delete" method="post">
@@ -123,7 +123,7 @@ document.getElementById('quiz_start').addEventListener('change', limitQuizDateRa
 
 <div class="card w-100 mb-4" id="question-new">
 	<div class="card-header pe-2 d-flex align-items-center">
-		<div class="d-inline-block pe-3 lh-lg flex-grow-1">Create a new question</div>
+		<h4 class="d-inline-block pe-3 lh-lg flex-grow-1">Create a new question</h4>
 		<div class="d-inline-block">
 
 		</div>

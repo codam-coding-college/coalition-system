@@ -112,7 +112,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 				if (!totalBonusPoints || totalBonusPoints <= 0) {
 					continue;
 				}
-				const bonusPointsPerHour = totalBonusPoints / (7 * 24);
+				const bonusPointsPerHour = Math.floor(totalBonusPoints / (7 * 24));
 				// Bonus points are awarded every hour during the last 7 days
 				let awardedBonusPoints = 0;
 				for (let dt = new Date(bonusPointsAwarding.startTime); dt < now; dt.setHours(dt.getHours() + 1)) {

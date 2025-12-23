@@ -10,7 +10,7 @@
 			<img src="{{ coalition.intra_coalition.image_url }}" class="mx-auto d-block" alt="" height="200" style="filter: invert(1); height: auto; max-height: 200px;" />
 		</div>
 		<div class="col-md-9 text-md-start mt-4 mt-md-0">
-			<h3>{{ coalition.intra_coalition.name | striptags(true) | escape }}</h3>
+			<h2>{{ coalition.intra_coalition.name | striptags(true) | escape }}</h2>
 			<p><i>{{ coalition.tagline | striptags(true) | escape }}</i></p>
 			<p>{{ coalition.description | striptags(true) | escape | nl2br }}</p>
 		</div>
@@ -23,7 +23,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Top contributors of the past 7 days</h5>
+					<h4 class="card-title mb-0">Top contributors of the past 7 days</h4>
 				</div>
 				<div class="card-body p-0">
 					<table class="table table-striped mb-0">
@@ -57,7 +57,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Top contributors of this season</h5>
+					<h4 class="card-title mb-0">Top contributors of this season</h4>
 				</div>
 				<div class="card-body p-0">
 					<table class="table table-striped mb-0">
@@ -91,7 +91,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Score history</h5>
+					<h4 class="card-title mb-0">Score history</h4>
 				</div>
 				<div class="card-body p-0">
 					<canvas height="500" class="codam-chart" data-url="/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
@@ -105,7 +105,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Most recent big contributions</h5>
+					<h4 class="card-title mb-0">Most recent big contributions</h4>
 				</div>
 				<div class="card-body p-0">
 					{% if user.isStaff %}
@@ -140,7 +140,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Most recent contributions</h5>
+					<h4 class="card-title mb-0">Most recent contributions</h4>
 				</div>
 				<div class="card-body p-0">
 					<table class="table table-striped mb-0">
@@ -172,7 +172,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">{{ coalition.intra_coalition.name }}'s staff</h5>
+					<h4 class="card-title mb-0">{{ coalition.intra_coalition.name }}'s staff</h4>
 				</div>
 				<div class="card-body p-2">
 					<p class="text-muted"><small>Though campus staff cannot contribute to any coalition's score, they are each also member of a coalition of their choice.</small></p>
@@ -182,7 +182,7 @@
 								<div class="card text-center">
 									<img src="{{ staff_member.image }}" class="img-square card-img-top" alt="{{ staff_member.login | striptags(true) | escape }}" />
 									<div class="card-body">
-										<h6 class="card-title">{{ staff_member.usual_first_name if staff_member.usual_first_name is not none else staff_member.first_name | striptags(true) | escape }}</h6>
+										<span>{{ staff_member.usual_first_name if staff_member.usual_first_name is not none else staff_member.first_name | striptags(true) | escape }}</span>
 									</div>
 								</div>
 							</div>

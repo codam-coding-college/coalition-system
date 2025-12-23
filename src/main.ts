@@ -97,7 +97,7 @@ const main = async () => {
 	setupExpressMiddleware(app);
 
 	// Set up routes
-	setupLoginRoutes(app);
+	setupLoginRoutes(app, prisma);
 	setupHomeRoutes(app, prisma);
 	setupProfileRoutes(app, prisma);
 	setupResultsRoutes(app, prisma);

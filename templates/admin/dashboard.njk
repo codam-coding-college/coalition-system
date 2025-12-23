@@ -9,7 +9,7 @@
 		<div class="col-md-6">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">User distribution</h5>
+					<h4 class="card-title mb-0">User distribution</h4>
 				</div>
 				<div class="card-body">
 					<canvas class="codam-chart" data-url="/admin/charts/coalitions/users/distribution" id="coalition-user-distribution"></canvas>
@@ -19,7 +19,7 @@
 		<div class="col-md-6">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Season deadlines</h5>
+					<h4 class="card-title mb-0">Season deadlines</h4>
 				</div>
 				<div class="card-body">
 					{% if currentBlocDeadline %}
@@ -38,7 +38,7 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
-						<h5 class="card-title mb-0">Scores for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h5>
+						<h4 class="card-title mb-0">Scores for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h4>
 					</div>
 					<div class="card-body">
 						<ul>
@@ -64,7 +64,7 @@
 		<div class="col">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Coalitions score history</h5>
+					<h4 class="card-title mb-0">Coalitions score history</h4>
 				</div>
 				<div class="card-body">
 					<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
@@ -78,7 +78,7 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
-						<h5 class="card-title mb-0">Score history for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h5>
+						<h4 class="card-title mb-0">Score history for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h4>
 					</div>
 					<div class="card-body">
 						<canvas height="500" class="codam-chart" data-url="/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
@@ -93,7 +93,7 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
-						<h5 class="card-title mb-0">Current score distribution for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h5>
+						<h4 class="card-title mb-0">Current score distribution for {{ coalition.intra_coalition.name | striptags(true) | escape }}</h4>
 					</div>
 					<div class="card-body">
 						<canvas height="500" class="codam-chart" data-url="/admin/charts/coalitions/{{ coalition.id }}/scores/distribution" id="coalition-{{ coalition.id }}-scores-distribution"></canvas>
@@ -107,7 +107,7 @@
 		<div class="col-md-6">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Previous 10 seasons</h5>
+					<h4 class="card-title mb-0">Previous 10 seasons</h4>
 				</div>
 				<div class="card-body">
 					<ul>
@@ -122,7 +122,7 @@
 		<div class="col-md-6">
 			<div class="card h-100">
 				<div class="card-header">
-					<h5 class="card-title mb-0">Last synchronization</h5>
+					<h4 class="card-title mb-0">Last synchronization</h4>
 				</div>
 				<div class="card-body">
 					<p>The last synchronization with the 42 API was <u id="last-sync-timestamp" style="cursor: help;" title="{{ lastSyncTimestamp | datetimeISO }}" data-date="{{ lastSyncTimestamp | timestamp }}">{{ lastSyncTimestamp | timeAgo }}</u></p>

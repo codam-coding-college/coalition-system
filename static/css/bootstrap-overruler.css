@@ -1,3 +1,53 @@
+@font-face {
+	font-family: "Bebas Neue";
+	src: url('/static/fonts/BebasNeue.otf');
+	font-weight: normal;
+}
+
+@font-face {
+	font-family: "Museo Sans";
+	src: url('/static/fonts/MuseoSans_500.otf');
+	font-weight: normal;
+}
+
+@font-face {
+	font-family: "Museo Sans";
+	src: url('/static/fonts/MuseoSans_700.otf');
+	font-weight: bold;
+}
+
+body {
+	font-family: 'Museo Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Bebas Neue', sans-serif;
+	font-weight: normal;
+}
+
+.navbar-brand h4 {
+	display: inline;
+	margin: 0;
+	font-size: x-large;
+	margin: 0;
+}
+
+.card-header {
+	font-size: x-large;
+}
+
+.quiz-card .card-header {
+	font-size: large;
+}
+
+.card-header h1, .card-header h2, .card-header h3, .card-header h4, .card-header h5, .card-header h6 {
+	margin: 0;
+}
+
+.card-header .lh-lg {
+	line-height: 1.25 !important;
+}
+
 .table.coalition-colored > :not(caption) > * > * {
 	background-color: transparent !important;
 }
@@ -18,6 +68,10 @@
 	background-color: #d9534f !important;
 	border-color: #d43f3a !important;
 	color: #fff !important;
+}
+
+#quiz-question {
+	font-size: large;
 }
 
 #quiz-results-container {
@@ -66,7 +120,7 @@
 
 .quiz-result-coalition-name {
 	word-break: break-all;
-	font-weight: bold;
+	font-size: xx-large;
 }
 
 .quiz-result-coalition:has(input[type=radio]:checked) {
@@ -189,6 +243,11 @@
 
 }
 
+.big-coalition-content .coalition-name {
+	letter-spacing: 1px;
+	margin: 0;
+}
+
 .big-coalition-content > *:last-child {
 	margin-bottom: 0px !important;
 }
@@ -208,4 +267,36 @@
 
 .progress.extra-thick {
 	height: 32px;
+}
+
+.login-page-bg {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	gap: 0px;
+	min-height: 100vh;
+}
+
+.login-page-bg .coalition {
+	height: 100vh;
+	width: 100%;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+.login-page-content {
+	position: absolute;
+	text-align: center;
+	top: 50%;
+	left: 50%;
+	width: 90%;
+	max-width: 400px;
+	transform: translate(-50%, -50%);
+	padding: 32px;
+	background-color: rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(8px);
+	border-radius: 8px;
 }

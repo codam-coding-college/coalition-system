@@ -2,10 +2,39 @@ import { Express } from 'express';
 import passport from 'passport';
 import { ExpressIntraUser } from '../sync/oauth';
 import { CustomSessionData } from '../handlers/session';
+import { PrismaClient } from '@prisma/client';
+import { CoalitionScore, getCoalitionScore } from '../utils';
 
-export const setupLoginRoutes = function(app: Express): void {
+export const setupLoginRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/login', async (req, res) => {
-		return res.render('login.njk');
+		const coalitions = await prisma.codamCoalition.findMany({
+			include: {
+				intra_coalition: {
+					select: {
+						name: true,
+						image_url: true,
+						color: true,
+						cover_url: true,
+					},
+				},
+			},
+		});
+
+		// Get current scores per coalition
+		const coalitionScores: { [key: number]: CoalitionScore } = {};
+		for (const coalition of coalitions) {
+			coalitionScores[coalition.id] = await getCoalitionScore(prisma, coalition.id);
+		}
+
+		// Sort the coalitions by score
+		const sortedCoalitionScores = Object.entries(coalitionScores).sort((a, b) => b[1].score - a[1].score);
+		const sortedCoalitions = sortedCoalitionScores.map(([coalitionId]) => {
+			return coalitions.find(c => c.id === parseInt(coalitionId));
+		}).filter(c => c !== undefined) as typeof coalitions;
+
+		return res.render('login.njk', {
+			coalitions: sortedCoalitions,
+		});
 	});
 
 	app.get('/login/failed', async (req, res) => {
