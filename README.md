@@ -43,8 +43,8 @@ A work in progress.
 - [x] Implement a way of averaging out the points on Intra
 - [ ] Implement a way of syncing existing Intra points including historical ones
 - [ ] Find a way of blocking Intra's coalitions_user creation
-- [ ] Implement granting titles for top #1 of each ranking at the end of each season
-- [ ] Re-implement old [coalition rank titles system](https://github.com/codam-coding-college/coalition-ranks)
+- [x] Implement granting titles for top #1 of each ranking at the end of each season
+- [x] Re-implement old [coalition rank titles system](https://github.com/codam-coding-college/coalition-ranks)
 
 If you're a student and want to contribute to this project, talk to the staff about it first to figure out what is possible and discuss implementation ideas.
 
