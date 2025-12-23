@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import nunjucks from 'nunjucks';
-import { timeAgo, timeFromNow } from '../utils';
+import { formatThousands, timeAgo, timeFromNow } from '../utils';
 
 export const setupNunjucksFilters = function(app: Express): void {
 	const nunjucksEnv = nunjucks.configure('templates', {
@@ -15,7 +15,7 @@ export const setupNunjucksFilters = function(app: Express): void {
 
 	// Add formatting for numbers to thousands separator
 	nunjucksEnv.addFilter('thousands', (num: number | string) => {
-		return num.toString().replace(/\./, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+		return formatThousands(num);
 	});
 
 	// Add formatting filter for seconds to hh:mm format

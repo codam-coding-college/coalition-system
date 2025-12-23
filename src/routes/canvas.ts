@@ -1,7 +1,7 @@
 import { IntraCoalition, PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { CanvasRenderingContext2D, createCanvas, loadImage, registerFont } from 'canvas';
-import { bonusPointsAwardingStarted, CoalitionScore, getBlocAtDate, getCoalitionScore, getCoalitionTopContributors, getRanking, SingleRanking, SMALL_CONTRIBUTION_TYPES, timeAgo } from '../utils';
+import { bonusPointsAwardingStarted, CoalitionScore, formatThousands, getBlocAtDate, getCoalitionScore, getCoalitionTopContributors, getRanking, SingleRanking, SMALL_CONTRIBUTION_TYPES, timeAgo } from '../utils';
 
 const CANVAS_WIDTH = 1920;
 const CANVAS_HEIGHT = 1080;
@@ -302,7 +302,7 @@ const drawInitialCanvas = async function(prisma: PrismaClient, ctx: CanvasRender
 		ctx.fillText(`${coalition.intra_coalition.name} `, textX, textY - entryHeight * 0.15);
 		const nameWidth = ctx.measureText(`${coalition.intra_coalition.name} `).width;
 		ctx.font = `bold ${Math.floor(entryHeight * 0.18)}px "Museo Sans"`;
-		ctx.fillText(`${score.score} pts.`, textX + nameWidth, textY - entryHeight * 0.15);
+		ctx.fillText(`${formatThousands(score.score)} pts.`, textX + nameWidth, textY - entryHeight * 0.15);
 
 		// Draw coalition logo
 		// TODO: make this work! The logos are SVG, which is not supported properly by canvas loadImage
@@ -323,7 +323,7 @@ const drawInitialCanvas = async function(prisma: PrismaClient, ctx: CanvasRender
 			ctx.fillText('TOP CONTRIBUTOR', profilePicX + profilePicSize + PADDING * 0.5, profilePicY + profilePicSize * 0.47);
 
 			// Draw login and score next to profile picture
-			ctx.font = `${Math.floor(entryHeight * 0.13)}px "Museo Sans"`;
+			ctx.font = `${Math.floor(entryHeight * 0.11)}px "Museo Sans"`;
 			ctx.textBaseline = 'middle';
 			ctx.fillText(`${(topContributor.user.login)}`, profilePicX + profilePicSize + PADDING * 0.5, profilePicY + profilePicSize * 0.62);
 		}
@@ -417,7 +417,7 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 					// Draw user profile picture in the vertical center of the entry
 					await drawUserProfilePicture(ctx, rightX + PADDING + entryPadding, currentY + entryPadding, profilePicSize, topRanking.user.image || '');
 					// Draw login and score next to profile picture
-					ctx.fillText(`${topRanking.user.login} / ${topRanking.score} pts.`, entryTextX, entryTextY, entryTextMaxWidth);
+					ctx.fillText(`${topRanking.user.login} / ${formatThousands(topRanking.score)} pts.`, entryTextX, entryTextY, entryTextMaxWidth);
 				} else {
 					ctx.fillText('No data available', entryTextX, entryTextY, entryTextMaxWidth);
 				}
@@ -533,7 +533,7 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 				ctx.fillStyle = '#FFFFFF';
 				ctx.textBaseline = 'bottom';
 				ctx.font = `bold ${Math.floor(entryInnerHeight * 0.21)}px "Museo Sans"`;
-				ctx.fillText(`${score.user.intra_user.login} / ${score.amount} pts. / ${timeAgo(score.created_at)}`, entryTextX, entryTextY, entryTextMaxWidth);
+				ctx.fillText(`${score.user.intra_user.login} / ${formatThousands(score.amount)} pts. / ${timeAgo(score.created_at)}`, entryTextX, entryTextY, entryTextMaxWidth);
 
 				// Draw user profile picture in the vertical center of the entry
 				await drawUserProfilePicture(ctx, rightX + PADDING + entryPadding, currentY + entryPadding, profilePicSize, score.user.intra_user.image || '');

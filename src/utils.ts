@@ -271,6 +271,10 @@ export const timeFromNow = function(date: Date | null): string {
 	return `within a minute`; // don't specify: otherwise it's weird when the amount of seconds does not go down
 };
 
+export const formatThousands = function(num: number | string): string {
+	return num.toString().replace(/\./, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
 const blocCache = new NodeCache({
 	stdTTL: 60 * 60, // 1 hour
 	checkperiod: 60 * 5, // 5 minutes
