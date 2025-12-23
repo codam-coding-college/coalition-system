@@ -145,8 +145,8 @@ export const generateChartCoalitionScoreHistory = async function(prisma: PrismaC
 				{
 					label: 'Score',
 					data: Object.values(dataPoints).map((score) => score.score),
-					// borderColor: coalition.color ? coalition.color : '#808080',
-					// backgroundColor: coalition.color ? coalition.color : '#808080',
+					borderColor: coalition.color ? coalition.color : '#808080',
+					backgroundColor: coalition.color ? coalition.color : '#808080',
 					fill: false,
 					// @ts-ignore
 					tension: 0.25,
