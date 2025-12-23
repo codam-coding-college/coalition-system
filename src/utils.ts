@@ -498,9 +498,18 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 	const activeScores = normalDist.dataPoints.filter(s => s >= minScore);
 	const fairScore = Math.floor(activeScores.reduce((a, b) => a + b, 0) / activeScores.length);
 
-	const totalMembers = await prisma.intraCoalitionUser.count({
+	const totalActiveMembers = await prisma.intraCoalitionUser.count({
 		where: {
 			coalition_id: coalitionId,
+			user: {
+				// only count users with an active 42cursus
+				cursus_users: {
+					some: {
+						cursus_id: CURSUS_ID,
+						end_at: null,
+					}
+				}
+			},
 		},
 	});
 
@@ -512,8 +521,8 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 		stdDevPoints: normalDist.stdDev,
 		minActivePoints: minScore,
 		score: Math.floor(normalDist.mean), // fairScore can jump down too easily when there are a couple of really well scoring students on top of the leaderboard (scores dataset is not a normal distribution)
-		totalContributors: Math.min(normalDist.dataPoints.length, totalMembers),
-		activeContributors: Math.min(activeScores.length, totalMembers),
+		totalContributors: Math.min(normalDist.dataPoints.length, totalActiveMembers),
+		activeContributors: Math.min(activeScores.length, totalActiveMembers),
 	};
 };
 
