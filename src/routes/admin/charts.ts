@@ -31,13 +31,21 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 						}
 					}
 				}
-			}
+			},
+			orderBy: {
+				_count: {
+					coalition_id: 'desc',
+				},
+			},
 		});
 		const coalitions = await prisma.intraCoalition.findMany({
 			select: {
 				id: true,
 				name: true,
 				color: true,
+			},
+			orderBy: {
+				id: 'desc',
 			},
 		});
 
