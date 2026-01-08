@@ -6,7 +6,8 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "npx prisma generate && tsc",
-		"start": "npx prisma migrate deploy && node build/main.js"
+		"start": "npx prisma migrate deploy && node build/main.js",
+		"start:nosync": "npx prisma migrate deploy && node build/main.js --nosync"
 	},
 	"keywords": [
 		"codam",

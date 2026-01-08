@@ -16,6 +16,7 @@ const prisma = new PrismaClient();
 import Fast42 from '@codam/fast42';
 import { INTRA_API_UID, INTRA_API_SECRET, NODE_ENV } from './env';
 import { syncWithIntra } from './sync/base';
+const NO_INTRA_SYNC = process.argv.includes('--nosync');
 let initSyncComplete = false;
 
 // Imports for the handlers and routes
@@ -41,8 +42,13 @@ const main = async () => {
 			client_secret: INTRA_API_SECRET,
 		}]).init();
 
-		await syncWithIntra(api);
-		initSyncComplete = true;
+		if (NO_INTRA_SYNC) {
+			console.log('Skipping initial sync with Intra API due to --nosync flag.');
+			initSyncComplete = true;
+		} else {
+			await syncWithIntra(api);
+			initSyncComplete = true;
+		}
 	}
 	catch (error) {
 		console.error('Failed to initialize the Intra API:', error);
@@ -112,10 +118,12 @@ const main = async () => {
 		console.log('Server is running on http://localhost:4000 in ' + NODE_ENV + ' mode');
 	});
 
-	// Schedule the Intra synchronization to run every 10 minutes
-	setInterval(async () => {
-		await syncWithIntra(api!);
-	}, 10 * 60 * 1000);
+	if (!NO_INTRA_SYNC) {
+		// Schedule the Intra synchronization to run every 10 minutes
+		setInterval(async () => {
+			await syncWithIntra(api!);
+		}, 10 * 60 * 1000);
+	}
 };
 
 main(); // is async because of API synchronization
