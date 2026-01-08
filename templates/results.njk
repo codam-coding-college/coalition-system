@@ -63,7 +63,7 @@
 						<li data-number="{{ loop.index }}" class="list-group-item big-coalition-row" style="background-color: {{ seasonResult.coalition.intra_coalition.color | rgba(0.5) }}; background-image: url({{ seasonResult.coalition.intra_coalition.cover_url }})">
 							<a href="/coalitions/{{ seasonResult.coalition.intra_coalition.id }}">
 								<div class="big-coalition-logo">
-									<img src="{{ seasonResult.coalition.intra_coalition.image_url }}" style="filter: invert(1);" />
+									<img src="{{ seasonResult.coalition.intra_coalition.image_url }}" alt="" height="144" style="filter: invert(1); height: auto; max-height: 144px;" />
 								</div>
 								<div class="big-coalition-content">
 									<h4 class="coalition-name"><b>{{ seasonResult.coalition.intra_coalition.name | striptags(true) | escape }}</b></h4>

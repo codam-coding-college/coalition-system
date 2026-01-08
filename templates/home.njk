@@ -147,7 +147,7 @@
 			<div class="card-body" style="background-color: {{ coalition.intra_coalition.color | rgba(0.3) }};">
 				<div class="row">
 					<div class="col-md-3">
-						<img src="{{ coalition.intra_coalition.image_url }}" style="filter: invert(1);"/>
+						<img src="{{ coalition.intra_coalition.image_url }}" alt="" height="200" style="filter: invert(1); height: auto; max-height: 200px;" />
 					</div>
 					<div class="col-md-9">
 						<h4>{{ coalition.intra_coalition.name | striptags(true) | escape }} - {{ coalition.tagline | striptags(true) | escape }}</h4>
