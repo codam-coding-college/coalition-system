@@ -70,7 +70,7 @@
 								<p class="mb-0 text-center"><b>Bonus points are being awarded!</b><br>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points are awarded to #1 <i>every hour</i> during the final week of the season.</p>
 							</div>
 						{% elif bonusPointsAwarding.startTime %}
-							<p class="p-4 pt-0 mb-0"><small>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season {{ bonusPointAwarding.startTime | timeFromNow }}</i>!</small></p>
+							<p class="p-4 pt-0 mb-0"><small>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season {{ bonusPointsAwarding.startTime | timeFromNow }}</i>!</small></p>
 						{% endif %}
 						<table class="table coalition-colored mb-0">
 							<tbody>
