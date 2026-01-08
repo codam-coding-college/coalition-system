@@ -464,7 +464,7 @@ export const getScoreStatistics = async function(prisma: PrismaClient, coalition
 	// console.log(scores);
 	const scoresArray = scores.map(s => s._sum.amount ? s._sum.amount : 0);
 	const scoresSum = scoresArray.reduce((a, b) => a + b, 0);
-	const scoresMean = scoresSum / scoresArray.length;
+	const scoresMean = (scoresArray.length > 0 ? scoresSum / scoresArray.length : 0);
 	const scoresMedian = scoresArray[Math.floor(scoresArray.length / 2)];
 	const scoresMin = Math.min(...scoresArray);
 	const scoresMax = Math.max(...scoresArray);
@@ -519,13 +519,14 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 	});
 
 	const totalContributors = Math.min(scoreStatistics.dataPoints.length, totalMembers);
+	const scorePoints = (totalContributors > 0 ? Math.floor(scoreStatistics.sum / totalContributors) : 0);
 
 	const score: CoalitionScore = {
 		coalition_id: coalitionId,
 		totalPoints: scoreStatistics.sum,
 		avgPoints: scoreStatistics.mean,
 		medianPoints: scoreStatistics.median,
-		score: Math.floor(scoreStatistics.sum / totalContributors),
+		score: (isNaN(scorePoints) ? 0 : scorePoints),
 		totalMembers: totalMembers,
 		totalContributors: totalContributors,
 	};
