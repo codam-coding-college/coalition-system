@@ -1,5 +1,5 @@
 import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@prisma/client';
-import { INTRA_TEST_ACCOUNTS } from '../env';
+import { CURSUS_ID, INTRA_TEST_ACCOUNTS } from '../env';
 import { syncIntraScore } from './intrascores';
 import { getAPIClient, getBlocAtDate } from '../utils';
 import { generateChartAllCoalitionScoreHistory, generateChartCoalitionScoreHistory } from '../routes/charts';
@@ -31,7 +31,16 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 					coalition_id: true,
 				},
 			},
-		}
+			cursus_users: {
+				where: {
+					cursus_id: CURSUS_ID,
+					end_at: null, // Make sure to only get active cursus users
+				},
+				select: {
+					id: true,
+				},
+			},
+		},
 	});
 	if (!user) { // Check if user exists
 		console.error(`User ${userId} does not exist in our database, skipping score creation...`);
@@ -43,6 +52,10 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 	}
 	if (INTRA_TEST_ACCOUNTS.includes(user.login)) { // Check if user is a testing account used by campus staff
 		console.warn(`User ${user.login} is a test account, skipping score creation...`);
+		return null;
+	}
+	if (!user.cursus_users || user.cursus_users.length === 0) { // Check if user has an active cursus in the cursus id the coalition system is running for
+		console.warn(`User ${userId} does not have an active cursus in cursus id ${CURSUS_ID}, skipping score creation...`);
 		return null;
 	}
 	const blocAtScoreCreation = await getBlocAtDate(prisma, scoreDate);

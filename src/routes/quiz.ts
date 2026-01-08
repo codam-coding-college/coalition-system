@@ -63,16 +63,34 @@ export const isQuizAvailable = async function(user: IntraUser | ExpressIntraUser
 		return true; // Skip any further database queries, the questionnaire is available for everyone!
 	}
 
-	// If the user is not part of any coalition currently, taking the questionnaire is always allowed
-	const coalitionUser = await prisma.intraCoalitionUser.findFirst({
-		select: {
-			id: true,
-		},
+	// If the user is not part of any coalition currently, taking the questionnaire is always allowed, as long as their cursus is ongoing
+	const userDetails = await prisma.intraUser.findFirst({
 		where: {
-			user_id: user.id,
+			id: user.id,
+		},
+		select: {
+			coalition_users: {
+				select: {
+					id: true,
+				},
+			},
+			cursus_users: {
+				where: {
+					cursus_id: CURSUS_ID,
+					end_at: null,
+				},
+				select: {
+					id: true,
+					end_at: true,
+				},
+			},
 		},
 	});
-	return (!coalitionUser);
+	if (!userDetails) {
+		console.warn(`User ${user.id} not found in database when checking quiz availability`);
+		return false;
+	}
+	return (userDetails.coalition_users.length == 0 && userDetails.cursus_users.length > 0 && !userDetails.cursus_users[0].end_at);
 }
 
 const resetQuizSession = async function(req: Request, userSession: CustomSessionData): Promise<void> {
