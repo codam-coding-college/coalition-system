@@ -1,14 +1,8 @@
-{% extends "base.njk" %}
-{% set noheader = true %}
-{% set page_title = "Starting..." %}
-
-{% block content %}
-	<h1>The Codam Coalition System is starting...</h1>
-	<p>Please come back in a few minutes, when the synchronization with 42's Intra API has completed.</p>
-	<script>
-	// Retry automatically every 2 seconds
-	setTimeout(() => {
-		window.location.reload();
-	}, 2000);
-	</script>
-{% endblock %}
+<h1>The Codam Coalition System is starting...</h1>
+<p>Please come back in a few minutes, when the synchronization with 42's Intra API has completed.</p>
+<script>
+// Retry automatically every 2 seconds
+setTimeout(() => {
+	window.location.reload();
+}, 2000);
+</script>

@@ -36,25 +36,6 @@ import { setupCanvasRoutes } from './routes/canvas';
 export let api: Fast42 | null = null;
 
 const main = async () => {
-	try {
-		api = await new Fast42([{
-			client_id: INTRA_API_UID,
-			client_secret: INTRA_API_SECRET,
-		}]).init();
-
-		if (NO_INTRA_SYNC) {
-			console.log('Skipping initial sync with Intra API due to --nosync flag.');
-			initSyncComplete = true;
-		} else {
-			await syncWithIntra(api);
-			initSyncComplete = true;
-		}
-	}
-	catch (error) {
-		console.error('Failed to initialize the Intra API:', error);
-		process.exit(1);
-	}
-
 	// Set up the Express app
 	const app = express();
 
@@ -91,8 +72,7 @@ const main = async () => {
 	app.use(async function(req: express.Request, res: express.Response, next: express.NextFunction) {
 		if (!initSyncComplete) {
 			console.log(`A visitor requested the path ${req.path}, but we haven't finished syncing yet. Showing a waiting page.`);
-			res.render('syncing.njk');
-			res.status(503);
+			res.status(503).render('syncing.njk');
 		}
 		else {
 			next();
@@ -102,7 +82,32 @@ const main = async () => {
 	// Configure the Express app to use specific middleware for each request
 	setupExpressMiddleware(app);
 
-	// Set up routes
+	// Start the Express server
+	app.listen(4000, async () => {
+		console.log('Server is running on http://localhost:4000 in ' + NODE_ENV + ' mode');
+	});
+
+	// Handle Intra API initialization and initial synchronization
+	try {
+		api = await new Fast42([{
+			client_id: INTRA_API_UID,
+			client_secret: INTRA_API_SECRET,
+		}]).init();
+
+		if (NO_INTRA_SYNC) {
+			console.log('Skipping initial sync with Intra API due to --nosync flag.');
+			initSyncComplete = true;
+		} else {
+			await syncWithIntra(api);
+			initSyncComplete = true;
+		}
+	}
+	catch (error) {
+		console.error('Failed to initialize the Intra API:', error);
+		process.exit(1);
+	}
+
+	// Set up remaining routes
 	setupLoginRoutes(app, prisma);
 	setupHomeRoutes(app, prisma);
 	setupProfileRoutes(app, prisma);
@@ -112,11 +117,6 @@ const main = async () => {
 	setupAdminRoutes(app, prisma);
 	setupWebhookRoutes(app, prisma);
 	setupCanvasRoutes(app, prisma);
-
-	// Start the Express server
-	app.listen(4000, async () => {
-		console.log('Server is running on http://localhost:4000 in ' + NODE_ENV + ' mode');
-	});
 
 	if (!NO_INTRA_SYNC) {
 		// Schedule the Intra synchronization to run every 10 minutes
