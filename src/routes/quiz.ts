@@ -76,8 +76,18 @@ export const isQuizAvailable = async function(user: IntraUser | ExpressIntraUser
 			},
 			cursus_users: {
 				where: {
-					cursus_id: CURSUS_ID,
-					end_at: null,
+					OR: [ // only consider active cursus users for the relevant cursus
+						{
+							cursus_id: CURSUS_ID,
+							end_at: null,
+						},
+						{
+							cursus_id: CURSUS_ID,
+							end_at: {
+								gt: currentDate, // also consider cursus_users that are still active at the current date
+							},
+						},
+					],
 				},
 				select: {
 					id: true,

@@ -32,9 +32,19 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 				},
 			},
 			cursus_users: {
-				where: {
-					cursus_id: CURSUS_ID,
-					end_at: null, // Make sure to only get active cursus users
+				where: { // only get active cursus_users for the relevant cursus
+					OR: [
+						{
+							cursus_id: CURSUS_ID,
+							end_at: null,
+						},
+						{
+							cursus_id: CURSUS_ID,
+							end_at: {
+								gt: scoreDate, // also consider cursus_users that were still active at the score creation date
+							},
+						},
+					],
 				},
 				select: {
 					id: true,
