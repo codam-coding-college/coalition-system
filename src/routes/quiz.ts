@@ -7,7 +7,7 @@ import { ExpressIntraUser } from '../sync/oauth';
 import { getAPIClient } from '../utils';
 import { fetchSingle42ApiPage } from '../sync/base';
 import { syncCoalitionUser } from '../sync/coalitions_users';
-import { CURSUS_ID } from '../env';
+import { ASSISTANTS_CAN_QUIZ, CURSUS_ID } from '../env';
 
 export interface QuizSessionQuestion {
 	question: CodamCoalitionTestQuestion;
@@ -59,11 +59,9 @@ export const isQuizAvailable = async function(user: IntraUser | ExpressIntraUser
 	});
 	const currentDate = new Date();
 	const availableDueToTime = (currentDate.getTime() >= settings.start_at.getTime() && currentDate.getTime() < settings.deadline_at.getTime());
-	if (availableDueToTime) {
-		return true; // Skip any further database queries, the questionnaire is available for everyone!
-	}
 
 	// If the user is not part of any coalition currently, taking the questionnaire is always allowed, as long as their cursus is ongoing
+	// Also allow assistants to take the quiz if the relevant env var is set
 	const userDetails = await prisma.intraUser.findFirst({
 		where: {
 			id: user.id,
@@ -94,13 +92,31 @@ export const isQuizAvailable = async function(user: IntraUser | ExpressIntraUser
 					end_at: true,
 				},
 			},
+			group_users: {
+				select: {
+					id: true,
+				},
+				where: {
+					group_id: parseInt(process.env.INTRA_ASSISTANT_GROUP_ID || '0'),
+				},
+			},
 		},
 	});
 	if (!userDetails) {
 		console.warn(`User ${user.id} not found in database when checking quiz availability`);
 		return false;
 	}
-	return (userDetails.coalition_users.length == 0 && userDetails.cursus_users.length > 0 && !userDetails.cursus_users[0].end_at);
+	if (userDetails.coalition_users.length === 0 || availableDueToTime) {
+		if (userDetails.cursus_users.length > 0 && !userDetails.cursus_users[0].end_at) {
+			console.log(`User ${user.id} has an ongoing cursus in cursus ${CURSUS_ID}, allowing to take the questionnaire`);
+			return true; // User has an ongoing cursus in the relevant cursus, allow taking the questionnaire
+		}
+		if (userDetails.group_users.length > 0 && ASSISTANTS_CAN_QUIZ) {
+			console.log(`User ${user.id} is an assistant and assistants are allowed to take the quiz due to env var ASSISTANTS_CAN_QUIZ, allowing to take the questionnaire`);
+			return true; // User is an assistant and assistants are allowed to take the quiz due to env var ASSISTANTS_CAN_QUIZ
+		}
+	}
+	return false;
 }
 
 const resetQuizSession = async function(req: Request, userSession: CustomSessionData): Promise<void> {

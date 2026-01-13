@@ -4,7 +4,7 @@ import OAuth2Strategy from 'passport-oauth2';
 import { PrismaClient } from '@prisma/client';
 import { INTRA_API_UID, INTRA_API_SECRET, URL_ORIGIN, SESSION_SECRET, NODE_ENV } from '../env';
 import { getIntraUser, ExpressIntraUser } from '../sync/oauth';
-import { isStudent, isStaff } from '../utils';
+import { isStudent, isStaff, isAssistant } from '../utils';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 
 export const setupPassport = function(prisma: PrismaClient): void {
@@ -53,6 +53,7 @@ export const setupPassport = function(prisma: PrismaClient): void {
 				kind: user.kind,
 				isStudent: await isStudent(prisma, user),
 				isStaff: await isStaff(user),
+				isAssistant: await isAssistant(prisma, user),
 				image_url: user.image,
 			};
 			cb(null, intraUser);

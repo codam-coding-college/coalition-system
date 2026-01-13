@@ -246,6 +246,7 @@ model IntraUser {
 	// Relations
 	coalition_users  IntraCoalitionUser[]
 	cursus_users     IntraCursusUser[]
+	group_users      IntraGroupUser[]
 
 	// Codam
 	codam_user      CodamUser?
@@ -323,6 +324,29 @@ model IntraCoalitionUser {
 	coalition        IntraCoalition   @relation(fields: [coalition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
+// Intra Group
+model IntraGroup {
+	id               Int      @id
+	name             String
+
+	// Relations
+	group_users      IntraGroupUser[]
+}
+
+// Intra Group User
+// Links a user to a group
+model IntraGroupUser {
+	id               Int      @id
+	group_id         Int      @map("group_id")
+	user_id          Int      @map("user_id")
+
+	// Relations
+	user             IntraUser    @relation(fields: [user_id], references: [id])
+	group            IntraGroup   @relation(fields: [group_id], references: [id])
+}
+
+// Intra Cursus User
+// Links a user to a cursus
 model IntraCursusUser {
 	id               Int      @id
 	cursus_id        Int      @map("cursus_id")

@@ -1,6 +1,6 @@
 import https from 'https';
 import { CAMPUS_ID } from '../env';
-import { isStudent, isStaff } from '../utils';
+import { isStudent, isStaff, isAssistant } from '../utils';
 import { prisma } from './base';
 
 export interface ExpressIntraUser extends Express.User {
@@ -13,8 +13,9 @@ export interface ExpressIntraUser extends Express.User {
 	usual_full_name: string;
 	display_name: string;
 	kind: string;
-	isStudent: boolean; // can be false for pisciners
+	isStudent: boolean; // true if the user is active in the CURSUS_ID cursus
 	isStaff: boolean;
+	isAssistant: boolean; // true if the user is part of the ASSISTANT_GROUP_ID group on Intra (C.A.T. team)
 	image_url: string | null;
 };
 
@@ -65,6 +66,7 @@ export const getIntraUser = async function(accessToken: string): Promise<Express
 			kind: me.kind,
 			isStudent: await isStudent(prisma, me),
 			isStaff: await isStaff(me),
+			isAssistant: await isAssistant(prisma, me),
 			image_url: (me.image && me.image.link ? me.image.versions.medium : null),
 		};
 

@@ -2,7 +2,7 @@ import { PrismaClient, IntraUser, IntraCoalition, IntraBlocDeadline, CodamCoalit
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { api } from "./main";
-import { CURSUS_ID } from "./env";
+import { ASSISTANT_GROUP_ID, CURSUS_ID } from "./env";
 import NodeCache from "node-cache";
 import { Request } from "express";
 
@@ -76,6 +76,19 @@ export const isStudent = async function(prisma: PrismaClient, intraUser: Express
 
 export const isStaff = async function(intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
 	return intraUser.kind === 'admin';
+};
+
+export const isAssistant = async function(prisma: PrismaClient, intraUser: ExpressIntraUser | IntraUser): Promise<boolean> {
+	if (isNaN(ASSISTANT_GROUP_ID)) {
+		return false;
+	}
+	const groupUser = await prisma.intraGroupUser.findFirst({
+		where: {
+			group_id: ASSISTANT_GROUP_ID,
+			user_id: intraUser.id,
+		},
+	});
+	return (groupUser !== null);
 };
 
 export const getCoalitionIds = async function(prisma: PrismaClient): Promise<any> {
