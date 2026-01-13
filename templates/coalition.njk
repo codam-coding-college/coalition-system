@@ -19,153 +19,156 @@
 
 <!-- content -->
 <div class="container-md mt-4 mw-900">
-	<div class="row ms-0 me-0 mb-4">
-		<div class="col">
-			<div class="card h-100">
-				<div class="card-header">
-					<h4 class="card-title mb-0">Top contributors of the past 7 days</h4>
-				</div>
-				<div class="card-body p-0">
-					<table class="table table-striped mb-0">
-						<tbody>
-							{% for ranking in topContributorsWeek %}
-								<tr style="vertical-align: middle;">
-									<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
-									<td class="p-0">
-										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-											<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light" style="text-decoration: none;">
-												<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-												<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
-											</a>
-										</div>
-									</td>
-									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
-								</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-					{# if no rankings, display a message #}
-					{% if topContributorsWeek | length == 0 %}
-						<p class="text-muted p-4"><i>No rankings available (yet).</i></p>
-					{% endif %}
-				</div>
-			</div>
-		</div>
-	</div>
 
-	<div class="row ms-0 me-0 mb-4">
-		<div class="col">
-			<div class="card h-100">
-				<div class="card-header">
-					<h4 class="card-title mb-0">Top contributors of this season</h4>
-				</div>
-				<div class="card-body p-0">
-					<table class="table table-striped mb-0">
-						<tbody>
-							{% for ranking in topContributors %}
-								<tr style="vertical-align: middle;">
-									<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
-									<td class="p-0">
-										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-											<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light" style="text-decoration: none;">
-												<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-												<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
-											</a>
-										</div>
-									</td>
-									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
-								</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-					{# if no rankings, display a message #}
-					{% if topContributors | length == 0 %}
-						<p class="text-muted p-4"><i>No rankings available (yet).</i></p>
-					{% endif %}
+	{% if currentBloc %}
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h4 class="card-title mb-0">Top contributors of the past 7 days</h4>
+					</div>
+					<div class="card-body p-0">
+						<table class="table table-striped mb-0">
+							<tbody>
+								{% for ranking in topContributorsWeek %}
+									<tr style="vertical-align: middle;">
+										<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
+										<td class="p-0">
+											<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
+												<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light" style="text-decoration: none;">
+													<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+													<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
+												</a>
+											</div>
+										</td>
+										<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+						{# if no rankings, display a message #}
+						{% if topContributorsWeek | length == 0 %}
+							<p class="text-muted p-4"><i>No rankings available (yet).</i></p>
+						{% endif %}
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
-	<div class="row ms-0 me-0 mb-4">
-		<div class="col">
-			<div class="card h-100">
-				<div class="card-header">
-					<h4 class="card-title mb-0">Score history</h4>
-				</div>
-				<div class="card-body p-0">
-					<canvas height="500" class="codam-chart" data-url="/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h4 class="card-title mb-0">Top contributors of this season</h4>
+					</div>
+					<div class="card-body p-0">
+						<table class="table table-striped mb-0">
+							<tbody>
+								{% for ranking in topContributors %}
+									<tr style="vertical-align: middle;">
+										<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
+										<td class="p-0">
+											<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
+												<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light" style="text-decoration: none;">
+													<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+													<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
+												</a>
+											</div>
+										</td>
+										<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+						{# if no rankings, display a message #}
+						{% if topContributors | length == 0 %}
+							<p class="text-muted p-4"><i>No rankings available (yet).</i></p>
+						{% endif %}
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
-	<!-- top contributions history table (last 25 top contributions) -->
-	<div class="row ms-0 me-0 mb-4">
-		<div class="col">
-			<div class="card h-100">
-				<div class="card-header">
-					<h4 class="card-title mb-0">Most recent big contributions</h4>
-				</div>
-				<div class="card-body p-0">
-					{% if user.isStaff %}
-						<p class="m-2 text-end"><a href="/admin/points/history/coalition/{{ coalition.intra_coalition.name | lower | striptags(true) | escape }}">View and/or modify point history in admin panel</a></p>
-					{% endif %}
-					<table class="table table-striped mb-0">
-						<thead>
-							<th scope="col">Date</th>
-							<th scope="col">Student</th>
-							<th scope="col">Points</th>
-							<th scope="col">Reason</th>
-						</thead>
-						<tbody>
-							{% for score in latestBigScores %}
-								<tr>
-									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
-									<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
-									<td>{{ score.amount }}</td>
-									<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason | striptags(true) | escape }}</small></td>
-								</tr>
-							{% endfor %}
-						</tbody>
-					</table>
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h4 class="card-title mb-0">Score history</h4>
+					</div>
+					<div class="card-body p-0">
+						<canvas height="500" class="codam-chart" data-url="/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
-	<!-- point history table (last 50 contributions) -->
-	<!--
-	<div class="row ms-0 me-0 mb-4">
-		<div class="col">
-			<div class="card h-100">
-				<div class="card-header">
-					<h4 class="card-title mb-0">Most recent contributions</h4>
-				</div>
-				<div class="card-body p-0">
-					<table class="table table-striped mb-0">
-						<thead>
-							<th scope="col">Date</th>
-							<th scope="col">Student</th>
-							<th scope="col">Points</th>
-							<th scope="col">Reason</th>
-						</thead>
-						<tbody>
-							{% for score in latestScores %}
-								<tr>
-									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
-									<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
-									<td>{{ score.amount }}</td>
-									<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason | striptags(true) | escape }}</small></td>
-								</tr>
-							{% endfor %}
-						</tbody>
-					</table>
+		<!-- top contributions history table (last 25 top contributions) -->
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h4 class="card-title mb-0">Most recent big contributions</h4>
+					</div>
+					<div class="card-body p-0">
+						{% if user.isStaff %}
+							<p class="m-2 text-end"><a href="/admin/points/history/coalition/{{ coalition.intra_coalition.name | lower | striptags(true) | escape }}">View and/or modify point history in admin panel</a></p>
+						{% endif %}
+						<table class="table table-striped mb-0">
+							<thead>
+								<th scope="col">Date</th>
+								<th scope="col">Student</th>
+								<th scope="col">Points</th>
+								<th scope="col">Reason</th>
+							</thead>
+							<tbody>
+								{% for score in latestBigScores %}
+									<tr>
+										<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
+										<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
+										<td>{{ score.amount }}</td>
+										<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason | striptags(true) | escape }}</small></td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-	-->
+
+		<!-- point history table (last 50 contributions) -->
+		<!--
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h4 class="card-title mb-0">Most recent contributions</h4>
+					</div>
+					<div class="card-body p-0">
+						<table class="table table-striped mb-0">
+							<thead>
+								<th scope="col">Date</th>
+								<th scope="col">Student</th>
+								<th scope="col">Points</th>
+								<th scope="col">Reason</th>
+							</thead>
+							<tbody>
+								{% for score in latestScores %}
+									<tr>
+										<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
+										<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
+										<td>{{ score.amount }}</td>
+										<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason | striptags(true) | escape }}</small></td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		-->
+	{% endif %}
 
 	<!-- assistant overview for this coalition -->
 	{% if assistantsCanQuiz %}
@@ -222,23 +225,25 @@
 	</div>
 
 	<!-- statistics -->
-	<div class="row ms-0 me-0 mb-4">
-		<div class="col">
-			<div class="card h-100">
-				<div class="card-header">
-					<h4 class="card-title mb-0">Statistics</h4>
-				</div>
-				<div class="card-body p-2">
-					<ul>
-						<li>Total points: {{ coalitionScore.totalPoints | thousands }}</li>
-						<li>Total contributors: {{ coalitionScore.totalContributors | thousands }} <small class="text-muted">(any member who has contributed at least 1 point this season)</small></li>
-						<li>Average points: {{ coalitionScore.score | thousands }} <small class="text-muted">(this becomes the coalition score: total points / total contributors)</small></li>
-						<li>Total members: {{ coalitionScore.totalMembers | thousands }}</li>
-					</ul>
+	{% if currentBloc %}
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h4 class="card-title mb-0">Statistics</h4>
+					</div>
+					<div class="card-body p-2">
+						<ul>
+							<li>Total points: {{ coalitionScore.totalPoints | thousands }}</li>
+							<li>Total contributors: {{ coalitionScore.totalContributors | thousands }} <small class="text-muted">(any member who has contributed at least 1 point this season)</small></li>
+							<li>Average points: {{ coalitionScore.score | thousands }} <small class="text-muted">(this becomes the coalition score: total points / total contributors)</small></li>
+							<li>Total members: {{ coalitionScore.totalMembers | thousands }}</li>
+						</ul>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
+	{% endif %}
 </div>
 
 {% endblock %}
