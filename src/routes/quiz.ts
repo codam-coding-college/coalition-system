@@ -442,80 +442,116 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 		});
 
 		const api = await getAPIClient();
-		if (intraCoalitionUser) {
-			console.log(`Found existing IntraCoalitionUser ${intraCoalitionUser.id} for user ${user.login} (currently in coalition ${intraCoalitionUser.coalition_id}), patching using Intra API...`);
-			// Patch the user's coalition ID in Intra
-			const response = await api.patch(`/coalitions_users/${intraCoalitionUser.id}`, {
-				coalitions_user: {
-					coalition_id: coalitionId,
+		let joined = false;
+
+		// Make sure the cursus_user allows for a coalition
+		const cursus_users = await fetchSingle42ApiPage(api, `/cursus_users`, {
+			'filter[user_id]': user.id.toString(),
+			'filter[cursus_id]': CURSUS_ID.toString(),
+		});
+		if (cursus_users.length === 0) {
+			console.error(`User ${user.login} is not enrolled in the cursus with ID ${CURSUS_ID}`);
+			return res.status(412).send({ error: 'Failed to join coalition due to cursus enrollment error, try again later' });
+		}
+
+		// Patch the cursus_user to allow for a coalition if needed
+		if (cursus_users[0].has_coalition === false) {
+			console.log(`Patching user ${user.login}'s cursus_user to allow for a coalition in the cursus...`);
+			const response = await api.patch(`/cursus_users/${cursus_users[0].id}`, {
+				cursus_user: {
+					has_coalition: true,
 				}
 			});
-			if (response.status === 204) {
-				await prisma.intraCoalitionUser.update({
-					where: {
-						id: intraCoalitionUser.id
-					},
-					data: {
-						coalition_id: coalitionId
-					}
-				});
-				console.log(`User ${user.login} joined coalition ${coalitionId} with an existing IntraCoalitionUser ${intraCoalitionUser.id}`);
+			console.log(`${user.login}'s cursus_user patch response: ${response.status} ${response.statusText}`);
+		}
+
+		// Temporarily reopen the cursus if it has already ended
+		const cursusEndAt = cursus_users[0].end_at ? new Date(cursus_users[0].end_at) : null;
+		const now = new Date();
+		if (cursusEndAt && cursusEndAt < now) {
+			console.log(`User ${user.login}'s cursus has already ended at ${cursusEndAt.toISOString()}. Modifying cursus_user's end_at temporarily...`);
+			const endAtResponse = await api.patch(`/cursus_users/${cursus_users[0].id}`, {
+				cursus_user: {
+					end_at: null,
+				}
+			});
+			if (endAtResponse.status !== 204) {
+				console.error(`Failed to patch cursus_user end_at for user ${user.login}: ${endAtResponse.status} ${endAtResponse.statusText}`);
+				return res.status(500).send({ error: 'Failed to join coalition due to cursus end error, try again later' });
 			}
 			else {
-				console.error(`Failed to patch coalition ID for user ${user.login}: ${response.status} ${response.statusText}`);
-				return res.status(500).send({ error: 'Failed to join coalition due to coalition patch error, try again later' });
+				console.log(`${user.login}'s cursus_user end_at patch response: ${endAtResponse.status} ${endAtResponse.statusText}`);
 			}
 		}
-		else {
-			// Make sure the cursus_user allows for a coalition
-			const cursus_users = await fetchSingle42ApiPage(api, `/cursus_users`, {
-				'filter[user_id]': user.id.toString(),
-				'filter[cursus_id]': CURSUS_ID.toString(),
+
+		try {
+			// Check for an existing coalitionUser on Intra
+			const coalitionIds = await prisma.intraCoalition.findMany({
+				select: {
+					id: true,
+				},
 			});
-			if (cursus_users.length === 0) {
-				console.error(`User ${user.login} is not enrolled in the cursus with ID ${CURSUS_ID}`);
-				return res.status(412).send({ error: 'Failed to join coalition due to cursus enrollment error, try again later' });
-			}
+			const coalitionIdList = coalitionIds.map(c => c.id);
+			const existingCoalitionUser = await fetchSingle42ApiPage(api, `/coalitions_users`, {
+				'filter[user_id]': user.id.toString(),
+				'filter[coalition_id]': coalitionIdList.join(','),
+			});
 
-			// Patch the cursus_user to allow for a coalition if needed
-			if (cursus_users[0].has_coalition === false) {
-				console.log(`Patching user ${user.login}'s cursus_user to allow for a coalition in the cursus...`);
-				const response = await api.patch(`/cursus_users/${cursus_users[0].id}`, {
-					cursus_user: {
-						has_coalition: true,
+			if (existingCoalitionUser.length > 0) {
+				console.log(`Found existing IntraCoalitionUser ${existingCoalitionUser[0].id} for user ${user.login} (currently in coalition ${existingCoalitionUser[0].coalition_id}), patching using Intra API...`);
+				// Patch the user's coalition ID in Intra
+				const response = await api.patch(`/coalitions_users/${existingCoalitionUser[0].id}`, {
+					coalitions_user: {
+						coalition_id: coalitionId,
 					}
 				});
-				console.log(`${user.login}'s cursus_user patch response: ${response.status} ${response.statusText}`);
-			}
-
-			// Temporarily reopen the cursus if it has already ended
-			const cursusEndAt = cursus_users[0].end_at ? new Date(cursus_users[0].end_at) : null;
-			const now = new Date();
-			if (cursusEndAt && cursusEndAt < now) {
-				console.log(`User ${user.login}'s cursus has already ended at ${cursusEndAt}. Modifying cursus_user's end_at temporarily...`);
-				const endAtResponse = await api.patch(`/cursus_users/${cursus_users[0].id}`, {
-					cursus_user: {
-						end_at: null,
-					}
-				});
-				if (endAtResponse.status !== 204) {
-					console.error(`Failed to patch cursus_user end_at for user ${user.login}: ${endAtResponse.status} ${endAtResponse.statusText}`);
-					return res.status(500).send({ error: 'Failed to join coalition due to cursus end error, try again later' });
+				if (response.status === 204) {
+					existingCoalitionUser[0].coalition_id = coalitionId;
+					await syncCoalitionUser(existingCoalitionUser[0]);
+					console.log(`User ${user.login} joined coalition ${coalitionId} with an existing IntraCoalitionUser ${existingCoalitionUser[0].id}`);
+					joined = true;
 				}
 				else {
-					console.log(`${user.login}'s cursus_user end_at patch response: ${endAtResponse.status} ${endAtResponse.statusText}`);
+					console.error(`Failed to patch coalition ID for user ${user.login}: ${response.status} ${response.statusText}`);
+					throw new Error(`Failed to patch coalitionuser ${existingCoalitionUser[0].id} for user ${user.login}`);
 				}
 			}
+			else {
+				console.log(`Creating a new IntraCoalitionUser for user ${user.login} in coalition ${coalitionId}`);
+				const coalitionUserCreateResponse = await api.post('/coalitions_users', {
+					coalitions_user: {
+						user_id: user.id,
+						coalition_id: coalitionId,
+						this_year_score: 0,
+					}
+				});
 
-			console.log(`Creating a new IntraCoalitionUser for user ${user.login} in coalition ${coalitionId}`);
-			const coalitionUserCreateResponse = await api.post('/coalitions_users', {
-				coalitions_user: {
-					user_id: user.id,
-					coalition_id: coalitionId,
-					this_year_score: 0,
+				if (coalitionUserCreateResponse.status === 201) {
+					const responseBody = await coalitionUserCreateResponse.json();
+					if (!responseBody.id) {
+						console.error(`Expected key 'id' in response data missing`, responseBody);
+						throw new Error('Expected key id in coalition user creation response missing');
+					}
+					const coalitionUser = await fetchSingle42ApiPage(api, `/coalitions_users/${responseBody.id}`);
+					if (!coalitionUser) {
+						console.error(`Failed to fetch coalition user ${responseBody.id}, was probably not created?`);
+						throw new Error(`Failed to fetch coalition user ${responseBody.id} after creation`);
+					}
+					await syncCoalitionUser(coalitionUser);
+					console.log(`User ${user.login} joined coalition ${coalitionId} with a new IntraCoalitionUser ${coalitionUser.id}`);
+					joined = true;
 				}
-			});
-
+				else {
+					const responseBody = await coalitionUserCreateResponse.text();
+					console.error(`Failed to create coalition user for user ${user.login}: ${coalitionUserCreateResponse.status} ${coalitionUserCreateResponse.statusText} - ${responseBody}`);
+					throw new Error(`Failed to create coalition user for user ${user.login}`);
+				}
+			}
+		}
+		catch (err) {
+			res.status(500).send({ error: err || 'Internal server error' });
+		}
+		finally {
 			// Make sure to restore the cursus_user's end_at date if it was modified earlier
 			if (cursusEndAt && cursusEndAt < now) {
 				// Restore the original end_at date
@@ -532,28 +568,11 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 					console.log(`${user.login}'s cursus_user end_at restore patch response: ${endAtResponse.status} ${endAtResponse.statusText}`);
 				}
 			}
-
-			if (coalitionUserCreateResponse.status === 201) {
-				const responseBody = await coalitionUserCreateResponse.json();
-				if (!responseBody.id) {
-					console.error(`Expected key 'id' in response data missing`, responseBody);
-					return res.status(500).send({ error: 'Failed to join coalition due to coalition user creation error, try again later' });
-				}
-				const coalitionUser = await fetchSingle42ApiPage(api, `/coalitions_users/${responseBody.id}`);
-				if (!coalitionUser) {
-					console.error(`Failed to fetch coalition user ${responseBody.id}, was probably not created?`);
-					return res.status(500).send({ error: 'Failed to join coalition due to coalition user fetch error, try again later' });
-				}
-				await syncCoalitionUser(coalitionUser);
-				console.log(`User ${user.login} joined coalition ${coalitionId} with a new IntraCoalitionUser ${coalitionUser.id}`);
-			}
-			else {
-				console.error(`Failed to create coalition user for user ${user.login}: ${coalitionUserCreateResponse.status} ${coalitionUserCreateResponse.statusText}`);
-				return res.status(500).send({ error: 'Failed to join coalition due to coalition user creation error, try again later' });
-			}
 		}
 
-		await resetQuizSession(req, userSession);
-		return res.redirect('/');
+		if (joined) {
+			await resetQuizSession(req, userSession);
+			return res.redirect('/');
+		}
 	});
 };
