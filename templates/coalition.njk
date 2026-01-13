@@ -167,6 +167,34 @@
 	</div>
 	-->
 
+	<!-- assistant overview for this coalition -->
+	{% if assistantsCanQuiz %}
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h4 class="card-title mb-0">{{ coalition.intra_coalition.name }}'s {{ assistantGroup.name }} members</h4>
+					</div>
+					<div class="card-body p-2">
+						<p class="text-muted"><small>Though {{ assistantGroup.name }} members cannot contribute to any coalition's score, they are each also member of a coalition of their choice.</small></p>
+						<div class="row row-cols-3 row-cols-md-5 g-2">
+							{% for assistant in assistants %}
+								<div class="col">
+									<div class="card text-center">
+										<img src="{{ assistant.image }}" class="img-square card-img-top" alt="{{ assistant.login | striptags(true) | escape }}" />
+										<div class="card-body">
+											<span><a target="_blank" href="https://profile.intra.42.fr/users/{{ assistant.login | striptags(true) | escape }}/">{{ assistant.usual_first_name if assistant.usual_first_name is not none else assistant.first_name | striptags(true) | escape }}</a></span>
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+
 	<!-- staff overview for this coalition -->
 	<div class="row ms-0 me-0 mb-4">
 		<div class="col">

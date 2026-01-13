@@ -25,6 +25,7 @@ import { setupNunjucksFilters } from './handlers/filters';
 import { setupExpressMiddleware } from './handlers/middleware';
 import { setupLoginRoutes } from './routes/login';
 import { setupHomeRoutes } from './routes/home';
+import { setupCoalitionRoutes } from './routes/coalitions';
 import { setupProfileRoutes } from './routes/profile';
 import { setupResultsRoutes } from './routes/results';
 import { setupChartRoutes } from './routes/charts';
@@ -110,6 +111,7 @@ const main = async () => {
 	// Set up remaining routes
 	setupLoginRoutes(app, prisma);
 	setupHomeRoutes(app, prisma);
+	setupCoalitionRoutes(app, prisma);
 	setupProfileRoutes(app, prisma);
 	setupResultsRoutes(app, prisma);
 	setupChartRoutes(app, prisma);
