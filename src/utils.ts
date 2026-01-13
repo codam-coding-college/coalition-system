@@ -1,4 +1,4 @@
-import { PrismaClient, IntraUser, IntraCoalition, IntraBlocDeadline, CodamCoalitionScore, CodamCoalitionRanking, CodamCoalitionRankingResult, CodamCoalitionSeasonResult, CodamUser } from "@prisma/client";
+import { PrismaClient, IntraUser, IntraCoalition, IntraBlocDeadline, CodamCoalitionScore } from "@prisma/client";
 import { ExpressIntraUser } from "./sync/oauth";
 import Fast42 from "@codam/fast42";
 import { api } from "./main";

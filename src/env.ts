@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 export const NODE_ENV = process.env.NODE_ENV || 'development';
 export const URL_ORIGIN = process.env.URL_ORIGIN!;
 export const SESSION_SECRET = process.env.SESSION_SECRET!;

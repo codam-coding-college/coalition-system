@@ -2,8 +2,6 @@ import Fast42 from '@codam/fast42';
 import { prisma, syncData } from './base';
 import { linkCoalitionToBloc, syncCoalition } from './coalitions';
 import { CAMPUS_ID, CURSUS_ID } from '../env';
-import { IntraBlocDeadline, Prisma } from '@prisma/client';
-import { DefaultArgs } from '@prisma/client/runtime/library';
 
 // Bloc object can be an object returned by /v2/bloc/:id !
 export const syncBloc = async function(bloc: any): Promise<void> {

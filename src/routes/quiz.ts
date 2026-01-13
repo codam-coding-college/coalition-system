@@ -1,4 +1,3 @@
-import express from 'express';
 import { Express, Request, Response } from "express";
 import passport from 'passport';
 import { CustomSessionData } from '../handlers/session';
@@ -433,13 +432,6 @@ export const setupQuizRoutes = function(app: Express, prisma: PrismaClient): voi
 			console.log(`User ${user.login} tried to join a coalition without answering all questions`);
 			return res.status(400).send({ error: 'Not all questions have been answered' });
 		}
-
-		// Get the user's Intra Coalition User
-		const intraCoalitionUser = await prisma.intraCoalitionUser.findFirst({
-			where: {
-				user_id: user.id
-			},
-		});
 
 		const api = await getAPIClient();
 		let joined = false;

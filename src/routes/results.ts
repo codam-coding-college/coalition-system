@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Express } from 'express';
-import { getUserScores, getUserRankingAcrossAllRankings, getUserSeasonRanking, getEndedSeasons, getSeasonResults } from '../utils';
+import { getEndedSeasons, getSeasonResults } from '../utils';
 
 export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/results', async (req, res) => {

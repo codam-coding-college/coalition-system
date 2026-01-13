@@ -4,7 +4,7 @@ import fs from 'fs';
 import { fetchSingleApiPage, getAPIClient, getBlocAtDate, getOffset, getPageNav, getPageNumber } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
 import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
-import { deleteIntraScore, intraScoreSyncingPossible, syncIntraScore, syncTotalCoalitionScore, syncTotalCoalitionsScores } from '../../handlers/intrascores';
+import { deleteIntraScore, intraScoreSyncingPossible, syncIntraScore, syncTotalCoalitionScore } from '../../handlers/intrascores';
 
 const SCORES_PER_PAGE = 100;
 
