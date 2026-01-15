@@ -2,121 +2,8 @@
 {% set page_title = "Dashboard" %}
 
 {% block content %}
-{% if not quiz_available %}
-{# This section is only displayed when the quiz is not available. #}
-	<div class="container-lg mw-900">
-		{% if currentBlocDeadline %}
-			<div class="card w-100 mb-4" id="leaderboards" style="overflow: hidden;">
-				<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-					<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">Leaderboards</h4>
-					<div class="d-inline-block">
-
-					</div>
-				</div>
-				<div class="">
-					<ol class="list-group list-group-numbered custom-numbers noborder">
-						{% for coalitionId, sortedCoalitionScore in sortedCoalitionScores %}
-							<li class="list-group-item big-coalition-row" style="background-color: {{ coalitionsObject[coalitionId].intra_coalition.color | rgba(0.5) }}; background-image: url({{ coalitionsObject[coalitionId].intra_coalition.cover_url }})">
-								<a href="/coalitions/{{ coalitionsObject[coalitionId].intra_coalition.id }}">
-									<div class="big-coalition-logo">
-										<img src="{{ coalitionsObject[coalitionId].intra_coalition.image_url }}" style="filter: invert(1);" />
-									</div>
-									<div class="big-coalition-content">
-										<h3 class="coalition-name"><b>{{ coalitionsObject[coalitionId].intra_coalition.name | striptags(true) | escape }}</b></h3>
-										<p class="coalition-description">{{ sortedCoalitionScore.score | thousands }} average points</p>
-									</div>
-								</a>
-							</li>
-						{% endfor %}
-					</ol>
-				</div>
-			</div>
-
-			<div class="card w-100 mb-4" id="score-history">
-				<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-					<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">Score History</h4>
-					<div class="d-inline-block">
-
-					</div>
-				</div>
-				<div class="card-body">
-					<div class="mb-4">
-						<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
-					</div>
-					<div class="progress mb-2 with-center-label extra-thick" role="progressbar" aria-label="Progress of the current season" aria-valuenow="{{ now | timestamp }}" aria-valuemin="{{ currentBlocDeadline.begin_at | timestamp }}" aria-valuemax="{{ currentBlocDeadline.end_at | timestamp }}">
-						<div class="progress-bar" style="width: {{ now | timestamp | perc3(currentBlocDeadline.begin_at | timestamp, currentBlocDeadline.end_at | timestamp) }}%; background-color: {{ coalitionsObject[sortedCoalitionScores[0][0]].intra_coalition.color }}"></div>
-						<div class="center-label">The current season <b title="{{ currentBlocDeadline.end_at }}">ends {{ currentBlocDeadline.end_at | timeFromNow }}</b>!</div>
-					</div>
-				</div>
-			</div>
-
-			{% for rankingType in rankingTypes %}
-				<div class="card w-100 mb-4" id="ranking-{{ rankingType.type }}">
-					<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-						<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">{{ rankingType.name | striptags(true) | escape }}</h4>
-						<div class="d-inline-block">
-
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<p class="p-4 pb-0 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
-						{% if bonusPointsAwarding.started and rankingBonusPoints[rankingType.type] %}
-							<!-- bonus points awarded progress bar -->
-							<div class="alert alert-primary m-4 p-4">
-								<div class="progress mb-2 with-center-label" role="progressbar" aria-label="Bonus points awarded for {{ rankingType.name }}" aria-valuenow="{{ rankingBonusPoints[rankingType.type].awarded }}" aria-valuemin="0" aria-valuemax="{{ rankingBonusPoints[rankingType.type].total }}">
-									<div class="progress-bar" style="width: {{ (rankingBonusPoints[rankingType.type].awarded / rankingBonusPoints[rankingType.type].total) * 100 }}%; background-color: var(--bs-yellow);"></div>
-									<div class="center-label">{{ rankingBonusPoints[rankingType.type].awarded | thousands }} / {{ rankingBonusPoints[rankingType.type].total | thousands }} points awarded</div>
-								</div>
-								<p class="mb-0 text-center"><b>Bonus points are being awarded!</b><br>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points are awarded to #1 <i>every hour</i> during the final week of the season.</p>
-							</div>
-						{% elif bonusPointsAwarding.startTime %}
-							<p class="p-4 pt-0 mb-0"><small>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season {{ bonusPointsAwarding.startTime | timeFromNow }}</i>!</small></p>
-						{% endif %}
-						<table class="table coalition-colored mb-0">
-							<tbody>
-								{% for ranking in rankings[rankingType.type] %}
-									<tr style="background: {{ ranking.coalition.color | rgba(0.25) }}; vertical-align: middle;">
-										<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
-										<td class="p-0">
-											<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-												<a href="/profile/{{ ranking.user.login | striptags(true) | escape }}" class="p-2 text-light" style="text-decoration: none;">
-													<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-													<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
-												</a>
-											</div>
-										</td>
-										<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
-									</tr>
-								{% endfor %}
-							</tbody>
-						</table>
-						{# if no rankings, display a message #}
-						{% if rankings[rankingType.type] | length == 0 %}
-							<p class="text-muted p-4"><i>No rankings available (yet).</i></p>
-						{% endif %}
-					</div>
-				</div>
-			{% endfor %}
-		{% else %}
-			<div class="card w-100 mb-4" id="no-season">
-				<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-					<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">No season ongoing</h4>
-					<div class="d-inline-block">
-
-					</div>
-				</div>
-				<div class="card-body">
-					{% if nextBlocDeadline %}
-						<p>The next season will start <b title="{{ nextBlocDeadline.begin_at }}">{{ nextBlocDeadline.begin_at | timeFromNow }}</b>!</p>
-					{% else %}
-						<p>There is currently no upcoming season scheduled. Please contact staff for more information.</p>
-					{% endif %}
-				</div>
-			</div>
-		{% endif %}
-	</div>
-{% else %}
-{# This section is only displayed when the quiz is available. #}
+{% if quiz_available %}
+	{# This section is only displayed when the quiz is available. #}
 	<div class="container-lg mw-900">
 		<div class="card w-100 mb-4" id="quiz-availability">
 			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
@@ -128,58 +15,169 @@
 			<div class="card-body">
 				<h3>You may join a {{ "different " if my_coalition else "" }}coalition!</h3>
 				{% if my_coalition %}
-					<p>You are currently in the {{ my_coalition.coalition.name | striptags(true) | escape }} coalition.</p>
+					<p>You are currently in the <a href="/coalitions/{{ my_coalition.coalition.id }}">{{ my_coalition.coalition.name | striptags(true) | escape }}</a> coalition.</p>
 				{% else %}
 					<p>You are currently not part of any coalition.</p>
 				{% endif %}
 				<a href="/quiz" class="btn btn-primary">Go to the Questionnaire</a>
 			</div>
 		</div>
+	</div>
+{% endif %}
 
-		{% for coalition in coalitions %}
-		<div class="card w-100 mb-4" id="coalition-{{ coalition.id }}">
-			<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ coalition.intra_coalition.color }};">
-				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1">{{ coalition.intra_coalition.name | striptags(true) | escape }}</h4>
+<div class="container-lg mw-900">
+	{% if currentBlocDeadline %}
+		<div class="card w-100 mb-4" id="leaderboards" style="overflow: hidden;">
+			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">Leaderboards</h4>
 				<div class="d-inline-block">
 
 				</div>
 			</div>
-			<div class="card-body" style="background-color: {{ coalition.intra_coalition.color | rgba(0.3) }};">
-				<div class="row">
-					<div class="col-md-3">
-						<img src="{{ coalition.intra_coalition.image_url }}" alt="" height="200" style="filter: invert(1); height: auto; max-height: 200px;" />
-					</div>
-					<div class="col-md-9">
-						<h4>{{ coalition.intra_coalition.name | striptags(true) | escape }} - {{ coalition.tagline | striptags(true) | escape }}</h4>
-						<p>{{ coalition.description | striptags(true) | escape | nl2br }}</p>
-					</div>
-				</div>
+			<div class="">
+				<ol class="list-group list-group-numbered custom-numbers noborder">
+					{% for coalitionId, sortedCoalitionScore in sortedCoalitionScores %}
+						<li class="list-group-item big-coalition-row" style="background-color: {{ coalitionsObject[coalitionId].intra_coalition.color | rgba(0.5) }}; background-image: url({{ coalitionsObject[coalitionId].intra_coalition.cover_url }})">
+							<a href="/coalitions/{{ coalitionsObject[coalitionId].intra_coalition.id }}">
+								<div class="big-coalition-logo">
+									<img src="{{ coalitionsObject[coalitionId].intra_coalition.image_url }}" style="filter: invert(1);" />
+								</div>
+								<div class="big-coalition-content">
+									<h3 class="coalition-name"><b>{{ coalitionsObject[coalitionId].intra_coalition.name | striptags(true) | escape }}</b></h3>
+									<p class="coalition-description">{{ sortedCoalitionScore.score | thousands }} average points</p>
+								</div>
+							</a>
+						</li>
+					{% endfor %}
+				</ol>
 			</div>
 		</div>
-		{% endfor %}
-	</div>
-{% endif %}
-	<div class="container-lg mw-900">
-		<div class="card w-100 mb-4" id="help-development">
+
+		<div class="card w-100 mb-4" id="score-history">
 			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1">Contribute to the coalition system</h4>
+				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">Score History</h4>
 				<div class="d-inline-block">
 
 				</div>
 			</div>
 			<div class="card-body">
-				<p>The reworked coalition system's <a href="https://github.com/codam-coding-college/coalition-system" target="_blank">code repository</a> is fully open sourced on Codam's GitHub organization. Feel free to contribute and make pages like this one look nicer!</p>
-				<p>Do keep the following in mind:</p>
-				<ul>
-					<li>Fork the repository and create a new branch for every fix or feature you work on. Create a separate pull request for every fix or feature.</li>
-					<li>Please read the README.</li>
-					<li>Try to limit introducing new frameworks, especially for small features. Try to stick to vanilla Javascript/Typescript where possible.</li>
-					<li>Make sure to test your changes on both desktop and mobile.</li>
-					<li>Changes to how points are distributed should always first be discussed with Codam staff, preferably also with the Student Council.</li>
-					<li>Don't abuse the Intra API.</li>
-					<li>If something is unclear, please speak to a member of staff who has contributed to the project before.</li>
-				</ul>
+				<div class="mb-4">
+					<canvas height="300" class="codam-chart" data-url="/charts/coalitions/scores/history" id="coalition-score-history"></canvas>
+				</div>
+				<div class="progress mb-2 with-center-label extra-thick" role="progressbar" aria-label="Progress of the current season" aria-valuenow="{{ now | timestamp }}" aria-valuemin="{{ currentBlocDeadline.begin_at | timestamp }}" aria-valuemax="{{ currentBlocDeadline.end_at | timestamp }}">
+					<div class="progress-bar" style="width: {{ now | timestamp | perc3(currentBlocDeadline.begin_at | timestamp, currentBlocDeadline.end_at | timestamp) }}%; background-color: {{ coalitionsObject[sortedCoalitionScores[0][0]].intra_coalition.color }}"></div>
+					<div class="center-label">The current season <b title="{{ currentBlocDeadline.end_at }}">ends {{ currentBlocDeadline.end_at | timeFromNow }}</b>!</div>
+				</div>
 			</div>
+		</div>
+
+		{% for rankingType in rankingTypes %}
+			<div class="card w-100 mb-4" id="ranking-{{ rankingType.type }}">
+				<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+					<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">{{ rankingType.name | striptags(true) | escape }}</h4>
+					<div class="d-inline-block">
+
+					</div>
+				</div>
+				<div class="card-body p-0">
+					<p class="p-4 pb-0 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
+					{% if bonusPointsAwarding.started and rankingBonusPoints[rankingType.type] %}
+						<!-- bonus points awarded progress bar -->
+						<div class="alert alert-primary m-4 p-4">
+							<div class="progress mb-2 with-center-label" role="progressbar" aria-label="Bonus points awarded for {{ rankingType.name }}" aria-valuenow="{{ rankingBonusPoints[rankingType.type].awarded }}" aria-valuemin="0" aria-valuemax="{{ rankingBonusPoints[rankingType.type].total }}">
+								<div class="progress-bar" style="width: {{ (rankingBonusPoints[rankingType.type].awarded / rankingBonusPoints[rankingType.type].total) * 100 }}%; background-color: var(--bs-yellow);"></div>
+								<div class="center-label">{{ rankingBonusPoints[rankingType.type].awarded | thousands }} / {{ rankingBonusPoints[rankingType.type].total | thousands }} points awarded</div>
+							</div>
+							<p class="mb-0 text-center"><b>Bonus points are being awarded!</b><br>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points are awarded to #1 <i>every hour</i> during the final week of the season.</p>
+						</div>
+					{% elif bonusPointsAwarding.startTime %}
+						<p class="p-4 pt-0 mb-0"><small>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season {{ bonusPointsAwarding.startTime | timeFromNow }}</i>!</small></p>
+					{% endif %}
+					<table class="table coalition-colored mb-0">
+						<tbody>
+							{% for ranking in rankings[rankingType.type] %}
+								<tr style="background: {{ ranking.coalition.color | rgba(0.25) }}; vertical-align: middle;">
+									<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
+									<td class="p-0">
+										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
+											<a href="/profile/{{ ranking.user.login | striptags(true) | escape }}" class="p-2 text-light" style="text-decoration: none;">
+												<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+												<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
+											</a>
+										</div>
+									</td>
+									<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					{# if no rankings, display a message #}
+					{% if rankings[rankingType.type] | length == 0 %}
+						<p class="text-muted p-4"><i>No rankings available (yet).</i></p>
+					{% endif %}
+				</div>
+			</div>
+		{% endfor %}
+	{% else %}
+		<div class="card w-100 mb-4" id="no-season">
+			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">No season ongoing</h4>
+				<div class="d-inline-block">
+
+				</div>
+			</div>
+			<div class="card-body">
+				{% if nextBlocDeadline %}
+					<p>The next season will start <b title="{{ nextBlocDeadline.begin_at }}">{{ nextBlocDeadline.begin_at | timeFromNow }}</b>!</p>
+				{% else %}
+					<p>There is currently no upcoming season scheduled. Please contact staff for more information.</p>
+				{% endif %}
+			</div>
+		</div>
+
+		{% for coalition in coalitions %}
+			<div class="card w-100 mb-4" id="coalition-{{ coalition.id }}">
+				<div class="card-header pe-2 d-flex align-items-center" style="background-color: {{ coalition.intra_coalition.color }};">
+					<h4 class="d-inline-block pe-3 lh-lg flex-grow-1">{{ coalition.intra_coalition.name | striptags(true) | escape }}</h4>
+					<div class="d-inline-block">
+
+					</div>
+				</div>
+				<div class="card-body" style="background-color: {{ coalition.intra_coalition.color | rgba(0.3) }};">
+					<div class="row">
+						<div class="col-md-3">
+							<img src="{{ coalition.intra_coalition.image_url }}" alt="" height="200" style="filter: invert(1); height: auto; max-height: 200px;" />
+						</div>
+						<div class="col-md-9">
+							<h4>{{ coalition.intra_coalition.name | striptags(true) | escape }} - {{ coalition.tagline | striptags(true) | escape }}</h4>
+							<p>{{ coalition.description | striptags(true) | escape | nl2br }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		{% endfor %}
+	{% endif %}
+</div>
+<div class="container-lg mw-900">
+	<div class="card w-100 mb-4" id="help-development">
+		<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
+			<h4 class="d-inline-block pe-3 lh-lg flex-grow-1">Contribute to the coalition system</h4>
+			<div class="d-inline-block">
+
+			</div>
+		</div>
+		<div class="card-body">
+			<p>The reworked coalition system's <a href="https://github.com/codam-coding-college/coalition-system" target="_blank">code repository</a> is fully open sourced on Codam's GitHub organization. Feel free to contribute and make pages like this one look nicer!</p>
+			<p>Do keep the following in mind:</p>
+			<ul>
+				<li>Fork the repository and create a new branch for every fix or feature you work on. Create a separate pull request for every fix or feature.</li>
+				<li>Please read the README.</li>
+				<li>Try to limit introducing new frameworks, especially for small features. Try to stick to vanilla Javascript/Typescript where possible.</li>
+				<li>Make sure to test your changes on both desktop and mobile.</li>
+				<li>Changes to how points are distributed should always first be discussed with Codam staff, preferably also with the Student Council.</li>
+				<li>Don't abuse the Intra API.</li>
+				<li>If something is unclear, please speak to a member of staff who has contributed to the project before.</li>
+			</ul>
 		</div>
 	</div>
 </div>
