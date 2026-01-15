@@ -1,10 +1,11 @@
 import express from 'express';
-import expressSession from 'express-session';
 import bodyParser from 'body-parser';
+import NodeCache from 'node-cache';
 import { Request, Response, NextFunction } from "express";
 import { CustomSessionData } from "./session";
 import { ExpressIntraUser } from '../sync/oauth';
 import { isStaff } from '../utils';
+import { prisma } from '../main';
 
 
 const checkIfAuthenticated = function(req: Request, res: Response, next: NextFunction) {
@@ -44,6 +45,33 @@ const includeUser = function(req: Request, res: Response, next: NextFunction) {
 	next();
 };
 
+const coalitionCache = new NodeCache({ stdTTL: 3000, checkperiod: 300 });
+const includeCoalitions = async function(req: Request, res: Response, next: NextFunction) {
+	if (coalitionCache.has('coalitions')) {
+		res.locals.coalitions = coalitionCache.get('coalitions');
+		return next();
+	}
+	const coalitions = await prisma.codamCoalition.findMany({
+		select: {
+			id: true,
+			description: true,
+			tagline: true,
+			intra_coalition: {
+				select: {
+					id: true,
+					name: true,
+					color: true,
+					image_url: true,
+					cover_url: true,
+				},
+			},
+		},
+	});
+	coalitionCache.set('coalitions', coalitions);
+	res.locals.coalitions = coalitions;
+	next();
+};
+
 const staffMiddleware = async function(req: Request, res: Response, next: NextFunction) {
 	const user = req.user as ExpressIntraUser;
 	if (await isStaff(user)) {
@@ -58,6 +86,7 @@ export const setupExpressMiddleware = function(app: any) {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(checkIfAuthenticated);
 	app.use(includeUser);
+	app.use(includeCoalitions);
 	app.all('/admin*', staffMiddleware); // require staff accounts to access admin routes
 	app.use(expressErrorHandler); // should remain last
 	// More middleware for session management and authentication are defined in usePassport in authentication.ts

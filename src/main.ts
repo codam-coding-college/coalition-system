@@ -10,7 +10,7 @@ import helmet from "helmet";
 
 // Imports for the database connection
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 
 // Imports for the Intra API
 import Fast42 from '@codam/fast42';

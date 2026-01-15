@@ -38,6 +38,16 @@
 					<li class="nav-item">
 						<a class="nav-link" aria-current="page" href="/">Home</a>
 					</li>
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+							Coalitions
+						</a>
+						<ul class="dropdown-menu">
+							{% for coalition in coalitions %}
+								<li><a class="dropdown-item" href="/coalitions/{{ coalition.intra_coalition.id }}"><img src="{{ coalition.intra_coalition.image_url }}" alt="" height="28" style="filter: invert(1);"> {{ coalition.intra_coalition.name | striptags(true) | escape }}</a></li>
+							{% endfor %}
+						</ul>
+					</li>
 					<li class="nav-item">
 						<a class="nav-link" href="/profile/me">Profile</a>
 					</li>
