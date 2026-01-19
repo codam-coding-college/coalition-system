@@ -80,8 +80,8 @@
 					</div>
 				</div>
 				<div class="card-body p-0">
-					<p class="p-4 pb-0 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
 					{% if bonusPointsAwarding.started and rankingBonusPoints[rankingType.type] %}
+						<p class="p-4 pb-0 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
 						<!-- bonus points awarded progress bar -->
 						<div class="alert alert-primary m-4 p-4">
 							<div class="progress mb-2 with-center-label" role="progressbar" aria-label="Bonus points awarded for {{ rankingType.name }}" aria-valuenow="{{ rankingBonusPoints[rankingType.type].awarded }}" aria-valuemin="0" aria-valuemax="{{ rankingBonusPoints[rankingType.type].total }}">
@@ -91,7 +91,10 @@
 							<p class="mb-0 text-center"><b>Bonus points are being awarded!</b><br>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points are awarded to #1 <i>every hour</i> during the final week of the season.</p>
 						</div>
 					{% elif bonusPointsAwarding.startTime and rankingBonusPoints[rankingType.type] %}
+						<p class="p-4 pb-0 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
 						<p class="p-4 pt-0 mb-0"><small>{{ rankingBonusPoints[rankingType.type].perHour | thousands }} bonus points will be awarded to #1 <i>every hour</i> during the <i>final week of the season {{ bonusPointsAwarding.startTime | timeFromNow }}</i>!</small></p>
+					{% else %}
+						<p class="p-4 mb-0"><b>{{ rankingType.description | striptags(true) | escape | nl2br }}</b></p>
 					{% endif %}
 					<table class="table coalition-colored mb-0">
 						<tbody>
