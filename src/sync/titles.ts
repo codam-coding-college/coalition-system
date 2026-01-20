@@ -83,7 +83,21 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 							},
 						});
 						if (!patch.ok) {
-							console.error(`Failed to update Intra user ${rankings[i].user.login} with title ID ${titleRecord.intra_title_id}, HTTP status ${patch.status} ${patch.statusText}`);
+							if (patch.status == 404) {
+								console.warn(`Intra title_user ID ${existingTitleUser.intra_title_user_id} for user ${rankings[i].user.login} not found on Intra. It may have been deleted manually. Removing intra_title_user_id from database... Next sync will recreate it.`);
+								// Remove intra_title_user_id so it can be recreated
+								await prisma.codamCoalitionTitleUser.update({
+									where: {
+										id: existingTitleUser.id,
+									},
+									data: {
+										intra_title_user_id: null,
+									},
+								});
+							}
+							else {
+								console.error(`Failed to update Intra user ${rankings[i].user.login} with title ID ${titleRecord.intra_title_id}, HTTP status ${patch.status} ${patch.statusText}`);
+							}
 						}
 					} else {
 						// User hasn't had a coalition title on Intra yet, create it
