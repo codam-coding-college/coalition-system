@@ -75,4 +75,19 @@
 		</form>
 	</div>
 </div>
+
+<div class="card w-100 mt-4 mb-4" id="title-force-resync">
+	<div class="card-header pe-2 d-flex align-items-center">
+		<h4 class="d-inline-block pe-3 lh-lg flex-grow-1">Force resync all titles</h4>
+		<div class="d-inline-block">
+
+		</div>
+	</div>
+	<div class="card-body">
+		<form action="/admin/titles/force_resync_all" method="get" class="mb-3">
+			<p>Clicking the button below will enqueue a job to force resync all titles for all users with Intra. This may take a while depending on the number of users in the system.</p>
+			<button type="submit" class="btn btn-warning w-100">Force resync all titles</button>
+		</form>
+	</div>
+</div>
 {% endblock %}

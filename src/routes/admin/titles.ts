@@ -198,4 +198,17 @@ export const setupAdminTitleRoutes = function(app: Express, prisma: PrismaClient
 
 		return res.redirect(`/admin/titles`);
 	});
+
+	app.get('/admin/titles/force_resync_all', async function(req, res) {
+		// Delete intra_title_user_ids from local database
+		// This allows for a resync of the title on Intra if needed during Intra synchronization
+		await prisma.codamCoalitionTitleUser.updateMany({
+			where: {},
+			data: {
+				intra_title_user_id: null,
+			}
+		});
+
+		return res.redirect(`/admin/titles`);
+	});
 };
