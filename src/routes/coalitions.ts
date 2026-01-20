@@ -39,7 +39,10 @@ export const setupCoalitionRoutes = function(app: Express, prisma: PrismaClient)
 				},
 				cursus_users: {
 					some: {
-						end_at: null, // Make sure to only get active staff members
+						OR: [
+							{ end_at: null },
+							{ end_at: { gt: now } }, // also consider cursus_users that are still active
+						],
 					},
 				},
 			},

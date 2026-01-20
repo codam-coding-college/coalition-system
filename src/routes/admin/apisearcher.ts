@@ -525,7 +525,10 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				cursus_users: {
 					some: {
 						cursus_id: CURSUS_ID,
-						end_at: null,
+						OR: [
+							{ end_at: null },
+							{ end_at: { gt: new Date() } }, // also consider cursus_users that are still active
+						],
 					},
 				},
 			},

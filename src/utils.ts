@@ -66,9 +66,18 @@ export const isStudent = async function(prisma: PrismaClient, intraUser: Express
 	// Or the student is not a part of the campus the coalition system is part of.
 	const cursusUser = await prisma.intraCursusUser.findFirst({
 		where: {
-			user_id: userId,
-			cursus_id: CURSUS_ID,
-			end_at: null,
+			AND: [
+				{
+					user_id: userId,
+					cursus_id: CURSUS_ID,
+				},
+				{
+					OR: [
+						{ end_at: null },
+						{ end_at: { gt: new Date() } }, // also consider cursus_users that were still active at the score creation date
+					],
+				},
+			],
 		},
 	});
 	return (cursusUser !== null);
@@ -524,7 +533,10 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 				cursus_users: {
 					some: {
 						cursus_id: CURSUS_ID,
-						end_at: null,
+						OR: [
+							{ end_at: null },
+							{ end_at: { gt: atDateTime } }, // also consider cursus_users that were still active at the score creation date
+						],
 					}
 				}
 			},
