@@ -21,7 +21,7 @@ export const prisma = new PrismaClient();
 
 /**
  * Fetch all items from all pages of a Fast42 API endpoint.
- * @usage const codamStudents = await fetchMultiple42ApiPages(api, '/v2/campus/14/users');
+ * @usage const codamStudents = await fetchMultiple42ApiPages(api, '/campus/14/users');
  * @param api A Fast42 instance
  * @param path The API path to fetch
  * @param params Optional query parameters for the API request
@@ -66,7 +66,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
 /**
  * Fetch all items from all pages of a Fast42 API endpoint, with a callback function for each page fetched.
  * Useful for larger datasets that may not fit in memory.
- * @usage const codamStudents = await fetchMultiple42ApiPages(api, '/v2/campus/14/users');
+ * @usage const codamStudents = await fetchMultiple42ApiPages(api, '/campus/14/users');
  * @param api A Fast42 instance
  * @param path The API path to fetch
  * @param params Optional query parameters for the API request

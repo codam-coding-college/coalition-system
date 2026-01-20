@@ -212,7 +212,7 @@ export const syncTitles = async function(api: Fast42): Promise<void> {
 			// Remove title on Intra
 			if (NODE_ENV === 'production' && titleUser.intra_title_user_id) {
 				console.debug(`Removing Intra title_user ID ${titleUser.intra_title_user_id} for user ${titleUser.user.intra_user.login}...`);
-				const del = await api.delete(`/v2/titles_users/${titleUser.intra_title_user_id}`, {});
+				const del = await api.delete(`/titles_users/${titleUser.intra_title_user_id}`, {});
 				if (!del.ok) {
 					console.error(`Failed to delete Intra title_user ID ${titleUser.intra_title_user_id} for user ID ${titleUser.user_id}, HTTP status ${del.status} ${del.statusText}`);
 				}
