@@ -52,6 +52,29 @@ const main = async function(): Promise<void> {
 			console.log(`    - Deletion HTTP status: ${delreq.status} ${delreq.statusText}`);
 		}
 	}
+
+	// Ask to also delete intra_title_user_id from local database
+	console.warn('Do you also want to delete the intra_title_user_id fields from the local database? (yes/no)');
+	const rl2 = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+	});
+	if (await new Promise((resolve) => {
+		rl2.question('', (answer) => {
+			rl2.close();
+			resolve(answer);
+		});
+	}) === 'yes') {
+		console.log('Deleting intra_title_user_id fields from local database...');
+		await prisma.codamCoalitionTitleUser.updateMany({
+			data: {
+				intra_title_user_id: null,
+			},
+		});
+		console.log('Done deleting intra_title_user_id fields from local database.');
+	} else {
+		console.log('Skipping deletion of intra_title_user_id fields from local database.');
+	}
 };
 
 main().then(() => {
