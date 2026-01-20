@@ -30,7 +30,7 @@
 				<td>{{ title.intra_title_id if title.intra_title_id else "N/A" }}</td>
 				{# <td>{{ title.title_users[0].user.intra_user.login if title.title_users.length > 0 else "N/A" }}</td> #}
 				<td>{{ title.title_users | keyjoin('user.intra_user.login', ', ') }}</td>
-				<td>{{ title.title_users | keyjoin('id', ', ') }}</td>
+				<td>{{ title.title_users | keyjoin('intra_title_user_id', ', ') }}</td>
 				<td class="text-end">
 					<a href="/admin/titles/{{ title.id }}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
 				</td>
