@@ -105,7 +105,7 @@ export const isQuizAvailable = async function(user: IntraUser | ExpressIntraUser
 		return false;
 	}
 	if (userDetails.coalition_users.length === 0 || availableDueToTime) {
-		if (userDetails.cursus_users.length > 0 && !userDetails.cursus_users[0].end_at) {
+		if (userDetails.cursus_users.length > 0 && (!userDetails.cursus_users[0].end_at || userDetails.cursus_users[0].end_at > currentDate)) {
 			console.log(`User ${user.id} has an ongoing cursus in cursus ${CURSUS_ID}, allowing to take the questionnaire`);
 			return true; // User has an ongoing cursus in the relevant cursus, allow taking the questionnaire
 		}
