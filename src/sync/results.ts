@@ -67,7 +67,13 @@ export const calculateResults = async function(api: Fast42): Promise<void> {
 			});
 
 			// Individual user scores
-			const usersScores = await getUsersScores(prisma, coalition.id, season.end_at, RANKING_MAX);
+			const userCount = await prisma.intraCoalitionUser.count({
+				where: {
+					coalition_id: coalition.id,
+				},
+			});
+			console.log(`   - Found ${userCount} users in coalition ${coalition.name}`);
+			const usersScores = await getUsersScores(prisma, coalition.id, season.end_at, userCount);
 			console.log(`   - Calculating individual results for ${usersScores.length} users in coalition ${coalition.name}...`);
 			let rank = 0;
 			let lastScore = Infinity;

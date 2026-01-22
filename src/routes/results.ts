@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Express } from 'express';
-import { getEndedSeasons, getSeasonResults } from '../utils';
+import { getEndedSeasons, getSeasonResults, RANKING_MAX } from '../utils';
 
 export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/results', async (req, res) => {
@@ -28,5 +28,56 @@ export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): 
 			seasonResults,
 			rankings,
 		});
+	});
+
+	app.get('/results/:bloc_deadline_id/coalitions/:coalition_slug.csv', async (req, res) => {
+		const endedSeasons = await getEndedSeasons(prisma);
+		const season = endedSeasons.find(season => season.id === parseInt(req.params.bloc_deadline_id, 10));
+		if (!season) {
+			return res.status(404).send('Season not found or has not ended yet.');
+		}
+
+		const { seasonResults } = await getSeasonResults(prisma, season.id, RANKING_MAX);
+		const seasonResult = seasonResults.find(result => result.coalition.intra_coalition.slug === req.params.coalition_slug);
+		if (!seasonResult) {
+			return res.status(404).send('Coalition not found for this season.');
+		}
+
+		// Generate CSV
+		let csv = 'Coalition,Rank,User,Score\n';
+		seasonResult.scores.forEach((entry, index) => {
+			csv += `"${seasonResult.coalition.intra_coalition.name}",${entry.coalition_rank},"${entry.user.intra_user.login}",${entry.score}\n`;
+		});
+
+		res.setHeader('Content-Disposition', `attachment; filename="${seasonResult.coalition.intra_coalition.slug}-leaderboard-season-${season.id}.csv"`);
+		res.setHeader('Content-Type', 'text/csv');
+		return res.send(csv);
+	});
+
+	app.get('/results/:bloc_deadline_id/rankings/:ranking_type.csv', async (req, res) => {
+		const endedSeasons = await getEndedSeasons(prisma);
+		const season = endedSeasons.find(season => season.id === parseInt(req.params.bloc_deadline_id, 10));
+		if (!season) {
+			return res.status(404).send('Season not found or has not ended yet.');
+		}
+
+		const { seasonResults, rankings } = await getSeasonResults(prisma, season.id, RANKING_MAX);
+		const ranking = rankings.find(r => r.type === req.params.ranking_type);
+		if (!ranking) {
+			return res.status(404).send('Ranking not found for this season.');
+		}
+
+		// Generate CSV
+		let csv = 'Ranking,Coalition,Rank,User,Score\n';
+		ranking.results.forEach((entry) => {
+			const userCoalition = seasonResults.find(sr => sr.coalition.id === entry.coalition_id);
+			const coalitionName = userCoalition ? userCoalition.coalition.intra_coalition.name : 'N/A';
+			csv += `"${ranking.name}","${coalitionName}",${entry.rank},"${entry.user.intra_user.login}",${entry.score}\n`;
+		});
+
+
+		res.setHeader('Content-Disposition', `attachment; filename="ranking-${ranking.type}-season-${season.id}.csv"`);
+		res.setHeader('Content-Type', 'text/csv');
+		return res.send(csv);
 	});
 };
