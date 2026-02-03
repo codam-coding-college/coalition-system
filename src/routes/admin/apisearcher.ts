@@ -849,6 +849,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			orderBy: {
 				received_at: 'desc',
 			},
+			take: itemsPerPage,
+			skip: offset,
 		});
 		return res.json({
 			// Replace delivery_id with id (for apisearcher compatibility)
@@ -887,6 +889,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			orderBy: {
 				received_at: 'desc',
 			},
+			take: itemsPerPage,
+			skip: offset,
 		});
 		return res.json({
 			// Replace delivery_id with id (for apisearcher compatibility)
@@ -929,6 +933,8 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			orderBy: {
 				received_at: 'desc',
 			},
+			take: itemsPerPage,
+			skip: offset,
 		});
 		return res.json({
 			// Replace delivery_id with id (for apisearcher compatibility)
