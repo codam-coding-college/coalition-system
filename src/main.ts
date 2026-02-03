@@ -26,6 +26,7 @@ import { setupExpressMiddleware } from './handlers/middleware';
 import { setupLoginRoutes } from './routes/login';
 import { setupHomeRoutes } from './routes/home';
 import { setupCoalitionRoutes } from './routes/coalitions';
+import { setupRankingRoutes } from './routes/rankings';
 import { setupProfileRoutes } from './routes/profile';
 import { setupResultsRoutes } from './routes/results';
 import { setupChartRoutes } from './routes/charts';
@@ -112,6 +113,7 @@ const main = async () => {
 	setupLoginRoutes(app, prisma);
 	setupHomeRoutes(app, prisma);
 	setupCoalitionRoutes(app, prisma);
+	setupRankingRoutes(app, prisma);
 	setupProfileRoutes(app, prisma);
 	setupResultsRoutes(app, prisma);
 	setupChartRoutes(app, prisma);

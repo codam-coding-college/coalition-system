@@ -12,6 +12,10 @@
 					<h4 class="card-title mb-0">{{ rankingTitle }}</h4>
 				</div>
 				<div class="card-body p-0">
+					{% if rankingDescription %}
+						<p class="p-4 mb-0"><b>{{ rankingDescription | striptags(true) | escape | nl2br }}</b></p>
+					{% endif %}
+					{# rankings table #}
 					<table class="table {{ 'table-striped' if not coalitionColored else 'coalition-colored' }} mb-0">
 						<tbody>
 							{% for ranking in pageranking %}
