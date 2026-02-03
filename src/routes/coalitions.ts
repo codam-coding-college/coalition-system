@@ -193,4 +193,39 @@ export const setupCoalitionRoutes = function(app: Express, prisma: PrismaClient)
 
 		return res.render('coalition.njk', viewOptions);
 	});
+
+	app.get('/coalitions/:coalitionId/rankings', passport.authenticate('session', {
+		keepSessionInfo: true,
+	}), async (req, res) => {
+		const coalitionId = parseInt(req.params.coalitionId);
+		if (!coalitionId || isNaN(coalitionId) || coalitionId <= 0) {
+			return res.status(400).send('Invalid coalition ID');
+		}
+
+		const coalition = await prisma.codamCoalition.findFirst({
+			where: {
+				id: parseInt(req.params.coalitionId),
+			},
+			include: {
+				intra_coalition: true,
+			},
+		});
+		if (!coalition) {
+			return res.status(404).send('Coalition not found');
+		}
+
+		const now = new Date();
+		const currentBloc = await getBlocAtDate(prisma, now);
+		if (!currentBloc) {
+			return res.status(400).send('No active bloc found');
+		}
+
+		// Get full ranking for this coalition
+		const topContributors = await getCoalitionTopContributors(prisma, coalition.id, `Top contributors for ${coalition.intra_coalition.name}`, now, 1000);
+		return res.render('ranking.njk', {
+			rankingTitle: `Top contributors for ${coalition.intra_coalition.name}`,
+			pageranking: topContributors,
+			coalitionColored: false,
+		});
+	});
 };

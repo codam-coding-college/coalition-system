@@ -3,7 +3,7 @@
 {% set page_title = coalition.intra_coalition.name %}
 
 {% block content %}
-<!-- profile header -->
+<!-- coalition header -->
 <div class="container-fluid coalition-cover p-4" style="background-image: url({{ coalition.intra_coalition.cover_url }}); background-color: {{ coalition.intra_coalition.color | rgba(0.5) }};">
 	<div class="mx-auto container-md mw-900 row">
 		<div class="col-md-3">
@@ -83,6 +83,8 @@
 						{# if no rankings, display a message #}
 						{% if topContributors | length == 0 %}
 							<p class="text-muted p-4"><i>No rankings available (yet).</i></p>
+						{% else %}
+							<p class="m-2 text-end"><a href="/coalitions/{{ coalition.id }}/rankings">View full rankings</a></p>
 						{% endif %}
 					</div>
 				</div>
