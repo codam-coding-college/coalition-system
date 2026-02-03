@@ -93,6 +93,8 @@
 					{# if no rankings, display a message #}
 					{% if seasonResult.scores | length == 0 %}
 						<p class="text-muted p-4"><i>No individual leaderboards available for this coalition.</i></p>
+					{% else %}
+						<p class="m-2 text-end"><a href="/results/{{ seasonId }}/coalitions/{{ seasonResult.coalition.intra_coalition.slug }}">View full rankings</a></p>
 					{% endif %}
 				</div>
 			</div>
@@ -132,6 +134,8 @@
 					{# if no rankings, display a message #}
 					{% if ranking.results | length == 0 %}
 						<p class="text-muted p-4"><i>No rankings available for this season.</i></p>
+					{% else %}
+						<p class="m-2 text-end"><a href="/results/{{ seasonId }}/{{ ranking.type }}">View full rankings</a></p>
 					{% endif %}
 				</div>
 			</div>
