@@ -3,6 +3,8 @@ import { CodamCoalitionFixedType, PrismaClient } from '@prisma/client';
 import { WebhookHandledStatus, respondWebHookHandledStatus } from '../hooks';
 import { handleFixedPointScore } from '../../handlers/points';
 
+const DEFAULT_RUSH_DIFFICULTY = 1000;
+
 export interface ProjectUser {
 	id: number;
 	project_id: number | undefined; // only defined in webhook
@@ -71,6 +73,10 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 			points = fixedPointType.point_amount;
 		}
 		else {
+			if ((project.slug.startsWith('rushes-') || project.slug.startsWith('42cursus-rushes-')) && !project.difficulty) {
+				// Set a custom difficulty for rushes if not set
+				project.difficulty = DEFAULT_RUSH_DIFFICULTY;
+			}
 			// Get the project difficulty
 			if (project.difficulty === 0 || project.difficulty === null) {
 				console.log(`Project ${projectId} has no difficulty set, skipping score creation...`);

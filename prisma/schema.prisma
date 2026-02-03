@@ -372,6 +372,7 @@ model IntraProject {
 	difficulty       Int?
 	description      String?
 	exam             Boolean
+	// parent_id        Int?   // Would be good to have this for rushes, maybe
 
 	created_at       DateTime
 	updated_at       DateTime
