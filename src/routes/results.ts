@@ -56,7 +56,7 @@ export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): 
 		});
 	});
 
-	app.get('/results/:bloc_deadline_id/coalitions/:coalition_slug.csv', async (req, res) => {
+	app.get('/results/:bloc_deadline_id/coalitions/:coalition_slug/csv', async (req, res) => {
 		const endedSeasons = await getEndedSeasons(prisma);
 		const season = endedSeasons.find(season => season.id === parseInt(req.params.bloc_deadline_id, 10));
 		if (!season) {
@@ -107,7 +107,7 @@ export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): 
 		});
 	});
 
-	app.get('/results/:bloc_deadline_id/rankings/:ranking_type.csv', async (req, res) => {
+	app.get('/results/:bloc_deadline_id/rankings/:ranking_type/csv', async (req, res) => {
 		const endedSeasons = await getEndedSeasons(prisma);
 		const season = endedSeasons.find(season => season.id === parseInt(req.params.bloc_deadline_id, 10));
 		if (!season) {
