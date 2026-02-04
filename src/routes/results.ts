@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Express } from 'express';
-import { getEndedSeasons, getSeasonResults, RANKING_MAX } from '../utils';
+import { getEndedSeasons, getSeasonName, getSeasonResults, RANKING_MAX } from '../utils';
 
 export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/results', async (req, res) => {
@@ -45,13 +45,13 @@ export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): 
 
 		return res.render('ranking.njk', {
 			pageranking: seasonResult.scores.map((entry, index) => ({ // Transform to match ranking.njk expected format
-				rankingName: `${seasonResult.coalition.intra_coalition.name} Leaderboards - Season ${season.id}`,
+				rankingName: `${seasonResult.coalition.intra_coalition.name} Leaderboards - Season ${getSeasonName(season)}`,
 				user: entry.user.intra_user,
 				coalition: seasonResult.coalition,
 				score: entry.score,
 				rank: entry.coalition_rank,
 			})),
-			rankingTitle: `${seasonResult.coalition.intra_coalition.name} Leaderboards - Season ${season.id}`,
+			rankingTitle: `${seasonResult.coalition.intra_coalition.name} Leaderboards - Season ${getSeasonName(season)}`,
 			coalitionColored: false,
 		});
 	});
@@ -101,7 +101,7 @@ export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): 
 				score: entry.score,
 				rank: entry.rank,
 			})),
-			rankingTitle: `${ranking.name} - Season ${season.id}`,
+			rankingTitle: `${ranking.name} - Season ${getSeasonName(season)}`,
 			rankingDescription: ranking.description,
 			coalitionColored: true,
 		});

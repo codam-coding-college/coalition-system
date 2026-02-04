@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import nunjucks from 'nunjucks';
-import { formatThousands, timeAgo, timeFromNow } from '../utils';
+import { formatThousands, getSeasonName, timeAgo, timeFromNow } from '../utils';
 
 export const setupNunjucksFilters = function(app: Express): void {
 	const nunjucksEnv = nunjucks.configure('templates', {
@@ -122,8 +122,7 @@ export const setupNunjucksFilters = function(app: Express): void {
 		if (!season || !season.begin_at || !season.end_at) {
 			return 'Unknown season';
 		}
-		// return `${season.begin_at.getFullYear()}-${season.begin_at.getMonth() + 1} > ${season.end_at.getFullYear()}-${season.end_at.getMonth() + 1}`;
-		return `${season.end_at.toLocaleString('en-US', { month: 'short' })} ${season.end_at.getFullYear()}`;
+		return getSeasonName(season);
 	});
 
 	// Add filter to remove the first item from a list

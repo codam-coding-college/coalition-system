@@ -765,6 +765,11 @@ export const getEndedSeasons = async function(prisma: PrismaClient): Promise<(In
 	return seasons;
 };
 
+export const getSeasonName = function(bloc: IntraBlocDeadline): string {
+	// return `${bloc.begin_at.getFullYear()}-${bloc.begin_at.getMonth() + 1} > ${bloc.end_at.getFullYear()}-${bloc.end_at.getMonth() + 1}`;
+	return `${bloc.end_at.toLocaleString('en-US', { month: 'short' })} ${bloc.end_at.getFullYear()}`;
+};
+
 export const getSeasonResults = async function(prisma: PrismaClient, blocDeadlineId: number, topAmount: number = RANKING_MAX) { // Implicit return type
 	const bloc = await prisma.intraBlocDeadline.findUnique({
 		where: {
