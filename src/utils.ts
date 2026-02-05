@@ -740,6 +740,19 @@ export const getUserRankingAcrossAllRankings = async function(prisma: PrismaClie
 };
 
 export const bonusPointsAwardingStarted = async function(prisma: PrismaClient, atDateTime: Date = new Date()): Promise<{ started: boolean, startTime: Date | null }> {
+	// Check if there are any rankings that award bonus points at all
+	const rankingsAwardingBonusPointsCount = await prisma.codamCoalitionRanking.count({
+		where: {
+			bonus_points: {
+				gt: 0,
+			},
+		},
+	});
+	if (rankingsAwardingBonusPointsCount === 0) {
+		return { started: false, startTime: null };
+	}
+
+
 	// Calculate when the bonus points awarding will start (7 days prior to end of the bloc)
 	const blocAtDate = await getBlocAtDate(prisma, atDateTime);
 	const bonusPointsAwardingStartTime = blocAtDate ? new Date(blocAtDate.end_at.getTime() - 7 * 24 * 60 * 60 * 1000) : null;
