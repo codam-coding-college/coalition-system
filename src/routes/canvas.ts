@@ -359,7 +359,7 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 			});
 			const rankings: { [key: string]: SingleRanking[] } = {};
 			for (const rankingType of rankingTypes) {
-				rankings[rankingType.type] = await getRanking(prisma, rankingType.type, now, 1);
+				rankings[rankingType.type] = await getRanking(prisma, rankingType.type, now, 5); // Get a maximum of 5 users per ranking type to be safe, in case of ties at the top rank
 			}
 
 			// DRAWING START
@@ -390,11 +390,28 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 			let currentY = rightY + PADDING * 2 + Math.floor(BIG_BOX_HEIGHT * 0.075);
 			for (const rankingType of rankingTypes) {
 				const entryPadding = PADDING * 0.5;
-				const topRanking = rankings[rankingType.type][0];
 				const profilePicSize = entryInnerHeight - entryPadding * 2;
 
+				// Check how many people hold the #1 spot
+				const topRankings = rankings[rankingType.type].filter(r => r.rank === 1);
+				let fillColor = '#424242'; // Base fill color if multiple coalitions share #1 spot or no data
+				// Fill color based on the coalition color if there is only one #1 and that user has a coalition with a color
+				if (topRankings.length === 1 && topRankings[0].coalition && topRankings[0].coalition.color) {
+					fillColor = topRankings[0].coalition.color;
+				}
+				// Fill color based on the coalition color if there are more users in the #1 spot but they all share the same coalition
+				else if (topRankings.length > 1) {
+					const coalitionIds = new Set(topRankings.map(r => r.coalition ? r.coalition.id : null));
+					if (coalitionIds.size === 1) {
+						const coalition = topRankings[0].coalition;
+						if (coalition && coalition.color) {
+							fillColor = coalition.color;
+						}
+					}
+				}
+
 				// Draw entry background based on the top user's coalition color
-				ctx.fillStyle = (topRanking && topRanking.coalition && topRanking.coalition.color ? topRanking.coalition.color : '#424242');
+				ctx.fillStyle = fillColor;
 				ctx.fillRect(rightX + PADDING, currentY, rightWidth - PADDING * 2, entryInnerHeight);
 				ctx.fillStyle = 'rgba(0, 0, 0, 0.33)'; // Add some shade
 				ctx.fillRect(rightX + PADDING, currentY, 5, entryInnerHeight);
@@ -403,22 +420,27 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 				const entryTextX = rightX + PADDING + entryPadding + profilePicSize + entryPadding;
 				const entryTextY = currentY + entryInnerHeight * 0.5;
 				const entryTextMaxWidth = rightWidth - PADDING * 2 - profilePicSize - entryPadding * 3;
+				const profilePicOffset = profilePicSize * 0.75; // X offset per drawn profile picture
 
 				// Draw entry title
 				ctx.fillStyle = '#FFFFFF';
 				ctx.textBaseline = 'bottom';
 				ctx.font = `bold ${Math.floor(entryInnerHeight * 0.25)}px "Bebas Neue"`;
-				ctx.fillText(`#1 ${rankingType.name}`, entryTextX, entryTextY, entryTextMaxWidth);
+				ctx.fillText(`#1 ${rankingType.name}`, entryTextX + profilePicOffset * (Math.max(1, topRankings.length) - 1), entryTextY, entryTextMaxWidth);
 
 				// Draw entry text: rank, user login and score
 				ctx.font = `bold ${Math.floor(entryInnerHeight * 0.2)}px "Museo Sans"`;
 				ctx.textBaseline = 'top';
-				if (topRanking) {
-					// Draw user profile picture in the vertical center of the entry
-					await drawUserProfilePicture(ctx, rightX + PADDING + entryPadding, currentY + entryPadding, profilePicSize, topRanking.user.image || '');
-					// Draw login and score next to profile picture
-					ctx.fillText(`${topRanking.user.login} / ${formatThousands(topRanking.score)} pts.`, entryTextX, entryTextY, entryTextMaxWidth);
-				} else {
+				if (topRankings.length > 0) {
+					const entryTextContent = topRankings.map(r => `${r.user.login}`).join(' & ') + ' / ' + `${formatThousands(topRankings[0].score)} pts.`;
+					for (let i = 0; i < topRankings.length; i++) {
+						const topRanking = topRankings[i];
+						// Draw user profile picture in the vertical center of the entry
+						await drawUserProfilePicture(ctx, rightX + PADDING + entryPadding + profilePicOffset * i, currentY + entryPadding, profilePicSize, topRanking.user.image || '');
+					}
+					ctx.fillText(entryTextContent, entryTextX + profilePicOffset * (topRankings.length - 1), entryTextY, entryTextMaxWidth);
+				}
+				else {
 					ctx.fillText('No data available', entryTextX, entryTextY, entryTextMaxWidth);
 				}
 
