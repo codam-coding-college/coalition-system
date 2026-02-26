@@ -4,19 +4,22 @@
 
 {% block content %}
 
-<!-- Season chooser (basically just a bootstrap.js page navigation) -->
-<nav aria-label="Season navigation" class="d-flex justify-content-center" id="pagenav">
-	<ul class="pagination">
-		{% for endedSeason in endedSeasons %}
-		<li class="page-item">
-			<a class="page-link{{ ' active' if endedSeason.id === season.id }}" href="/results/{{ endedSeason.id }}">{{ endedSeason | seasonName }}</a>
-		</li>
-		{% endfor %}
-	</ul>
-</nav>
-
 <!-- main page content -->
 <div class="container-lg mw-900">
+	<!-- Season chooser -->
+	<nav aria-label="Season navigation" class="d-flex justify-content-center mb-4" id="pagenav">
+		<select class="form-select form-select-lg" id="season-select" title="Select a season to view its results">
+			{% for endedSeason in endedSeasons %}
+				<option value="{{ endedSeason.id }}"{{ ' selected' if endedSeason.id === season.id }}>{{ endedSeason | seasonName }}</option>
+			{% endfor %}
+		</select>
+		<script>
+			document.getElementById('season-select').addEventListener('change', function() {
+				window.location.href = `/results/${this.value}`;
+			});
+		</script>
+	</nav>
+
 	<!-- winner container -->
 	<!-- this data comes from Intra directly, not from Codam's coalition system -->
 	{% if season.coalition_id %}
