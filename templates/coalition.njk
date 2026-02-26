@@ -25,6 +25,32 @@
 			<div class="col">
 				<div class="card h-100">
 					<div class="card-header">
+						<h4 class="card-title mb-0">Current score</h4>
+					</div>
+					<div class="card-body">
+						<p class="lead mb-0"><b>{{ coalitionScore.score | thousands }}</b> average points</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
+						<h4 class="card-title mb-0">Score history</h4>
+					</div>
+					<div class="card-body p-0">
+						<canvas height="500" class="codam-chart" data-url="/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row ms-0 me-0 mb-4">
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-header">
 						<h4 class="card-title mb-0">Top contributors of the past 7 days</h4>
 					</div>
 					<div class="card-body p-0">
@@ -86,19 +112,6 @@
 						{% else %}
 							<p class="m-2 text-end"><a href="/coalitions/{{ coalition.id }}/rankings">View full rankings</a></p>
 						{% endif %}
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="row ms-0 me-0 mb-4">
-			<div class="col">
-				<div class="card h-100">
-					<div class="card-header">
-						<h4 class="card-title mb-0">Score history</h4>
-					</div>
-					<div class="card-body p-0">
-						<canvas height="500" class="codam-chart" data-url="/charts/coalitions/{{ coalition.id }}/scores/history" id="coalition-{{ coalition.id }}-scores-history"></canvas>
 					</div>
 				</div>
 			</div>
