@@ -1,6 +1,6 @@
 import Fast42 from '@codam/fast42';
 import { NODE_ENV } from '../env';
-import { getRanking, getScoreStatistics, getUsersScores, RANKING_MAX } from '../utils';
+import { getRanking, getScoreStatistics, getSeasonName, getUsersScores, RANKING_MAX } from '../utils';
 import { prisma } from './base';
 
 export const calculateResults = async function(api: Fast42): Promise<void> {
@@ -35,7 +35,7 @@ export const calculateResults = async function(api: Fast42): Promise<void> {
 
 	// Calculate results for each season that needs it
 	for (const season of seasonsToCalculate) {
-		const seasonName = season.begin_at.toISOString().split('T')[0] + ' to ' + season.end_at.toISOString().split('T')[0];
+		const seasonName = getSeasonName(season);
 
 		// Check if there are any scores for this season to begin with, otherwise skip the calculation
 		const seasonScoresCount = await prisma.codamCoalitionScore.count({

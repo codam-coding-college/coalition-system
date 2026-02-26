@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import nunjucks from 'nunjucks';
-import { formatThousands, getSeasonName, timeAgo, timeFromNow } from '../utils';
+import { formatThousands, getSeasonName, getSeasonNameShort, timeAgo, timeFromNow } from '../utils';
 
 export const setupNunjucksFilters = function(app: Express): void {
 	const nunjucksEnv = nunjucks.configure('templates', {
@@ -123,6 +123,14 @@ export const setupNunjucksFilters = function(app: Express): void {
 			return 'Unknown season';
 		}
 		return getSeasonName(season);
+	});
+
+	// Add filter to name a season in short format
+	nunjucksEnv.addFilter('seasonNameShort', (season: any) => {
+		if (!season || !season.begin_at || !season.end_at) {
+			return 'Unknown season';
+		}
+		return getSeasonNameShort(season);
 	});
 
 	// Add filter to remove the first item from a list

@@ -43,15 +43,17 @@ export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): 
 			return res.status(404).send('Coalition not found for this season.');
 		}
 
+		const seasonName = getSeasonName(season);
+
 		return res.render('ranking.njk', {
 			pageranking: seasonResult.scores.map((entry, index) => ({ // Transform to match ranking.njk expected format
-				rankingName: `${seasonResult.coalition.intra_coalition.name} Leaderboards - Season ${getSeasonName(season)}`,
+				rankingName: `${seasonResult.coalition.intra_coalition.name} Leaderboards - Season ${seasonName}`,
 				user: entry.user.intra_user,
 				coalition: seasonResult.coalition,
 				score: entry.score,
 				rank: entry.coalition_rank,
 			})),
-			rankingTitle: `${seasonResult.coalition.intra_coalition.name} Leaderboards - Season ${getSeasonName(season)}`,
+			rankingTitle: `${seasonResult.coalition.intra_coalition.name} Leaderboards - Season ${seasonName}`,
 			coalitionColored: false,
 		});
 	});
