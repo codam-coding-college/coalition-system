@@ -188,7 +188,7 @@
 									<div class="card text-center">
 										<img src="{{ assistant.image }}" class="img-square card-img-top" alt="{{ assistant.login | striptags(true) | escape }}" />
 										<div class="card-body">
-											<span><a target="_blank" href="https://profile.intra.42.fr/users/{{ assistant.login | striptags(true) | escape }}/">{{ assistant.usual_first_name if assistant.usual_first_name is not none else assistant.first_name | striptags(true) | escape }}</a></span>
+											<span><a class="stretched-link" target="_blank" href="https://profile.intra.42.fr/users/{{ assistant.login | striptags(true) | escape }}/">{{ assistant.usual_first_name if assistant.usual_first_name is not none else assistant.first_name | striptags(true) | escape }}</a></span>
 										</div>
 									</div>
 								</div>
