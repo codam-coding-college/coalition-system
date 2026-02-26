@@ -5,6 +5,7 @@ import { handleWebhook } from '../hooks';
 
 const catchupOperation: CatchupOperation = {
 	ongoing: false,
+	failed: false,
 	startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // Default value
 	endDate: new Date(), // Default value
 	progress: 0,
@@ -147,7 +148,9 @@ export const setupWebhookManagementRoutes = function(app: Express, prisma: Prism
 			const catchupEvaluations = req.body.catchup_evaluations === 'true';
 			const catchupPoolDonations = false; // req.body.catchup_pool_donations === 'true'; (not possible with Intra API)
 
+			// Set the catch-up operation data
 			catchupOperation.ongoing = true;
+			catchupOperation.failed = false;
 			catchupOperation.startDate = catchupStart;
 			catchupOperation.endDate = new Date(catchupEnd.getTime() + 1000 * 60 * 60 * 24); // Add one day to the end date to include said date
 			catchupOperation.progress = 0;

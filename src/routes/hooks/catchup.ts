@@ -9,6 +9,7 @@ import { handleScaleTeamUpdateWebhook, ScaleTeam } from "./scale_teams";
 
 export interface CatchupOperation {
 	ongoing: boolean;
+	failed: boolean;
 	startDate: Date | null;
 	endDate: Date | null;
 	progress: number;
@@ -154,35 +155,43 @@ export const startCatchupOperation = async (catchupOperation: CatchupOperation, 
 	console.log(`Starting catch-up operation from ${catchupOperation.startDate} to ${catchupOperation.endDate}...`);
 	let currentStep = 0;
 
-	if (catchupOperation.filter.locations) {
-		console.log('Starting locations catch-up...');
-		await catchupLocations(catchupOperation, currentStep, prisma);
-		console.log('Locations catch-up completed.');
-		currentStep++;
-	}
+	try {
+		if (catchupOperation.filter.locations) {
+			console.log('Starting locations catch-up...');
+			await catchupLocations(catchupOperation, currentStep, prisma);
+			console.log('Locations catch-up completed.');
+			currentStep++;
+		}
 
-	if (catchupOperation.filter.projects) {
-		console.log('Starting projects & exams catch-up...');
-		await catchupProjectsAndExams(catchupOperation, currentStep, prisma);
-		console.log('Projects & exams catch-up completed.');
-		currentStep++;
-	}
+		if (catchupOperation.filter.projects) {
+			console.log('Starting projects & exams catch-up...');
+			await catchupProjectsAndExams(catchupOperation, currentStep, prisma);
+			console.log('Projects & exams catch-up completed.');
+			currentStep++;
+		}
 
-	if (catchupOperation.filter.evaluations) {
-		console.log('Starting evaluations catch-up...');
-		await catchupEvaluations(catchupOperation, currentStep, prisma);
-		console.log('Evaluations catch-up completed.');
-		currentStep++;
-	}
+		if (catchupOperation.filter.evaluations) {
+			console.log('Starting evaluations catch-up...');
+			await catchupEvaluations(catchupOperation, currentStep, prisma);
+			console.log('Evaluations catch-up completed.');
+			currentStep++;
+		}
 
-	if (catchupOperation.filter.pool_donations) {
-		console.log('Starting pool donations catch-up...');
-		console.log('Pool donations catch-up completed.');
-		currentStep++;
-		// Note: cannot be done with Intra API, how do we implement this?
-	}
+		if (catchupOperation.filter.pool_donations) {
+			console.log('Starting pool donations catch-up...');
+			console.log('Pool donations catch-up completed.');
+			currentStep++;
+			// Note: cannot be done with Intra API, how do we implement this?
+		}
 
-	console.log('Catch-up operation completed.');
-	catchupOperation.ongoing = false;
-	catchupOperation.progress = 100;
+		console.log('Catch-up operation completed.');
+		catchupOperation.ongoing = false;
+		catchupOperation.progress = 100;
+	}
+	catch (err) {
+		console.error('Error during catch-up operation:', err);
+		catchupOperation.ongoing = false;
+		catchupOperation.failed = true;
+		catchupOperation.progress = 100;
+	}
 };

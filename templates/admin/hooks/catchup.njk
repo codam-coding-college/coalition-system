@@ -8,11 +8,18 @@
 		<li class="breadcrumb-item active" aria-current="page">Webhook Catchup</li>
 	</ol>
 </nav>
-
+{% if catchupOperation.failed %}
+	<div class="mt-4 alert alert-danger" role="alert">
+		<p>The last catch-up operation from {{ catchupOperation.startDate | dateInput }} to {{ catchupOperation.endDate | dateInput }} (partially) failed. Please try again later.</p>
+	</div>
+{% endif %}
 {% if catchupOperation.ongoing %}
 	<div class="mt-4 alert alert-info" role="alert">
 		<p>A catch-up operation is currently ongoing to fetch data between {{ catchupOperation.startDate | dateInput }} and {{ catchupOperation.endDate | dateInput }}.</p>
-		<p>It is currently at {{ catchupOperation.progress }}%. A new catch-up cannot be started until this one has finished.</p>
+		<p>A new catch-up cannot be started until this one has finished.</p>
+		<div class="progress">
+			<div class="progress-bar" role="progressbar" style="width: {{ catchupOperation.progress }}%;" aria-valuenow="{{ catchupOperation.progress }}" aria-valuemin="0" aria-valuemax="100">{{ catchupOperation.progress }}%</div>
+		</div>
 	</div>
 	<script>
 		// Refresh every 5 seconds
