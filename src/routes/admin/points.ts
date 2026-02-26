@@ -626,8 +626,9 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			},
 		});
 
-		// TODO: add system to update all users' points based on this type
-		// in the current tournament (optional choice in the form, not by default enabled)
+		if (!fixedPointType) {
+			return res.status(404).send('Point type not found');
+		}
 
 		return res.redirect('/admin/points/automatic');
 	});
