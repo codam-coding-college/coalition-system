@@ -111,7 +111,11 @@ export const calculateResults = async function(api: Fast42): Promise<void> {
 		}
 
 		// Season rankings
-		const rankings = await prisma.codamCoalitionRanking.findMany({});
+		const rankings = await prisma.codamCoalitionRanking.findMany({
+			where: {
+				disabled: false,
+			},
+		});
 		console.log(` - Calculating rankings for season ${seasonName}...`);
 		for (const ranking of rankings) {
 			console.log(`   - Calculating ranking ${ranking.type}...`);

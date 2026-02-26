@@ -356,6 +356,9 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 				orderBy: {
 					type: 'asc',
 				},
+				where: {
+					disabled: false,
+				}
 			});
 			const rankings: { [key: string]: SingleRanking[] } = {};
 			for (const rankingType of rankingTypes) {

@@ -727,7 +727,10 @@ export const getUserRankingAcrossAllRankings = async function(prisma: PrismaClie
 	const rankings = await prisma.codamCoalitionRanking.findMany({
 		select: {
 			type: true,
-		}
+		},
+		where: {
+			disabled: false,
+		},
 	});
 	const userRankings: SingleRanking[] = [];
 	for (const ranking of rankings) {
@@ -746,6 +749,7 @@ export const bonusPointsAwardingStarted = async function(prisma: PrismaClient, a
 			bonus_points: {
 				gt: 0,
 			},
+			disabled: false,
 		},
 	});
 	if (rankingsAwardingBonusPointsCount === 0) {
