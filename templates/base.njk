@@ -112,7 +112,7 @@
 		</div>
 	</nav>
 	{% endif %}
-	<main class="{{ 'm-2 ' if not nomargin }}{{ 'noheader ' if noheader }}">
+	<main class="{{ 'm-2 mt-4' if not nomargin }}{{ 'noheader ' if noheader }}">
 		{# render Bootstrap alerts first #}
 		{% for alert in alerts %}
 			<div class="alert alert-{{ alert.type }}" role="alert">
