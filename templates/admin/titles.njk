@@ -23,7 +23,7 @@
 	</thead>
 	<tbody>
 		{% for title in titles %}
-			<tr style="background: {{ title.coalition.intra_coalition.color | rgba(0.25) }}; vertical-align: middle;">
+			<tr class="align-middle" style="background: {{ title.coalition.intra_coalition.color | rgba(0.25) }};">
 				<td>{{ title.coalition.intra_coalition.name | striptags(true) | escape }}</td>
 				<td>{{ title.ranking }}</td>
 				<td>{{ title.title | striptags(true) | escape }}</td>

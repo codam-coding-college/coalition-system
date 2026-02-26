@@ -99,11 +99,11 @@
 					<table class="table coalition-colored mb-0">
 						<tbody>
 							{% for ranking in rankings[rankingType.type] %}
-								<tr style="background: {{ ranking.coalition.color | rgba(0.25) }}; vertical-align: middle;">
+								<tr class="align-middle position-relative" style="background: {{ ranking.coalition.color | rgba(0.25) }};">
 									<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
 									<td class="p-0">
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-											<a href="/profile/{{ ranking.user.login | striptags(true) | escape }}" class="p-2 text-light" style="text-decoration: none;">
+											<a href="/profile/{{ ranking.user.login | striptags(true) | escape }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
 												<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
 												<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
 											</a>

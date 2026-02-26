@@ -78,11 +78,11 @@
 					<table class="table table-striped mb-0">
 						<tbody>
 							{% for userScore in seasonResult.scores %}
-								<tr style="vertical-align: middle;">
+								<tr class="align-middle position-relative">
 									<td class="fs-5 p-2" style="width: 25px;">{{ userScore.coalition_rank }}.</td>
 									<td class="p-0">
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-											<a href="/profile/{{ userScore.user.intra_user.login }}" class="p-2 text-light" style="text-decoration: none;">
+											<a href="/profile/{{ userScore.user.intra_user.login }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
 												<img loading="lazy" src="{{ userScore.user.intra_user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
 												<span>{{ userScore.user.intra_user.usual_full_name | striptags(true) | escape }}</span>
 											</a>
@@ -119,11 +119,11 @@
 						<tbody>
 							{# TODO: build a nice big highlight of the winner(s) #}
 							{% for result in ranking.results %}
-								<tr style="background: {{ result.coalition.intra_coalition.color | rgba(0.25) if result.coalition else 'transparent' }}; vertical-align: middle;">
+								<tr class="align-middle position-relative" style="background: {{ result.coalition.intra_coalition.color | rgba(0.25) if result.coalition else 'transparent' }};">
 									<td class="fs-5 p-2" style="width: 25px;">{{ result.rank }}.</td>
 									<td class="p-0">
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-											<a href="/profile/{{ result.user.intra_user.login | striptags(true) | escape }}" class="p-2 text-light" style="text-decoration: none;">
+											<a href="/profile/{{ result.user.intra_user.login | striptags(true) | escape }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
 												<img loading="lazy" src="{{ result.user.intra_user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
 												<span>{{ result.user.intra_user.usual_full_name | striptags(true) | escape }}</span>
 											</a>
