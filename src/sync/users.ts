@@ -59,6 +59,8 @@ export const syncUser = async function(user: any): Promise<void> {
 };
 
 export const syncUsers = async function(api: Fast42, syncSince: Date, syncDate: Date): Promise<void> {
+	console.log(`Synchronizing users from Intra...`);
+
 	// Fetch all users from the API updated since the last shutdown
 	const users = await syncData(api, syncDate, syncSince, `/campus/${CAMPUS_ID}/users`, {});
 

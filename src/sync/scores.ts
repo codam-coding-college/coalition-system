@@ -10,6 +10,8 @@ export const syncScores = async function(api: Fast42): Promise<void> {
 		return;
 	}
 
+	console.log(`Synchronizing scores to Intra...`);
+
 	const scores = await prisma.codamCoalitionScore.findMany({
 		where: {
 			created_at: {

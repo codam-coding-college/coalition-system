@@ -225,8 +225,26 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 	try {
 		const lastSync = await getLastSyncTimestamp();
 
+		// Initialize database
 		await initCodamQuiz();
 		await initCodamCoalitionFixedTypes();
+
+		// Synchronize TO Intra
+		const currentBloc = await getBlocAtDate(prisma, new Date()); // Check if a season is currently ongoing (only then we can sync)
+		if (NODE_ENV == 'production' && currentBloc) {
+			// WARNING: Do not run this in development mode!
+			// While it is possible to delete accidentally created scores using a dev script, you'd be mixing production and development data.
+			// If needed still, the dev script is available at build/dev/delete_synced_intra_scores.js after building the project.
+			try {
+				await syncScores(api); // sync our scores to Intra
+			}
+			catch (err) {
+				console.error(`Error synchronizing scores to Intra: ${err}`);
+				console.log('Continuing synchronization, but scores will not be updated on Intra until the next synchronization.');
+			}
+		}
+
+		// Synchronize FROM Intra
 		await syncProjects(api, lastSync, now);
 		await syncUsers(api, lastSync, now);
 		await syncCursusUsers(api, lastSync, now);
@@ -237,17 +255,15 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 		await handleRankingTitleCreation(api);
 		await handleRankingBonuses();
 		await syncTitles(api);
+
+		// Calculate results
 		await calculateResults(api);
+
+		// Clean up
 		await cleanupDB(api);
 
-		const currentBloc = await getBlocAtDate(prisma, new Date()); // Check if a season is currently ongoing (only then we can sync)
-		if (NODE_ENV == 'production' && currentBloc) {
-			// WARNING: Do not run this in development mode!
-			// While it is possible to delete accidentally created scores using a dev script, you'd be mixing production and development data.
-			// If needed still, the dev script is available at build/dev/delete_synced_intra_scores.js after building the project.
-			await syncScores(api); // sync our scores to Intra
-		}
-
+		// Save the timestamp of the synchronization for the next sync, so we only fetch updated data next time.
+		// We do this at the end to make sure that if anything fails during the synchronization, we do not lose any data by updating the timestamp.
 		await saveSyncTimestamp(now);
 
 		console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);

@@ -4,6 +4,8 @@ import { getCoalitionTopContributors } from '../utils';
 import { NODE_ENV } from '../env';
 
 export const syncTitles = async function(api: Fast42): Promise<void> {
+	console.log(`Synchronizing coalition titles to Intra...`);
+
 	// Get current ranking per coalition
 	const coalitions = await prisma.codamCoalition.findMany({
 		include: {

@@ -65,6 +65,8 @@ export const syncBlocDeadline = async function(blocDeadline: any) {
 };
 
 export const syncBlocs = async function(api: Fast42, syncDate: Date): Promise<void> {
+	console.log(`Synchronizing blocs from Intra...`);
+
 	// Always sync all blocs
 	const syncSince = new Date(0);
 

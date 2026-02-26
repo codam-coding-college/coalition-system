@@ -34,6 +34,8 @@ export const syncProject = async function(project: any): Promise<void> {
 };
 
 export const syncProjects = async function(api: Fast42, syncSince: Date, syncDate: Date): Promise<void> {
+	console.log(`Synchronizing projects from Intra...`);
+
 	// Fetch all projects from the API updated since the last shutdown
 	const projects = await syncData(api, syncDate, syncSince, `/cursus/${CURSUS_ID}/projects`, {});
 

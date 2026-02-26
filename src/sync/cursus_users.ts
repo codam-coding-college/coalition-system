@@ -38,6 +38,8 @@ export const syncCursusUser = async function(cursusUser: any): Promise<void> {
 }
 
 export const syncCursusUsers = async function(api: Fast42, syncSince: Date, syncDate: Date): Promise<void> {
+	console.log(`Synchronizing cursus_users from Intra...`);
+
 	// Fetch all users from the API updated since the last synchronization
 	const cursusUsers = await syncData(api, syncDate, syncSince, `/cursus_users`, {
 		'filter[campus_id]': `${CAMPUS_ID}`,

@@ -68,6 +68,8 @@ export const syncCoalitionUser = async function(coalitionUser: any): Promise<voi
 };
 
 export const syncCoalitionUsers = async function(api: Fast42, syncSince: Date, syncDate: Date): Promise<void> {
+	console.log(`Synchronizing coalition_users from Intra...`);
+
 	// Fetch all of our coalition ids
 	const coalitionIds = await getCoalitionIds(prisma);
 

@@ -3,6 +3,8 @@ import { prisma, syncDataCB } from './base';
 import { ASSISTANT_GROUP_ID } from '../env';
 
 export const syncGroups = async function(api: Fast42, syncSince: Date, syncDate: Date): Promise<void> {
+	console.log(`Synchronizing groups from Intra...`);
+
 	// We only sync the assistant group (id defined in ASSISTANT_GROUP_ID)
 	await syncDataCB(api, syncDate, syncSince, `/groups/${ASSISTANT_GROUP_ID}`, {}, async (group) => {
 		try {
@@ -26,6 +28,8 @@ export const syncGroups = async function(api: Fast42, syncSince: Date, syncDate:
 };
 
 export const syncGroupsUsers = async function(api: Fast42, syncDate: Date): Promise<void> {
+	console.log(`Synchronizing group users from Intra...`);
+
 	const groups = await prisma.intraGroup.findMany({});
 
 	for (const group of groups) {
