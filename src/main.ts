@@ -15,7 +15,7 @@ export const prisma = new PrismaClient();
 // Imports for the Intra API
 import Fast42 from '@codam/fast42';
 import { INTRA_API_UID, INTRA_API_SECRET, NODE_ENV } from './env';
-import { syncWithIntra } from './sync/base';
+import { getLastSyncTimestamp, syncWithIntra } from './sync/base';
 const NO_INTRA_SYNC = process.argv.includes('--nosync');
 let initSyncComplete = false;
 
@@ -70,9 +70,13 @@ const main = async () => {
 	// Configure Express to use passport for authentication
 	usePassport(app, prisma);
 
+	// Serve static files from the "static" directory
+	app.use(express.static('static'));
+
 	// Wait for the Intra synchronization to finish before showing any pages on startup
+	// Exclude /status page
 	app.use(async function(req: express.Request, res: express.Response, next: express.NextFunction) {
-		if (!initSyncComplete) {
+		if (!initSyncComplete && req.path !== '/status') {
 			console.log(`A visitor requested the path ${req.path}, but we haven't finished syncing yet. Showing a waiting page.`);
 			res.status(503).render('syncing.njk');
 		}
@@ -83,6 +87,14 @@ const main = async () => {
 
 	// Configure the Express app to use specific middleware for each request
 	setupExpressMiddleware(app);
+
+	// Configure status page
+	app.get('/status', async (req, res) => {
+		return res.json({
+			status: 'ok',
+			initSyncComplete: initSyncComplete,
+		});
+	});
 
 	// Start the Express server
 	app.listen(4000, async () => {
@@ -96,13 +108,12 @@ const main = async () => {
 			client_secret: INTRA_API_SECRET,
 		}]).init();
 
-		if (NO_INTRA_SYNC) {
-			console.log('Skipping initial sync with Intra API due to --nosync flag.');
-			initSyncComplete = true;
-		} else {
+		if (!NO_INTRA_SYNC) {
 			await syncWithIntra(api);
-			initSyncComplete = true;
+		} else {
+			console.log('Skipping initial sync with Intra API due to --nosync flag.');
 		}
+		initSyncComplete = true;
 	}
 	catch (error) {
 		console.error('Failed to initialize the Intra API:', error);

@@ -81,7 +81,6 @@ const staffMiddleware = async function(req: Request, res: Response, next: NextFu
 };
 
 export const setupExpressMiddleware = function(app: any) {
-	app.use(express.static('static'));
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(checkIfAuthenticated);
