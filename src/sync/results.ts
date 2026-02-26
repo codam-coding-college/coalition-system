@@ -36,6 +36,21 @@ export const calculateResults = async function(api: Fast42): Promise<void> {
 	// Calculate results for each season that needs it
 	for (const season of seasonsToCalculate) {
 		const seasonName = season.begin_at.toISOString().split('T')[0] + ' to ' + season.end_at.toISOString().split('T')[0];
+
+		// Check if there are any scores for this season to begin with, otherwise skip the calculation
+		const seasonScoresCount = await prisma.codamCoalitionScore.count({
+			where: {
+				created_at: {
+					gte: season.begin_at,
+					lte: season.end_at,
+				},
+			},
+		});
+		if (seasonScoresCount === 0) {
+			console.log(` - No scores found for season ${seasonName}, skipping result calculation...`);
+			continue;
+		}
+
 		console.log(`Calculating results for season ${seasonName}...`);
 		for (const coalition of season.bloc.coalitions) {
 			console.log(` - Calculating results for coalition ${coalition.name}...`);

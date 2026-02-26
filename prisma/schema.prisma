@@ -268,6 +268,7 @@ model IntraBloc {
 }
 
 // Intra Bloc Deadline
+// Defines one season within a tournament
 model IntraBlocDeadline {
 	id               Int      @id
 	bloc_id          Int
