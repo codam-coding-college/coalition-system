@@ -61,7 +61,7 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 		},
 		{
 			type: "exam",
-			desc: "Each exam passed will grant the student with this amount of points",
+			desc: "Each exam passed will grant the student with a fixed amount of points, influenced by the final mark. The score is calculated as (mark / 100) * fixed_point_amount.",
 			points: 1000, // recommended
 		},
 		{

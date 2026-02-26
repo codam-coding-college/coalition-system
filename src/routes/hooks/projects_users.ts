@@ -58,7 +58,7 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 		let fixedPointType: CodamCoalitionFixedType | null = null;
 		let points = 0;
 		if (project.exam) {
-			// Special case for exams, they have a fixed point amount and the score + difficulty is not taken into account
+			// Special case for exams, they have a fixed point amount that is only influenced by the final mark
 			fixedPointType = await prisma.codamCoalitionFixedType.findFirst({
 				where: {
 					type: 'exam',
@@ -69,8 +69,9 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 				return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
 			}
 
-			// "Calculate" the score based on the fixed point type for exams
-			points = fixedPointType.point_amount;
+			// Calculate the score based on the fixed point type for exams
+			// score = (mark / 100) * fixed_point_amount
+			points = Math.floor((projectUser.final_mark / 100) * fixedPointType.point_amount);
 		}
 		else {
 			if ((project.slug.startsWith('rushes-') || project.slug.startsWith('42cursus-rushes-')) && !project.difficulty) {
@@ -96,7 +97,7 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 
 			// Calculate the score based on the fixed point type for projects
 			// score = (mark * i) + (difficulty * (mark / 100) / i^1.25)
-			points = (projectUser.final_mark * fixedPointType.point_amount) + (project.difficulty * (projectUser.final_mark / 100) / Math.pow(fixedPointType.point_amount, 1.25));
+			points = Math.floor((projectUser.final_mark * fixedPointType.point_amount) + (project.difficulty * (projectUser.final_mark / 100) / Math.pow(fixedPointType.point_amount, 1.25)));
 		}
 
 		// Create a score
