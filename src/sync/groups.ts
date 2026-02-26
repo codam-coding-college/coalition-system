@@ -1,12 +1,19 @@
 import Fast42 from '@codam/fast42';
-import { prisma, syncDataCB } from './base';
+import { prisma, syncData, syncDataCB } from './base';
 import { ASSISTANT_GROUP_ID } from '../env';
 
 export const syncGroups = async function(api: Fast42, syncSince: Date, syncDate: Date): Promise<void> {
 	console.log(`Synchronizing groups from Intra...`);
 
-	// We only sync the assistant group (id defined in ASSISTANT_GROUP_ID)
-	await syncDataCB(api, syncDate, syncSince, `/groups/${ASSISTANT_GROUP_ID}`, {}, async (group) => {
+	// We only sync the assistant group for now (id defined in ASSISTANT_GROUP_ID)
+	const groups = await syncData(api, syncDate, syncSince, `/groups/${ASSISTANT_GROUP_ID}`, {});
+	if (groups.length === 0) {
+		console.error(`Assistant group with id ${ASSISTANT_GROUP_ID} not found in Intra. Skipping group synchronization.`);
+		return;
+	}
+
+	for (const group of groups) { // Use for loop for in case we sync more groups in the future
+		console.debug(`Syncing group ${group.id} (${group.name})...`);
 		try {
 			await prisma.intraGroup.upsert({
 				where: {
@@ -24,7 +31,7 @@ export const syncGroups = async function(api: Fast42, syncSince: Date, syncDate:
 		catch (err) {
 			console.error(`Error syncing group ${group.id}: ${err}`);
 		}
-	});
+	}
 };
 
 export const syncGroupsUsers = async function(api: Fast42, syncDate: Date): Promise<void> {
@@ -33,6 +40,7 @@ export const syncGroupsUsers = async function(api: Fast42, syncDate: Date): Prom
 	const groups = await prisma.intraGroup.findMany({});
 
 	for (const group of groups) {
+		// We can use callback here as it is not important to have this data in the database right away for the next steps of the synchronization
 		await syncDataCB(api, syncDate, undefined, `/groups/${group.id}/groups_users`, {}, async (groupsUsers) => {
 			// Delete all group_users
 			await prisma.intraGroupUser.deleteMany({
