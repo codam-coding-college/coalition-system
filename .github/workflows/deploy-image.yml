@@ -21,12 +21,16 @@ jobs:
     permissions:
       contents: write
       packages: write
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
+          token: ${{ secrets.RELEASE_TOKEN }}
+          persist-credentials: false
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -56,4 +60,4 @@ jobs:
       - name: Create release
         run: npx semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}

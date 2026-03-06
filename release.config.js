@@ -10,6 +10,19 @@ module.exports = {
 				skipLogin: true,
 			},
 		],
+		[
+			"@semantic-release/npm",
+			{
+				npmPublish: false
+			}
+		],
 		"@semantic-release/github",
+		[
+			"@semantic-release/git",
+			{
+				assets: ["package.json"],
+				message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+			}
+		]
 	]
 };
