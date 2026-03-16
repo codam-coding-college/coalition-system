@@ -49,7 +49,7 @@ export const API_DEFAULT_FILTERS_SCALE_TEAMS = {
 	'filter[future]': 'false',
 	'range[filled_at]': `2024-01-01T00:00:00,${new Date().toISOString()}`, // filled_at was only added later
 	'sort': '-filled_at',
-	'page[size]': '10', // ScaleTeams API endpoint is very slow so we limit the amount of items per page to avoid timeouts
+	'page[size]': '8', // ScaleTeams API endpoint is very slow so we limit the amount of items per page to avoid timeouts
 };
 
 // Filters applied to events
