@@ -270,7 +270,7 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			const teams = await fetchSingleApiPage(api, `/teams`, {
 				...API_DEFAULT_FILTERS_EXAMS,
 				'page[size]': itemsPerPage.toString(),
-			});
+			}, pageNum);
 			const modifiedTeams = await parseTeamInAPISearcher(prisma, teams.data);
 			return res.json({
 				data: modifiedTeams,
