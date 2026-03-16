@@ -13,7 +13,14 @@ const BIG_BOX_HEIGHT = CANVAS_HEIGHT - PADDING * 3 - BOTTOM_BAR_HEIGHT;
 const drawUserProfilePicture = async function(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, imageUrl: string | null) {
 	try {
 		if (!imageUrl) {
-			throw new Error('No image URL provided');
+			console.warn('No image URL provided for user profile picture in canvas, drawing placeholder');
+			// Draw a placeholder circle
+			ctx.fillStyle = '#CCCCCC';
+			ctx.beginPath();
+			ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.fill();
+			return;
 		}
 		const image = await loadImage(imageUrl);
 		// Draw circle clip
