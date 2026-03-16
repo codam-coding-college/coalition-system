@@ -404,20 +404,26 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 
 				// Check how many people hold the #1 spot
 				const topRankings = rankings[rankingType.type].filter(r => r.rank === 1);
-				let fillColor = '#424242'; // Base fill color if multiple coalitions share #1 spot or no data
+				// Sort the top rankings by coalition id to have a consistent order in the gradient when there are multiple #1 ranked users from different coalitions
+				topRankings.sort((a, b) => {
+					const coalitionIdA = a.coalition ? a.coalition.id : 0;
+					const coalitionIdB = b.coalition ? b.coalition.id : 0;
+					return coalitionIdA - coalitionIdB;
+				});
+				let fillColor: string | CanvasGradient = '#424242'; // Base fill color if multiple coalitions share #1 spot or no data
 				// Fill color based on the coalition color if there is only one #1 and that user has a coalition with a color
 				if (topRankings.length === 1 && topRankings[0].coalition && topRankings[0].coalition.color) {
 					fillColor = topRankings[0].coalition.color;
 				}
-				// Fill color based on the coalition color if there are more users in the #1 spot but they all share the same coalition
+				// Fill color based on coalition colors using gradient with multiple steps
 				else if (topRankings.length > 1) {
-					const coalitionIds = new Set(topRankings.map(r => r.coalition ? r.coalition.id : null));
-					if (coalitionIds.size === 1) {
-						const coalition = topRankings[0].coalition;
-						if (coalition && coalition.color) {
-							fillColor = coalition.color;
-						}
-					}
+					const gradient = ctx.createLinearGradient(rightX, currentY, rightX + rightWidth, currentY + entryInnerHeight);
+					const step = 1 / topRankings.length;
+					topRankings.forEach((ranking, index) => {
+						const color = (ranking.coalition && ranking.coalition.color) ? ranking.coalition.color : '#424242';
+						gradient.addColorStop(step * index, color);
+					});
+					fillColor = gradient;
 				}
 
 				// Draw entry background based on the top user's coalition color
