@@ -418,7 +418,7 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 				// Fill color based on coalition colors using gradient with multiple steps
 				else if (topRankings.length > 1) {
 					const gradient = ctx.createLinearGradient(rightX, currentY, rightX + rightWidth, currentY + entryInnerHeight);
-					const step = 1 / topRankings.length;
+					const step = 1 / (topRankings.length - 1);
 					topRankings.forEach((ranking, index) => {
 						const color = (ranking.coalition && ranking.coalition.color) ? ranking.coalition.color : '#424242';
 						gradient.addColorStop(step * index, color);
