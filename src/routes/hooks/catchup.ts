@@ -125,6 +125,7 @@ const catchupEvaluations = async (catchupOperation: CatchupOperation, stepNumber
 				...API_DEFAULT_FILTERS_SCALE_TEAMS,
 				'sort': 'updated_at', // Oldest first
 				'range[updated_at]': `${catchupOperation.startDate?.toISOString()},${catchupOperation.endDate?.toISOString()}`,
+				'page[size]': '2', // To make sure to prevent timeouts! The Intra API is so f*cking slow on this endpoint...
 			},
 			async (scaleTeams, xPage, xTotal) => {
 				if (itemsTotal === 0) {
