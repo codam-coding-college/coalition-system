@@ -1,4 +1,4 @@
-import { CodamCoalition, CodamCoalitionTestAnswer, CodamCoalitionTestQuestion, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { getCoalitionIds } from '../utils';
 const prisma = new PrismaClient();
 

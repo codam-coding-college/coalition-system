@@ -207,7 +207,7 @@ export const setupAdminQuizRoutes = function(app: Express, prisma: PrismaClient)
 	app.post('/admin/quiz/answers/new', async (req, res) => {
 		console.log('Request to create answer:', req.body);
 		try {
-			const answer = await prisma.codamCoalitionTestAnswer.create({
+			await prisma.codamCoalitionTestAnswer.create({
 				data: {
 					answer: req.body.answer,
 					weight: parseInt(req.body.weight),

@@ -1,4 +1,3 @@
-import express from 'express';
 import bodyParser from 'body-parser';
 import NodeCache from 'node-cache';
 import { Request, Response, NextFunction } from "express";

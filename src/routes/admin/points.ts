@@ -766,7 +766,6 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			}
 
 			// Assign the points
-			const api = await getAPIClient();
 			const score = await createScore(prisma, null, null, user.id, pointAmount, reason);
 			if (!score) {
 				console.warn(`Failed to create score for user ${user.login}`);

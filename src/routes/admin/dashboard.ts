@@ -5,8 +5,6 @@ import { getLastSyncTimestamp } from '../../sync/base';
 
 export const setupAdminDashboardRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin', async (req, res) => {
-		const now = new Date();
-
 		// Get current bloc deadline
 		const currentBlocDeadline = await getBlocAtDate(prisma);
 

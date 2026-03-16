@@ -15,7 +15,7 @@ export const prisma = new PrismaClient();
 // Imports for the Intra API
 import Fast42 from '@codam/fast42';
 import { INTRA_API_UID, INTRA_API_SECRET, NODE_ENV } from './env';
-import { getLastSyncTimestamp, syncWithIntra } from './sync/base';
+import { syncWithIntra } from './sync/base';
 const NO_INTRA_SYNC = process.argv.includes('--nosync');
 let initSyncComplete = false;
 

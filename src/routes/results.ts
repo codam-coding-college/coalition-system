@@ -89,7 +89,7 @@ export const setupResultsRoutes = function(app: Express, prisma: PrismaClient): 
 			return res.status(404).send('Season not found or has not ended yet.');
 		}
 
-		const { seasonResults, rankings } = await getSeasonResults(prisma, season.id, RANKING_MAX);
+		const { rankings } = await getSeasonResults(prisma, season.id, RANKING_MAX);
 		const ranking = rankings.find(r => r.type === req.params.ranking_type);
 		if (!ranking) {
 			return res.status(404).send('Ranking not found for this season.');

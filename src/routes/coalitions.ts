@@ -1,7 +1,6 @@
 import { Express } from 'express';
 import passport from 'passport';
 import { IntraUser, PrismaClient } from '@prisma/client';
-import { ExpressIntraUser } from '../sync/oauth';
 import { getCoalitionScore, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors, SMALL_CONTRIBUTION_TYPES } from '../utils';
 import { ASSISTANT_GROUP_ID, ASSISTANTS_CAN_QUIZ } from '../env';
 
@@ -13,7 +12,6 @@ export const setupCoalitionRoutes = function(app: Express, prisma: PrismaClient)
 		if (!coalitionId || isNaN(coalitionId) || coalitionId <= 0) {
 			return res.status(400).send('Invalid coalition ID');
 		}
-		const user = req.user as ExpressIntraUser;
 		const now = new Date();
 
 		const coalition = await prisma.codamCoalition.findFirst({

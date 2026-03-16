@@ -98,7 +98,7 @@ export const calculateResults = async function(api: Fast42): Promise<void> {
 					rank++;
 					lastScore = userScore._sum.amount || 0;
 				}
-				const userResult = await prisma.codamCoalitionUserResult.create({
+				await prisma.codamCoalitionUserResult.create({
 					data: {
 						user_id: userScore.user_id,
 						coalition_id: coalition.id,
@@ -122,7 +122,7 @@ export const calculateResults = async function(api: Fast42): Promise<void> {
 			const rankings = await getRanking(prisma, ranking.type, season.end_at, RANKING_MAX);
 			for (const userRanking of rankings) {
 				console.log(`     - User ${userRanking.user.login} ranked #${userRanking.rank} with ${userRanking.score} points in ranking ${ranking.type}`);
-				const dbRanking = await prisma.codamCoalitionRankingResult.create({
+				await prisma.codamCoalitionRankingResult.create({
 					data: {
 						ranking_type: ranking.type,
 						bloc_deadline_id: season.id,

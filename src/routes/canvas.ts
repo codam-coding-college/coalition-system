@@ -463,8 +463,6 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 
 	app.get('/canvas/activity', async (req, res) => {
 		try {
-			const now = new Date();
-
 			// DATA FETCH START
 			// Get recent big contributions
 			const latestBigScores = await prisma.codamCoalitionScore.findMany({
