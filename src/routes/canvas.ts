@@ -420,10 +420,10 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 				ctx.fillRect(rightX + PADDING, currentY, 5, entryInnerHeight);
 
 				// Calculate where the text should start for the entry
+				const profilePicOffset = profilePicSize * 0.75; // X offset per drawn profile picture
 				const entryTextX = rightX + PADDING + entryPadding + profilePicSize + entryPadding;
 				const entryTextY = currentY + entryInnerHeight * 0.5;
-				const entryTextMaxWidth = rightWidth - PADDING * 2 - profilePicSize - entryPadding * 3;
-				const profilePicOffset = profilePicSize * 0.75; // X offset per drawn profile picture
+				const entryTextMaxWidth = rightWidth - PADDING * 2 - profilePicSize - entryPadding * 3 - profilePicOffset * (topRankings.length - 1);
 
 				// Draw entry title
 				ctx.fillStyle = '#FFFFFF';
