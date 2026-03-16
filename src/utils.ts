@@ -532,10 +532,14 @@ export const getCoalitionScore = async function(prisma: PrismaClient, coalitionI
 				// only count users with an active 42cursus
 				cursus_users: {
 					some: {
-						cursus_id: CURSUS_ID,
-						OR: [
-							{ end_at: null },
-							{ end_at: { gt: atDateTime } }, // also consider cursus_users that were still active at the score creation date
+						AND: [
+							{ cursus_id: CURSUS_ID },
+							{
+								OR: [
+									{ end_at: null },
+									{ end_at: { gt: atDateTime } }, // also consider cursus_users that were still active at the score creation date
+								],
+							}
 						],
 					}
 				}
