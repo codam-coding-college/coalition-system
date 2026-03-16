@@ -49,6 +49,7 @@ export const API_DEFAULT_FILTERS_SCALE_TEAMS = {
 	'filter[future]': 'false',
 	'range[filled_at]': `2024-01-01T00:00:00,${new Date().toISOString()}`, // filled_at was only added later
 	'sort': '-filled_at',
+	'page[size]': '10', // ScaleTeams API endpoint is very slow so we limit the amount of items per page to avoid timeouts
 };
 
 // Filters applied to events
@@ -379,12 +380,10 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	// All evaluations
 	app.get('/admin/apisearch/evaluations', async (req, res) => {
 		try {
-			const itemsPerPage = 10;
 			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
 				...API_DEFAULT_FILTERS_SCALE_TEAMS,
-				'page[size]': itemsPerPage.toString(),
 			}, pageNum);
 			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations.data);
 			return res.json({
@@ -415,12 +414,10 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 			if (user === null) {
 				return res.status(404).json({ error: 'User not found' });
 			}
-			const itemsPerPage = 10;
 			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
 				...API_DEFAULT_FILTERS_SCALE_TEAMS,
-				'page[size]': itemsPerPage.toString(),
 				'filter[user_id]': user.id.toString(),
 			}, pageNum);
 			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations.data);
@@ -441,13 +438,11 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	app.get('/admin/apisearch/evaluations/team/:teamId', async (req, res) => {
 		try {
 			const teamId = req.params.teamId;
-			const itemsPerPage = 10;
 			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
 				'filter[team_id]': teamId,
 				'filter[future]': 'false',
-				'page[size]': itemsPerPage.toString(),
 				'sort': '-filled_at'
 			}, pageNum);
 			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations.data);
@@ -468,13 +463,11 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 	app.get('/admin/apisearch/evaluations/scale_team/:scaleTeamId', async (req, res) => {
 		try {
 			const scaleTeamId = req.params.scaleTeamId;
-			const itemsPerPage = 10;
 			const pageNum = getPageNumber(req, NaN);
 			const api = await getAPIClient();
 			const evaluations = await fetchSingleApiPage(api, '/scale_teams', {
 				'filter[id]': scaleTeamId,
 				'filter[future]': 'false',
-				'page[size]': itemsPerPage.toString(),
 				'sort': '-filled_at'
 			}, pageNum);
 			const modifiedScaleTeams = await parseScaleTeamInAPISearcher(prisma, evaluations.data);
