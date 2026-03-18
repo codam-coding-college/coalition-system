@@ -1,8 +1,7 @@
 import { fetchMultiple42ApiPagesCallback } from "../sync/base";
 import Fast42 from "@codam/fast42";
-import { PrismaClient } from '@prisma/client';
 import { INTRA_API_UID, INTRA_API_SECRET } from "../env";
-const prisma = new PrismaClient();
+import { prisma } from '../handlers/db';
 
 const getAllScoreableTypes = async function(api: Fast42): Promise<void> {
 	const coalition = await prisma.intraCoalition.findFirst({});

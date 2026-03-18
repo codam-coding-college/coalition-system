@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { CURSUS_ID } from '../../env';
-import { ChartConfiguration } from 'chart.js';
+import type { ChartConfiguration } from 'chart.js';
 import { getBlocAtDate } from '../../utils';
 import NodeCache from 'node-cache';
 
@@ -187,7 +187,7 @@ export const setupAdminChartsRoutes = function(app: Express, prisma: PrismaClien
 					datasets: [
 						{
 							label: 'Scores',
-							data: scoresPerUser.map((score) => ({ x: score.amount, y: score.count })) as Chart.ChartPoint[],
+							data: scoresPerUser.map((score) => ({ x: score.amount, y: score.count })),
 							backgroundColor: coalition.color ? coalition.color : '#808080',
 							borderWidth: 1,
 						},

@@ -1,4 +1,4 @@
-import { prisma } from './base';
+import { prisma } from '../handlers/db';
 
 export const initCodamQuiz = async function(): Promise<void> {
 	// Check if settings already exist

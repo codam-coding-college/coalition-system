@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../handlers/db';
 import readline from 'readline';
 
 const main = async function(): Promise<void> {

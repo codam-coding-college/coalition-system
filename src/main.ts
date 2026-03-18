@@ -1,6 +1,5 @@
 // Load the .env file
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env', debug: (process.env.NODE_ENV === 'development') });
+import { INTRA_API_UID, INTRA_API_SECRET, NODE_ENV } from './env';
 
 // Imports for the server
 import express from 'express';
@@ -9,12 +8,10 @@ import express from 'express';
 import helmet from "helmet";
 
 // Imports for the database connection
-import { PrismaClient } from "@prisma/client";
-export const prisma = new PrismaClient();
+import { prisma } from './handlers/db';
 
 // Imports for the Intra API
 import Fast42 from '@codam/fast42';
-import { INTRA_API_UID, INTRA_API_SECRET, NODE_ENV } from './env';
 import { syncWithIntra } from './sync/base';
 const NO_INTRA_SYNC = process.argv.includes('--nosync');
 let initSyncComplete = false;

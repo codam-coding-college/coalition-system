@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env', debug: (process.env.NODE_ENV === 'development') });
+
 export const NODE_ENV = process.env.NODE_ENV || 'development';
 export const URL_ORIGIN = process.env.URL_ORIGIN!;
 export const SESSION_SECRET = process.env.SESSION_SECRET!;
@@ -8,6 +11,7 @@ export const CURSUS_ID: number = parseInt(process.env.INTRA_CURSUS_ID!);
 export const ASSISTANT_GROUP_ID: number = parseInt(process.env.INTRA_ASSISTANT_GROUP_ID!);
 export const INTRA_TEST_ACCOUNTS: string[] = (process.env.INTRA_TEST_ACCOUNTS || '').split(',');
 export const ASSISTANTS_CAN_QUIZ: boolean = process.env.ASSISTANTS_CAN_QUIZ === 'true';
+export const PRISMA_DB_URL = process.env.PRISMA_DB_URL!;
 
 // Not defined in .env but in regular shell environment variables
 export const DEV_DAYS_LIMIT: number = process.env.DEV_DAYS_LIMIT ? parseInt(process.env.DEV_DAYS_LIMIT) : 365;

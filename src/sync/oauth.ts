@@ -1,7 +1,7 @@
 import https from 'https';
 import { CAMPUS_ID } from '../env';
 import { isStudent, isStaff, isAssistant } from '../utils';
-import { prisma } from './base';
+import { prisma } from '../handlers/db';
 
 export interface ExpressIntraUser extends Express.User {
 	id: number;

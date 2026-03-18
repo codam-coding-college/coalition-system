@@ -1,7 +1,7 @@
 import Fast42 from '@codam/fast42';
 import { NODE_ENV } from '../env';
 import { getRanking, getScoreStatistics, getSeasonName, getUsersScores, RANKING_MAX } from '../utils';
-import { prisma } from './base';
+import { prisma } from '../handlers/db';
 
 export const calculateResults = async function(api: Fast42): Promise<void> {
 	console.log('Checking if any seasons have finished but have no results stored yet...');

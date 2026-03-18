@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import { getCoalitionIds } from '../utils';
-const prisma = new PrismaClient();
+import { prisma } from '../handlers/db';
 
 const deleteExistingQuizQuestions = async function(): Promise<void> {
 	await prisma.codamCoalitionTestAnswer.deleteMany({});

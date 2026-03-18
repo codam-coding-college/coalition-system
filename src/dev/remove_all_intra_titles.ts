@@ -1,7 +1,6 @@
 import readline from 'readline';
 import Fast42 from '@codam/fast42';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../handlers/db';
 
 const PAGE_SIZE = 100;
 

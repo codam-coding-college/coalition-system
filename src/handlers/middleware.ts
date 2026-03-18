@@ -1,10 +1,10 @@
 import bodyParser from 'body-parser';
 import NodeCache from 'node-cache';
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, Express } from "express";
 import { CustomSessionData } from "./session";
 import { ExpressIntraUser } from '../sync/oauth';
 import { isStaff } from '../utils';
-import { prisma } from '../main';
+import { prisma } from '../handlers/db';
 
 
 const checkIfAuthenticated = function(req: Request, res: Response, next: NextFunction) {
@@ -79,13 +79,13 @@ const staffMiddleware = async function(req: Request, res: Response, next: NextFu
 	return res.status(403).send('Forbidden');
 };
 
-export const setupExpressMiddleware = function(app: any) {
+export const setupExpressMiddleware = function(app: Express): void {
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(checkIfAuthenticated);
 	app.use(includeUser);
 	app.use(includeCoalitions);
-	app.all('/admin*', staffMiddleware); // require staff accounts to access admin routes
+	app.all('/admin{/*path}', staffMiddleware); // require staff accounts to access admin routes
 	app.use(expressErrorHandler); // should remain last
 	// More middleware for session management and authentication are defined in usePassport in authentication.ts
 };

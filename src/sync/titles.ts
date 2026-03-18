@@ -1,5 +1,6 @@
 import Fast42 from '@codam/fast42';
-import { fetchMultiple42ApiPages, prisma } from './base';
+import { prisma } from '../handlers/db';
+import { fetchMultiple42ApiPages } from './base';
 import { getCoalitionTopContributors } from '../utils';
 import { NODE_ENV } from '../env';
 

@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { DefaultArgs } from '@prisma/client/runtime/library';
+import { DefaultArgs } from '@prisma/client/runtime/client';
 import { CAMPUS_ID, CURSUS_ID } from '../../env';
 import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTeamInAPISearcher, getPageNumber, getOffset } from '../../utils';
 

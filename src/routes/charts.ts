@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { ChartConfiguration } from 'chart.js';
+import type { ChartConfiguration } from 'chart.js';
 import { Express } from 'express';
 import { CoalitionScore, getBlocAtDate, getCoalitionScore } from '../utils';
 import NodeCache from 'node-cache';
@@ -57,7 +57,6 @@ export const generateChartAllCoalitionScoreHistory = async function(prisma: Pris
 			datasets: [],
 		},
 		options: {
-			showLines: true,
 			scales: {
 				// @ts-ignore
 				x: {
@@ -88,6 +87,7 @@ export const generateChartAllCoalitionScoreHistory = async function(prisma: Pris
 			fill: false,
 			// @ts-ignore
 			tension: 0.25,
+			showLine: true,
 		});
 	}
 
@@ -150,11 +150,11 @@ export const generateChartCoalitionScoreHistory = async function(prisma: PrismaC
 					fill: false,
 					// @ts-ignore
 					tension: 0.25,
+					showLine: true,
 				},
 			],
 		},
 		options: {
-			showLines: true,
 			scales: {
 				// @ts-ignore
 				x: {
@@ -290,10 +290,10 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 						data: dates.map(date => scoreSumsPerDate[date.getTime()] || 0),
 						// @ts-ignore
 						tension: 0.25,
+						showLine: true,
 					}],
 				},
 				options: {
-					showLines: true,
 					scales: {
 						// @ts-ignore
 						x: {
@@ -425,11 +425,11 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 							data: dates.map(date => scoreSumsPerTypePerDate[fixedPointType.type || 'null'][date.getTime()] || 0),
 							// @ts-ignore
 							tension: 0.25,
+							showLine: true,
 						};
 					}),
 				},
 				options: {
-					showLines: true,
 					scales: {
 						// @ts-ignore
 						x: {

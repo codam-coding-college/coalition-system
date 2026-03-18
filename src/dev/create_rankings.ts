@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../handlers/db';
 
 const deleteExistingRankings = async function(): Promise<void> {
 	await prisma.codamCoalitionRanking.deleteMany({});

@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../handlers/db';
 import Fast42 from '@codam/fast42';
-const prisma = new PrismaClient();
 import readline from 'readline';
 
 const main = async function(): Promise<void> {

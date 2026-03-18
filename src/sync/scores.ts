@@ -1,5 +1,5 @@
 import Fast42 from '@codam/fast42';
-import { prisma } from './base';
+import { prisma } from '../handlers/db';
 import { getBlocAtDate } from '../utils';
 import { syncIntraScore, syncTotalCoalitionsScores } from '../handlers/intrascores';
 

@@ -1,6 +1,6 @@
 import { getRanking, RANKING_MAX, getBlocAtDate } from '../utils';
 import { handleFixedPointScore } from '../handlers/points';
-import { prisma } from './base';
+import { prisma } from '../handlers/db';
 import { CodamCoalitionRanking } from '@prisma/client';
 import Fast42 from '@codam/fast42';
 import { NODE_ENV } from '../env';

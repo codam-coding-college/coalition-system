@@ -1,5 +1,6 @@
+import { prisma } from '../handlers/db';
 import Fast42 from '@codam/fast42';
-import { prisma, syncData } from './base';
+import { syncData } from './base';
 import { getCoalitionIds } from '../utils';
 
 // User object can be an object returned by /v2/users/:id or the user object in /v2/cursus_users/:id !

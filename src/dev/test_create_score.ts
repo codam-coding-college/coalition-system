@@ -1,7 +1,6 @@
 import Fast42 from "@codam/fast42";
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../handlers/db';
 import { INTRA_API_UID, INTRA_API_SECRET } from "../env";
-const prisma = new PrismaClient();
 
 const createScore = async function(api: Fast42, login: string): Promise<void> {
 	const user = await prisma.intraUser.findFirst({

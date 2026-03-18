@@ -1,4 +1,5 @@
-import { prisma, fetchSingle42ApiPage, fetchMultiple42ApiPages } from './base';
+import { prisma } from '../handlers/db';
+import { fetchSingle42ApiPage, fetchMultiple42ApiPages } from './base';
 import Fast42 from '@codam/fast42';
 import { syncUser } from './users';
 import { getCoalitionIds } from '../utils';

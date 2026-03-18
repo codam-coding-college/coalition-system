@@ -1,6 +1,5 @@
 import readline from 'readline';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../handlers/db';
 
 const main = async function(): Promise<void> {
 	console.warn('Are you from the Codam (42 Amsterdam) campus? If not, please do not run this script as it is Codam-specific and may break our system on Intra.  Are you sure you want to continue? (yes/no)');

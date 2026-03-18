@@ -1,5 +1,6 @@
 import Fast42 from '@codam/fast42';
-import { prisma, syncData } from './base';
+import { prisma } from '../handlers/db';
+import { syncData } from './base';
 import { CAMPUS_ID } from '../env';
 
 // User object can be an object returned by /v2/users/:id or the user object in /v2/cursus_users/:id !

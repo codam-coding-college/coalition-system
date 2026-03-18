@@ -1,4 +1,4 @@
-import { prisma } from './base';
+import { prisma } from '../handlers/db';
 
 // Coalition object can be an object returned by /v2/coalition/:id !
 export const syncCoalition = async function(coalition: any): Promise<void> {

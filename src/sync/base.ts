@@ -1,5 +1,4 @@
 import fs from 'fs';
-import { PrismaClient } from "@prisma/client";
 import Fast42 from "@codam/fast42";
 import { initCodamQuiz } from "./quiz";
 import { initCodamCoalitionFixedTypes } from "./fixed_point_types";
@@ -16,8 +15,7 @@ import { handleRankingTitleCreation, handleRankingBonuses } from './rankings';
 import { syncTitles } from './titles';
 import { calculateResults } from './results';
 import { syncGroups, syncGroupsUsers } from './groups';
-
-export const prisma = new PrismaClient();
+import { prisma } from '../handlers/db';
 
 /**
  * Fetch all items from all pages of a Fast42 API endpoint.

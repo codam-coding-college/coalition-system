@@ -1,4 +1,4 @@
-import { prisma } from './base';
+import { prisma } from '../handlers/db';
 
 const createFixedTypeIfNotExists = async function(type: string, desc: string, points: number): Promise<void> {
 	const fixedPointType = await prisma.codamCoalitionFixedType.findFirst({
