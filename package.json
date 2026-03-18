@@ -16,7 +16,7 @@
 	"author": "Codam Coding College",
 	"license": "MIT",
 	"dependencies": {
-		"@codam/fast42": "^2.1.6",
+		"@codam/fast42": "^2.1.7",
 		"@prisma/adapter-pg": "^7.5.0",
 		"@prisma/client": "^7.5.0",
 		"@quixo3/prisma-session-store": "^3.1.19",
