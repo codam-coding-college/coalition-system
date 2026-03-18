@@ -9,6 +9,8 @@ RUN npm install
 FROM node:22-bullseye AS builder
 WORKDIR /app
 
+ENV PRISMA_DB_URL="file:./dev.db"
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/prisma/ ./prisma/
@@ -24,7 +26,7 @@ RUN tsc
 FROM node:22-bullseye AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
