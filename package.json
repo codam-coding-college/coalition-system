@@ -1,6 +1,6 @@
 {
 	"name": "codam-coalition-system",
-	"version": "1.53.2",
+	"version": "1.54.0",
 	"description": "Codam's custom coalition system for the 42 Network.",
 	"main": "build/main.js",
 	"scripts": {
