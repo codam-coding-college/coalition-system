@@ -327,6 +327,34 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			return res.status(404).json({ error: 'Score not found' });
 		}
 
+		if (score.fixed_type_id === 'point_donated') {
+			// For points donated, there is no Intra object to retrigger the webhook with, so we have to recalculate the score here manually
+			const newFixedPointType = await prisma.codamCoalitionFixedType.findFirst({
+				where: {
+					type: 'point_donated',
+				}
+			});
+			if (!newFixedPointType) {
+				return res.status(501).json({ error: 'No point_donated fixed type found, cannot recalculate' });
+			}
+
+			// Parse amount of points donated from the reason... no better way ATM
+			const pointsDonated = parseInt(score.reason.split(' ')[1]);
+			if (isNaN(pointsDonated)) {
+				return res.status(400).json({ error: 'Invalid amount of points donated in the reason field' });
+			}
+			const newAmount = pointsDonated * newFixedPointType.point_amount;
+			await prisma.codamCoalitionScore.update({
+				where: {
+					id: score.id,
+				},
+				data: {
+					amount: newAmount,
+				},
+			});
+			return res.status(200).json({ status: 'ok', new_amount: newAmount });
+		}
+
 		if (score.fixed_type_id === null || score.type_intra_id === null) {
 			return res.status(400).json({ error: 'Score is not based on a fixed type, cannot recalculate' });
 		}
