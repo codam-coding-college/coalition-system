@@ -34,7 +34,13 @@
    ```
    The application runs on port 4000 by default (`URL_ORIGIN` in `.env`).
 
-5. Access the application at `http://localhost:4000`.
+5. (optional) Run the following development scripts to seed the database with necessary data:
+   ```bash
+   node build/dev/create_quiz_questions.js # Seed the database with initial questionnaire questions and answers
+   node build/dev/create_rankings.js # Create initial cross-coalition ranking definitions
+   ```
+
+6. Access the application at `http://localhost:4000`. Optionally synchronize some recent data from Intra using the [webhook catch-up tool](admin/hooks-management.md#catchup-tool) to have a more complete local dataset with some scores and titles awarded locally.
 
 ## npm Scripts
 
