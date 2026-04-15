@@ -112,34 +112,6 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 	return score;
 }
 
-export const updateScore = async function(prisma: PrismaClient, score: CodamCoalitionScore, new_score: number, reason: string): Promise<CodamCoalitionScore> {
-	console.log(`Updating CodamScore ${score.id} of ${score.user_id} of coalition ${score.coalition_id} with new amount ${new_score}...`);
-	await prisma.codamCoalitionScore.update({
-		where: {
-			id: score.id,
-		},
-		data: {
-			amount: new_score,
-			updated_at: new Date(),
-			reason: reason,
-		}
-	});
-
-	const api = await getAPIClient();
-	await syncIntraScore(prisma, api, score, true);
-
-	// Start caching updated charts, but don't wait for that to finish
-	generateChartAllCoalitionScoreHistory(prisma, true);
-	generateChartCoalitionScoreHistory(prisma, score.coalition_id, true);
-
-	return await prisma.codamCoalitionScore.findFirstOrThrow({
-		where: {
-			id: score.id,
-		},
-		include: INCLUDE_IN_SCORE_RETURN_DATA,
-	});
-}
-
 export const shiftScore = async function(prisma: PrismaClient, scoreId: number, newCreationDate: Date): Promise<CodamCoalitionScore> {
 	console.log(`Shifting CodamScore ${scoreId} to new creation date ${newCreationDate}...`);
 	const score = await prisma.codamCoalitionScore.update({
