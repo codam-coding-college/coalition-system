@@ -3,7 +3,7 @@ import Fast42 from '@codam/fast42';
 import readline from 'readline';
 
 const main = async function(): Promise<void> {
-	console.log('This will delete all scores from Intra. Scores are kept locally. Are you sure you want to continue? (yes/no)');
+	console.log('This will delete all synced scores from Intra. Scores are kept locally. Are you sure you want to continue? (yes/no)');
 	const rl = readline.createInterface({
 		input: process.stdin,
 		output: process.stdout,
