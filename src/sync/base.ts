@@ -16,6 +16,7 @@ import { syncTitles } from './titles';
 import { calculateResults } from './results';
 import { syncGroups, syncGroupsUsers } from './groups';
 import { prisma } from '../handlers/db';
+import { syncEvalPointSales } from './sales';
 
 /**
  * Fetch all items from all pages of a Fast42 API endpoint.
@@ -248,6 +249,7 @@ export const syncWithIntra = async function(api: Fast42): Promise<void> {
 		await syncCursusUsers(api, lastSync, now);
 		await syncGroups(api, lastSync, now);
 		await syncGroupsUsers(api, now);
+		await syncEvalPointSales(api);
 		await syncBlocs(api, now); // also syncs coalitions
 		await syncCoalitionUsers(api, lastSync, now);
 		await handleRankingTitleCreation(api);

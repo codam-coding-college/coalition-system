@@ -378,6 +378,15 @@ model IntraProject {
 	updated_at       DateTime
 }
 
+// Intra Balance
+// Defines an evaluation points sale
+model IntraBalance {
+	id               Int      @id
+	begin_at         DateTime
+	end_at           DateTime?
+	pool_id          Int
+}
+
 model IntraWebhook {
 	delivery_id      String   @id
 	model            String

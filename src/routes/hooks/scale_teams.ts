@@ -87,11 +87,32 @@ export const handleScaleTeamUpdateWebhook = async function(prisma: PrismaClient,
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
 		}
 
+		// Check if an evaluation points sale was ongoing at the time of the evaluation filling
+		// During evaluation points sales, the score is doubled
+		const filledAt = new Date(scaleTeam.filled_at);
+		const ongoingEvalPointSale = await prisma.intraBalance.findFirst({
+			where: {
+				AND: [
+					{
+						begin_at: {
+							lte: filledAt,
+						},
+					},
+					{
+						OR: [
+							{ end_at: null },
+							{ end_at: { gt: filledAt } },
+						],
+					},
+				],
+			},
+		});
+
 		// Calculate the score
 		// Make sure the duration is defined in blocks of 15 minutes (like in the webhook, in the API it's in seconds...)
 		const EVALUATION_DEFAULT_DURATION = 900;
 		const duration = (scaleTeam.scale.duration > 16 ? scaleTeam.scale.duration / EVALUATION_DEFAULT_DURATION : scaleTeam.scale.duration);
-		const points = fixedPointType.point_amount * duration;
+		const points = fixedPointType.point_amount * duration * (ongoingEvalPointSale ? 2 : 1); // Double points if there is an ongoing evaluation points sale
 
 		// Create reason
 		let reason = `Evaluated`;
@@ -112,9 +133,11 @@ export const handleScaleTeamUpdateWebhook = async function(prisma: PrismaClient,
 		else {
 			reason += ` someone`;
 		}
+		if (ongoingEvalPointSale) {
+			reason += ` during an evaluation points sale (double points)`;
+		}
 
 		// Create a score
-		const filledAt = new Date(scaleTeam.filled_at);
 		const score = await handleFixedPointScore(prisma, fixedPointType, scaleTeam.id, user.id, points, reason, filledAt);
 		if (!score) {
 			console.warn("Refused or failed to create score, skipping...");
