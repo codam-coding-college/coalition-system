@@ -71,7 +71,7 @@ Triggered when a peer evaluation is completed on Intra. Points go to the **corre
 - Corrector user is not found in the local database
 - Point amount is set to 0 for the evaluation fixed point formula
 
-**Point formula:** See [features/scoring.md](../features/scoring.md) for the evaluation formula.
+**Point formula:** See [features/scoring.md](../features/scoring.md) for the evaluation formula, including the double-points multiplier that applies during evaluation points sales.
 
 The `scaleTeam.id` is used as `type_intra_id` for idempotency.
 

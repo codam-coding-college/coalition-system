@@ -50,31 +50,37 @@ Each sync run executes the following steps in sequence:
 8. syncGroupsUsers()
    └─ Fetches [configured Assistants group](../configuration.md) memberships (always full fetch, not incremental, due to group membership revocations)
 
-9. syncBlocs()
-   └─ Fetches IntraBloc, IntraBlocDeadline, and IntraCoalition records
+9. syncEvalPointSales()
+   └─ Fetches IntraBalance records (evaluation points sales / pool balances) from Intra.
+      These are used to detect active eval point sales and double the coalition points
+      granted for doing evaluations during those periods. Always fetches all records
+      (no incremental filter, as balances have no updated_at field).
 
-10. syncCoalitionUsers()
+10. syncBlocs()
+    └─ Fetches IntraBloc, IntraBlocDeadline, and IntraCoalition records
+
+11. syncCoalitionUsers()
     └─ Fetches IntraCoalitionUser membership links
 
-11. handleRankingTitleCreation()
+12. handleRankingTitleCreation()
     └─ Creates Intra Title objects for any CodamCoalitionRanking that
        has a top_title but no top_title_intra_id yet
 
-12. handleRankingBonuses()
+13. handleRankingBonuses()
     └─ If in the last 7 days of a season and at least 1 hour has passed
        since last_bonus_run: awards bonus_points / 168 to the current
        #1 holder(s) in each ranking
 
-13. syncTitles()
+14. syncTitles()
     └─ Updates Intra title holders based on current coalition rankings
 
-14. calculateResults()
+15. calculateResults()
     └─ Snapshots results for any finished seasons that have no snapshot yet
 
-15. cleanupDB()
+16. cleanupDB()
     └─ Removes IntraUser and IntraGroupUser records no longer present on Intra
 
-16. saveSyncTimestamp()
+17. saveSyncTimestamp()
     └─ Writes the current timestamp to .sync-timestamp
 ```
 

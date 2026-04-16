@@ -61,7 +61,7 @@ A perfect score (100%) awards the full `point_amount`. A 50% score awards half, 
 Triggered when a `scale_teams` webhook fires with `filled_at` set (evaluation completed). Points go to the **corrector** (the person who did the evaluating), not the person being evaluated.
 
 ```
-points = point_amount × duration_blocks
+points = point_amount × duration_blocks × sale_multiplier
 ```
 
 Where:
@@ -69,8 +69,13 @@ Where:
 - `duration_blocks` = duration of the evaluation in 15-minute blocks
   - From webhooks: already in 15-minute blocks
   - From the API: in seconds, divided by 900
+- `sale_multiplier` = `2` if an evaluation points sale (`IntraBalance`) was active at the time the evaluation was filled in, otherwise `1`
 
 Supervisor evaluations (from internship company supervisors) and evaluations by users not in the local database are skipped.
+
+#### Evaluation Points Sales
+
+When an evaluation points sale is active on Intra (tracked as `IntraBalance` records, synced by `syncEvalPointSales()`), the coalition points granted for completing an evaluation are doubled. A sale is considered active at the time of `filled_at` if a matching `IntraBalance` record has `begin_at ≤ filled_at` and either `end_at` is null or `end_at > filled_at`. The score reason will include `"during an evaluation points sale (double points)"` to make the multiplier visible in the audit trail.
 
 ### Point Donations
 
