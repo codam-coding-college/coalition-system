@@ -259,7 +259,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			}
 			dates.push(now); // always add the current score
 
-			// Get all scores for this user for the given timespan
+			// Get all scores for this user for the given timespan, and in the coalition they are currently in
 			const scoreSumsPerDate: { [key: number]: number } = {};
 			for (const date of dates) {
 				const scores = await prisma.codamCoalitionScore.groupBy({
@@ -269,6 +269,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 					},
 					where: {
 						user_id: user.id,
+						coalition_id: user.coalition_users[0].coalition.id,
 						created_at: {
 							gte: blocStart,
 							lte: date,
@@ -390,7 +391,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 			// @ts-ignore
 			fixedPointTypes.push({ type: null }); // replacement for null
 
-			// Get all scores for this user for the given timespan
+			// Get all scores for this user for the given timespan and coalition, split by fixed point type
 			const scoreSumsPerTypePerDate: { [key: string]: { [key: number]: number } } = {};
 			for (const fixedPointType of fixedPointTypes) {
 				scoreSumsPerTypePerDate[fixedPointType.type || 'null'] = {};
@@ -403,6 +404,7 @@ export const setupChartRoutes = function(app: Express, prisma: PrismaClient): vo
 					},
 					where: {
 						user_id: user.id,
+						coalition_id: user.coalition_users[0].coalition.id,
 						created_at: {
 							gte: blocStart,
 							lte: date,

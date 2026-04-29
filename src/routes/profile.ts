@@ -30,7 +30,8 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 		}
 
 		const now = new Date();
-		const { userScores, totalScore } = await getUserScores(prisma, profileUser.id, now);
+		const userCoalitionId = profileUser.coalition_users.length > 0 ? profileUser.coalition_users[0].coalition_id : undefined;
+		const { userScores, totalScore } = await getUserScores(prisma, profileUser.id, userCoalitionId, now);
 		const ranking = await getUserSeasonRanking(prisma, profileUser.id);
 
 		const latestScores = await prisma.codamCoalitionScore.findMany({

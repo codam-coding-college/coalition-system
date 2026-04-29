@@ -427,7 +427,7 @@ export const getUsersScores = async function(prisma: PrismaClient, coalitionId: 
 	return usersScores;
 };
 
-export const getUserScores = async function(prisma: PrismaClient, userId: number, untilDate: Date = new Date()): Promise<{ userScores: { fixed_type_id: string | null, _sum: { amount: number | null } }[], totalScore: number }> {
+export const getUserScores = async function(prisma: PrismaClient, userId: number, coalitionId: number | undefined = undefined, untilDate: Date = new Date()): Promise<{ userScores: { fixed_type_id: string | null, _sum: { amount: number | null } }[], totalScore: number }> {
 	const bloc = await getBlocAtDate(prisma, untilDate);
 	const userScores = (bloc ? (await prisma.codamCoalitionScore.groupBy({
 		by: ['fixed_type_id'],
@@ -436,6 +436,7 @@ export const getUserScores = async function(prisma: PrismaClient, userId: number
 		},
 		where: {
 			user_id: userId,
+			coalition_id: coalitionId, // if set to undefined, get user's scores across multiple coalitions (can happen if user switched coalitions mid-season)
 			created_at: {
 				gte: bloc.begin_at,
 				lte: untilDate,
