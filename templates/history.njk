@@ -1,0 +1,56 @@
+{% extends "base.njk" %}
+{% set nomargin = false %}
+{% set page_title = historyTitle %}
+
+{% block content %}
+<!-- content -->
+<div class="container-md mt-4 mw-900">
+	<div class="row ms-0 me-0 mb-4">
+		<div class="col">
+			<div class="card h-100">
+				<div class="card-header">
+					<h4 class="card-title mb-0">{{ historyTitle | striptags(true) | escape }}</h4>
+				</div>
+				<div class="card-body p-0">
+					{% if historyDescription %}
+						<p class="p-4 mb-0"><b>{{ historyDescription | striptags(true) | escape | nl2br }}</b></p>
+					{% endif %}
+					{# point history table #}
+					<table class="table {{ 'table-striped' if not coalitionColored else 'coalition-colored' }} mb-0">
+						<thead>
+							<tr>
+								<th scope="col">Date</th>
+								{% if multipleUsers %}
+									<th scope="col">Student</th>
+								{% endif %}
+								<th scope="col">Points</th>
+								<th scope="col">Reason</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for score in scores %}
+								<tr style="background: {{ score.coalition.intra_coalition.color | rgba(0.25) }};">
+									<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
+									{% if multipleUsers %}
+										<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
+									{% endif %}
+									<td>{{ score.amount | thousands }}</td>
+									<td style="white-space: normal; word-wrap: break-word;">{{ score.reason | striptags(true) | escape }}</td>
+								</tr>
+							{% endfor %}
+							{% if scores | length == 0 %}
+								<tr>
+									<td colspan="{{ 4 if multipleUsers else 3 }}" class="text-center text-muted">No contributions yet</td>
+								</tr>
+							{% endif %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{{ pagination(pageNav) }}
+
+{% endblock %}

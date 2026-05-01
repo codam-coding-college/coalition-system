@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { ExpressIntraUser } from '../sync/oauth';
-import { getUserScores, getUserRankingAcrossAllRankings, getUserSeasonRanking, SMALL_CONTRIBUTION_TYPES } from '../utils';
+import { getUserScores, getUserRankingAcrossAllRankings, getUserSeasonRanking, getPageNumber, getPageNav } from '../utils';
 import NodeCache from 'node-cache';
 
 export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): void {
@@ -56,24 +56,39 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 			},
 		});
 
-		const latestBigScores = await prisma.codamCoalitionScore.findMany({
+		// Get user ranking across all rankings
+		const userRankings = await getUserRankingAcrossAllRankings(prisma, profileUser.id);
+
+		return res.render('profile.njk', {
+			profileUser,
+			latestScores,
+			userScores,
+			totalScore,
+			ranking,
+			userRankings,
+		});
+	});
+
+	app.get('/profile/:login/scores', async (req, res) => {
+		const profileUser = await prisma.intraUser.findFirst({
+			where: {
+				login: req.params.login,
+			},
+		});
+		if (!profileUser) {
+			return res.status(404).send('User not found');
+		}
+
+		const itemsPerPage = 100;
+		const totalPages = await prisma.codamCoalitionScore.count({
 			where: {
 				user_id: profileUser.id,
-				OR: [
-					{
-						NOT: {
-							fixed_type_id: {
-								in: SMALL_CONTRIBUTION_TYPES, // Exclude usually low individual scores
-							}
-						},
-					},
-					{
-						fixed_type_id: null, // Do include scores that are not fixed types
-					}
-				],
-				amount: {
-					gt: 0,
-				},
+			},
+		}).then(count => Math.ceil(count / itemsPerPage));
+		const pageNum = getPageNumber(req, totalPages);
+		const scores = await prisma.codamCoalitionScore.findMany({
+			where: {
+				user_id: profileUser.id,
 			},
 			orderBy: {
 				created_at: 'desc',
@@ -90,20 +105,21 @@ export const setupProfileRoutes = function(app: Express, prisma: PrismaClient): 
 					}
 				},
 			},
-			take: 25,
+			take: itemsPerPage,
+			skip: (pageNum - 1) * itemsPerPage,
 		});
 
-		// Get user ranking across all rankings
-		const userRankings = await getUserRankingAcrossAllRankings(prisma, profileUser.id);
+		// Create a list of pages for the pagination nav
+		const pageNav = getPageNav(pageNum, totalPages);
 
-		return res.render('profile.njk', {
-			profileUser,
-			latestScores,
-			latestBigScores,
-			userScores,
-			totalScore,
-			ranking,
-			userRankings,
+		return res.render('history.njk', {
+			historyTitle: `Score History for ${profileUser.usual_full_name}`,
+			scores,
+			pageNum,
+			totalPages,
+			pageNav,
+			coalitionColored: true,
+			multipleUsers: false,
 		});
 	});
 

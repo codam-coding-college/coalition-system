@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import passport from 'passport';
 import { IntraUser, PrismaClient } from '@prisma/client';
-import { getCoalitionScore, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors, SMALL_CONTRIBUTION_TYPES } from '../utils';
+import { getCoalitionScore, getBlocAtDate, scoreSumsToRanking, getCoalitionTopContributors, SMALL_CONTRIBUTION_TYPES, getPageNav, getPageNumber } from '../utils';
 import { ASSISTANT_GROUP_ID, ASSISTANTS_CAN_QUIZ } from '../env';
 
 export const setupCoalitionRoutes = function(app: Express, prisma: PrismaClient): void {
@@ -117,29 +117,6 @@ export const setupCoalitionRoutes = function(app: Express, prisma: PrismaClient)
 			});
 			const topContributorsWeek = await scoreSumsToRanking(prisma, topScoresWeek, 'Top contributors of the past 7 days');
 
-			const latestScores = await prisma.codamCoalitionScore.findMany({
-				where: {
-					coalition_id: coalition.id,
-				},
-				orderBy: {
-					created_at: 'desc',
-				},
-				include: {
-					user: {
-						select: {
-							intra_user: {
-								select: {
-									login: true,
-									usual_full_name: true,
-									image: true,
-								},
-							},
-						},
-					},
-				},
-				take: 50,
-			});
-
 			const latestBigScores = await prisma.codamCoalitionScore.findMany({
 				where: {
 					coalition_id: coalition.id,
@@ -184,7 +161,6 @@ export const setupCoalitionRoutes = function(app: Express, prisma: PrismaClient)
 
 			viewOptions['topContributors'] = topContributors;
 			viewOptions['topContributorsWeek'] = topContributorsWeek;
-			viewOptions['latestScores'] = latestScores;
 			viewOptions['latestBigScores'] = latestBigScores;
 			viewOptions['coalitionScore'] = coalitionScore;
 		}
@@ -224,6 +200,82 @@ export const setupCoalitionRoutes = function(app: Express, prisma: PrismaClient)
 			rankingTitle: `Top contributors for ${coalition.intra_coalition.name}`,
 			pageranking: topContributors,
 			coalitionColored: false,
+		});
+	});
+
+	app.get('/coalitions/:coalitionId/scores', passport.authenticate('session', {
+		keepSessionInfo: true,
+	}), async (req, res) => {
+		const coalitionId = parseInt(req.params.coalitionId);
+		if (!coalitionId || isNaN(coalitionId) || coalitionId <= 0) {
+			return res.status(400).send('Invalid coalition ID');
+		}
+
+		const coalition = await prisma.codamCoalition.findFirst({
+			where: {
+				id: parseInt(req.params.coalitionId),
+			},
+			include: {
+				intra_coalition: true,
+			},
+		});
+		if (!coalition) {
+			return res.status(404).send('Coalition not found');
+		}
+
+		const currentBloc = await getBlocAtDate(prisma);
+		if (!currentBloc) {
+			return res.status(400).send('No season currently ongoing');
+		}
+		const itemsPerPage = 100;
+		const totalPages = await prisma.codamCoalitionScore.count({
+			where: {
+				coalition_id: coalition.id,
+				created_at: {
+					gte: currentBloc.begin_at,
+					lt: currentBloc.end_at,
+				},
+			},
+		}).then(count => Math.ceil(count / itemsPerPage));
+		const pageNum = getPageNumber(req, totalPages);
+		const scores = await prisma.codamCoalitionScore.findMany({
+			where: {
+				coalition_id: coalition.id,
+				created_at: {
+					gte: currentBloc.begin_at,
+					lt: currentBloc.end_at,
+				},
+			},
+			orderBy: {
+				created_at: 'desc',
+			},
+			include: {
+				coalition: {
+					select: {
+						intra_coalition: {
+							select: {
+								name: true,
+								color: true,
+							},
+						}
+					}
+				},
+			},
+			take: itemsPerPage,
+			skip: (pageNum - 1) * itemsPerPage,
+		});
+
+		// Create a list of pages for the pagination nav
+		const pageNav = getPageNav(pageNum, totalPages);
+
+		return res.render('history.njk', {
+			historyTitle: `Score History for ${coalition.intra_coalition.name} coalition in the current season`,
+			scores,
+			pageNum,
+			totalPages,
+			pageNav,
+			coalitionColored: false,
+			multipleUsers: true,
 		});
 	});
 };

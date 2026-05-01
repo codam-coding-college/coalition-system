@@ -144,45 +144,18 @@
 										<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason | striptags(true) | escape }}</small></td>
 									</tr>
 								{% endfor %}
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- point history table (last 50 contributions) -->
-		<!--
-		<div class="row ms-0 me-0 mb-4">
-			<div class="col">
-				<div class="card h-100">
-					<div class="card-header">
-						<h4 class="card-title mb-0">Most recent contributions</h4>
-					</div>
-					<div class="card-body p-0">
-						<table class="table table-striped mb-0">
-							<thead>
-								<th scope="col">Date</th>
-								<th scope="col">Student</th>
-								<th scope="col">Points</th>
-								<th scope="col">Reason</th>
-							</thead>
-							<tbody>
-								{% for score in latestScores %}
+								{% if latestBigScores | length == 0 %}
 									<tr>
-										<td title="{{ score.created_at }}">{{ score.created_at | timeAgo }}</td>
-										<td><a href="/profile/{{ score.user.intra_user.login | striptags(true) | escape }}">{{ score.user.intra_user.login | striptags(true) | escape }}</a></td>
-										<td>{{ score.amount }}</td>
-										<td style="white-space: normal; word-wrap: break-word;"><small>{{ score.reason | striptags(true) | escape }}</small></td>
+										<td colspan="4" class="text-center text-muted">No big contributions yet</td>
 									</tr>
-								{% endfor %}
+								{% endif %}
 							</tbody>
 						</table>
+						<p class="m-2 text-end"><a href="/coalitions/{{ coalition.id }}/scores">View full score history</a></p>
 					</div>
 				</div>
 			</div>
 		</div>
-		-->
 	{% endif %}
 
 	<!-- assistant overview for this coalition -->
