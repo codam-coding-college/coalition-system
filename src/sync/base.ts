@@ -70,7 +70,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
  * @param path The API path to fetch
  * @param params Optional query parameters for the API request
  * @param callback A callback function to call for each page fetched
- * @returns A promise that resolves to an array containing all items from all pages of the API responses
+ * @returns A promise that resolves to a void
  */
 export const fetchMultiple42ApiPagesCallback = async function(api: Fast42, path: string, params: { [key: string]: string } = {}, callback: (data: any, xPage: number, xTotal: number) => void): Promise<void> {
 	return new Promise(async (resolve, reject) => {
