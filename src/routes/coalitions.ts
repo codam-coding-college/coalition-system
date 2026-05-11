@@ -260,6 +260,17 @@ export const setupCoalitionRoutes = function(app: Express, prisma: PrismaClient)
 						}
 					}
 				},
+				user: {
+					select: {
+						intra_user: {
+							select: {
+								login: true,
+								usual_full_name: true,
+								image: true,
+							},
+						},
+					},
+				},
 			},
 			take: itemsPerPage,
 			skip: (pageNum - 1) * itemsPerPage,
