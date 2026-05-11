@@ -10,7 +10,12 @@ scoresEventSource.onopen = function() {
 scoresEventSource.addEventListener('new_score', function(event) {
 	const data = JSON.parse(event.data);
 	console.log('New score:', data);
-	createToast(`${data.user.intra_user.login} earned ${data.amount} points for ${data.coalition.intra_coalition.name}`, data.reason, new Date(data.created_at), data.coalition.intra_coalition.color); // Show a success toast with the new score message
+	if (data.amount > 0) {
+		createToast(`+ Points earned for ${data.coalition.intra_coalition.name}`, `${data.user.intra_user.login} earned ${data.amount} points for ${data.coalition.intra_coalition.name}\n${data.reason}`, new Date(data.created_at), data.coalition.intra_coalition.color);
+	}
+	else {
+		createToast(`- Points deducted for ${data.coalition.intra_coalition.name}`, `${data.user.intra_user.login} lost ${-data.amount} points for ${data.coalition.intra_coalition.name}\n${data.reason}`, new Date(data.created_at), data.coalition.intra_coalition.color);
+	}
 });
 
 scoresEventSource.onerror = function(error) {

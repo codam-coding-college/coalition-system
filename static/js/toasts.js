@@ -37,10 +37,10 @@ const createToast = function(title, message, timestamp = new Date(), bgColor = '
 	console.log('Creating toast:', { title, message, timestamp, bgColor });
 	const toastElem = toastTemplate.content.cloneNode(true).querySelector('.toast');
 	toastElem.style.backgroundColor = bgColor;
-	toastElem.querySelector('.toast-title').textContent = title;
-	toastElem.querySelector('.toast-body').textContent = message;
-	toastElem.querySelector('.toast-timestamp').textContent = timeAgo(timestamp);
-	const toast = new bootstrap.Toast(toastElem, { delay: 12500, autohide: true });
+	toastElem.querySelector('.toast-title').innerText = title;
+	toastElem.querySelector('.toast-body').innerText = message;
+	toastElem.querySelector('.toast-timestamp').innerText = timeAgo(timestamp);
+	const toast = new bootstrap.Toast(toastElem, { delay: 15000, autohide: true });
 	toast.show();
 	toastElem.addEventListener('hidden.bs.toast', function() {
 		toastElem.remove();
