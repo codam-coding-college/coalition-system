@@ -30,7 +30,8 @@
 		"nunjucks": "^3.2.4",
 		"passport": "^0.7.0",
 		"passport-oauth2": "^1.8.0",
-		"pg": "^8.20.0"
+		"pg": "^8.20.0",
+		"uuid": "^14.0.0"
 	},
 	"devDependencies": {
 		"@semantic-release-plus/docker": "^3.1.3",

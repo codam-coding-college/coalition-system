@@ -121,9 +121,26 @@
 		{% endfor %}
 		{% block content %}{% endblock %}
 	</main>
+	<template id="coal-toast-template">
+		<div role="alert" aria-live="assertive" aria-atomic="true" class="toast">
+			<div class="toast-header">
+				<strong class="me-auto toast-title"></strong>
+				<small class="text-muted toast-timestamp"></small>
+				<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+			<div class="toast-body">
+				<!-- Toast message will be inserted here by JavaScript -->
+			</div>
+		</div>
+	</template>
+	<div id="coal-toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 	<script src="/js/bootstrap-autocomplete/dist/js/bootstrap-autocomplete.min.js"></script>
 	<script src="/js/renderjson/renderjson.js"></script>
 	<script src="/js/codam-charts.js"></script>
+	<script src="/js/toasts.js"></script>
+	{% if not nosse %}
+		<script src="/js/live-scores.js"></script>
+	{% endif %}
 </body>
 </html>

@@ -3,6 +3,7 @@ import { CURSUS_ID, INTRA_TEST_ACCOUNTS } from '../env';
 import { syncIntraScore } from './intrascores';
 import { getAPIClient, getBlocAtDate } from '../utils';
 import { generateChartAllCoalitionScoreHistory, generateChartCoalitionScoreHistory } from '../routes/charts';
+import { triggerSSE } from '../routes/sse';
 
 const INCLUDE_IN_SCORE_RETURN_DATA = {
 	user: {
@@ -104,6 +105,9 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 			console.error(`Failed to sync Intra score for Codam score ${score.id}. Error:`, err);
 		}
 	}
+
+	// Send SSE to any connected clients to notify them of the new score
+	triggerSSE('scores', 'new_score', score);
 
 	// Start caching updated charts, but don't wait for that to finish
 	generateChartAllCoalitionScoreHistory(prisma, true);
