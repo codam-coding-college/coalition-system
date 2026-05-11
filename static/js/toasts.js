@@ -9,8 +9,7 @@ const timeAgo = function(date) {
 	const now = new Date();
 	const diff = now.getTime() - date.getTime();
 	if (diff < 0) {
-		// Date is in the future!
-		return timeFromNow(date);
+		return 'just now'; // In the future somehow, treat as just now
 	}
 	const seconds = Math.floor(diff / 1000);
 	const minutes = Math.floor(seconds / 60);
