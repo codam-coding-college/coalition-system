@@ -139,7 +139,7 @@ export const getPageNav = function(currentPage: number, totalPages: number, maxP
 		pageNav.push({
 			num: 1,
 			active: false,
-			text: 'First',
+			text: '«',
 		});
 		pageNav.push({
 			num: currentPage - 1,
@@ -163,7 +163,7 @@ export const getPageNav = function(currentPage: number, totalPages: number, maxP
 		pageNav.push({
 			num: totalPages,
 			active: false,
-			text: 'Last',
+			text: '»',
 		});
 	}
 	return pageNav;

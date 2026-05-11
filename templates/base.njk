@@ -3,27 +3,7 @@
 <nav aria-label="Page navigation" class="d-flex justify-content-center">
 	<ul class="pagination">
 		{% for pageNavItem in pageNav %}
-			{% if pageNavItem.active %}
-				<!-- Previous page link -->
-				<li class="page-item{{ ' disabled' if pageNavItem.num == 1 }}">
-					<a class="page-link" href="?page={{ pageNavItem.num - 1 }}" aria-label="Previous page">
-						<span aria-hidden="true">&laquo;</span>
-					</a>
-				</li>
-			{% endif %}
-		{% endfor %}
-		{% for pageNavItem in pageNav %}
 			<li class="page-item{{ ' active' if pageNavItem.active }}" {{ 'aria-current="page"' if pageNavItem.active }}><a class="page-link" href="?page={{ pageNavItem.num }}">{{ pageNavItem.text }}</a></li>
-		{% endfor %}
-		{% for pageNavItem in pageNav %}
-			{% if pageNavItem.active %}
-				<!-- Next page link -->
-				<li class="page-item{{ ' disabled' if pageNavItem.num == totalPages }}">
-					<a class="page-link" href="?page={{ pageNavItem.num + 1 }}" aria-label="Next page">
-						<span aria-hidden="true">&raquo;</span>
-					</a>
-				</li>
-			{% endif %}
 		{% endfor %}
 	</ul>
 </nav>
