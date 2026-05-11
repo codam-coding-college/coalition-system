@@ -79,3 +79,16 @@ export const setupServerSideEventsRoutes = function(app: Express, prisma: Prisma
 		}
 	});
 };
+
+// Ping all clients every 15 seconds to keep the connection alive
+setInterval(() => {
+	for (const stream in sseClients) {
+		sseClients[stream as SSEStream].forEach(client => {
+			try {
+				triggerSSE(stream as SSEStream, 'ping', { timestamp: Date.now() });
+			} catch (err) {
+				console.error('Error writing ping to SSE client:', err);
+			}
+		});
+	}
+}, 15000);

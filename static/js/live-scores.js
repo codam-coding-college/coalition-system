@@ -7,6 +7,10 @@ scoresEventSource.onopen = function() {
 	console.log('Scores SSE connection opened.');
 };
 
+scoresEventSource.addEventListener('ping', function(event) {
+	console.log('Received ping from scores SSE.');
+});
+
 scoresEventSource.addEventListener('new_score', function(event) {
 	const data = JSON.parse(event.data);
 	console.log('New score:', data);
