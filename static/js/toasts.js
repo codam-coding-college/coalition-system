@@ -40,7 +40,7 @@ const createToast = function(title, message, timestamp = new Date(), bgColor = '
 	toastElem.querySelector('.toast-title').textContent = title;
 	toastElem.querySelector('.toast-body').textContent = message;
 	toastElem.querySelector('.toast-timestamp').textContent = timeAgo(timestamp);
-	const toast = new bootstrap.Toast(toastElem, { delay: 5000 });
+	const toast = new bootstrap.Toast(toastElem, { delay: 8000, autohide: true });
 	toast.show();
 	toastElem.addEventListener('hidden.bs.toast', function() {
 		toastElem.remove();
