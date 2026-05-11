@@ -96,6 +96,14 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 		},
 		include: INCLUDE_IN_SCORE_RETURN_DATA,
 	});
+
+	// Send SSE to any connected clients to notify them of the new score
+	triggerSSE('scores', 'new_score', score);
+
+	// Start caching updated charts, but don't wait for that to finish
+	generateChartAllCoalitionScoreHistory(prisma, true);
+	generateChartCoalitionScoreHistory(prisma, coalitionUser.coalition_id, true);
+
 	if (syncWithIntra && process.env.NODE_ENV === 'production') {
 		const api = await getAPIClient();
 		try {
@@ -105,13 +113,6 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 			console.error(`Failed to sync Intra score for Codam score ${score.id}. Error:`, err);
 		}
 	}
-
-	// Send SSE to any connected clients to notify them of the new score
-	triggerSSE('scores', 'new_score', score);
-
-	// Start caching updated charts, but don't wait for that to finish
-	generateChartAllCoalitionScoreHistory(prisma, true);
-	generateChartCoalitionScoreHistory(prisma, coalitionUser.coalition_id, true);
 
 	return score;
 }
