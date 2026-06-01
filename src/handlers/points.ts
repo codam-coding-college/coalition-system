@@ -155,11 +155,21 @@ export const handleFixedPointScore = async function(prisma: PrismaClient, type: 
 
 		if (existingScores._sum.amount !== null) {
 			// Score(s) were already given for this type and typeIntraId in the past.
-			// Calculate the point difference and hand out the difference as a new score.
-			const pointDifference = Math.floor(Math.floor(points) - existingScores._sum.amount);
-			if (pointDifference > -10 && pointDifference < 1) {
-				console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Point difference is (close to) 0, no need to create a new score.`);
-				return null; // No difference in points, no need to create a new score
+			// Calculate the point difference and hand out the difference as a new score
+			// when the user has earned more points than before. Retries must never
+			// deduct points: a negative difference means the formula or its config
+			// (point_amount, project.difficulty, ...) has changed since the original
+			// score was written, and we should not punish a user for re-evaluating
+			// something they had already passed.
+			const pointDifference = Math.floor(points) - existingScores._sum.amount;
+			if (pointDifference < 1) {
+				if (pointDifference < -10) {
+					console.warn(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Recomputed points (${Math.floor(points)}) are ${-pointDifference} below the existing total (${existingScores._sum.amount}); suppressing to avoid taking points away on a retry. This usually indicates the scoring config has changed since the original score was awarded.`);
+				}
+				else {
+					console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Point difference is ${pointDifference} (<= 0), no need to create a new score.`);
+				}
+				return null;
 			}
 			console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Point difference is ${pointDifference}, handing out the difference as a new score...`);
 			return await createScore(prisma, type, typeIntraId, userId, pointDifference, reason, scoreDate);
