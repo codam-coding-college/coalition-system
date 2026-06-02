@@ -101,8 +101,13 @@ export const createScore = async function(prisma: PrismaClient, type: CodamCoali
 	triggerSSE('scores', 'new_score', score);
 
 	// Start caching updated charts, but don't wait for that to finish
-	generateChartAllCoalitionScoreHistory(prisma, true);
-	generateChartCoalitionScoreHistory(prisma, coalitionUser.coalition_id, true);
+	try {
+		generateChartAllCoalitionScoreHistory(prisma, true);
+		generateChartCoalitionScoreHistory(prisma, coalitionUser.coalition_id, true);
+	}
+	catch (err) {
+		console.error(`Failed to generate charts for Codam score ${score.id}. Error:`, err);
+	}
 
 	if (syncWithIntra && process.env.NODE_ENV === 'production') {
 		const api = await getAPIClient();
@@ -133,8 +138,13 @@ export const shiftScore = async function(prisma: PrismaClient, scoreId: number, 
 	await syncIntraScore(prisma, api, score, false); // Sync this score but not the total coalition score, as we often move many points at once when shifting scores. Better to sync the total score once at the end.
 
 	// Start caching updated charts, but don't wait for that to finish
-	generateChartAllCoalitionScoreHistory(prisma, true);
-	generateChartCoalitionScoreHistory(prisma, score.coalition_id, true);
+	try {
+		generateChartAllCoalitionScoreHistory(prisma, true);
+		generateChartCoalitionScoreHistory(prisma, score.coalition_id, true);
+	}
+	catch (err) {
+		console.error(`Failed to generate charts for Codam score ${score.id}. Error:`, err);
+	}
 
 	return score;
 }
