@@ -164,25 +164,30 @@ export const handleFixedPointScore = async function(prisma: PrismaClient, type: 
 		});
 
 		if (existingScores._sum.amount !== null) {
-			// Score(s) were already given for this type and typeIntraId in the past.
-			// Calculate the point difference and hand out the difference as a new score
-			// when the user has earned more points than before. Retries must never
-			// deduct points: a negative difference means the formula or its config
-			// (point_amount, project.difficulty, ...) has changed since the original
-			// score was written, and we should not punish a user for re-evaluating
-			// something they had already passed.
+			// Score(s) were already given for this type and typeIntraId in the past,
+			// so this call is a retry. Compute the point difference against the
+			// historical total and:
+			//   - hand out the difference when the user earned more points than before;
+			//   - record a 0-point row when the user did equally well or worse, so
+			//     the retry stays visible on the user's profile without ever
+			//     deducting points (a negative diff usually means the scoring
+			//     config -- point_amount, project.difficulty, ... -- changed since
+			//     the original row was written, and we should not punish a user for
+			//     re-evaluating something they had already passed).
 			const pointDifference = Math.floor(points) - existingScores._sum.amount;
-			if (pointDifference < 1) {
-				if (pointDifference < -10) {
-					console.warn(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Recomputed points (${Math.floor(points)}) are ${-pointDifference} below the existing total (${existingScores._sum.amount}); suppressing to avoid taking points away on a retry. This usually indicates the scoring config has changed since the original score was awarded.`);
-				}
-				else {
-					console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Point difference is ${pointDifference} (<= 0), no need to create a new score.`);
-				}
-				return null;
+			if (pointDifference < -10) {
+				console.warn(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Recomputed points (${Math.floor(points)}) are ${-pointDifference} below the existing total (${existingScores._sum.amount}); clamping to 0 to avoid taking points away on a retry. This usually indicates the scoring config has changed since the original score was awarded.`);
 			}
-			console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Point difference is ${pointDifference}, handing out the difference as a new score...`);
-			return await createScore(prisma, type, typeIntraId, userId, pointDifference, reason, scoreDate);
+			const awardedPoints = pointDifference > 0 ? pointDifference : 0;
+			// Relabel the reason so the score history makes it clear this row
+			// represents a retry, not a first-time validation.
+			const retryReason = reason.startsWith('Validated ')
+				? `Retried ${reason.slice('Validated '.length)}`
+				: `Retried: ${reason}`;
+			console.log(`Score(s) already exist for type ${type.type} and typeIntraId ${typeIntraId}. Point difference is ${pointDifference}, recording retry as ${awardedPoints} point(s)...`);
+			// Skip the Intra sync for 0-point audit rows: they don't change the
+			// coalition total and would just add noise on Intra.
+			return await createScore(prisma, type, typeIntraId, userId, awardedPoints, retryReason, scoreDate, awardedPoints !== 0);
 		}
 	}
 
