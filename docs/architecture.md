@@ -161,9 +161,10 @@ Default fixed types initialized on initial startup:
 | `logtime` | 10 | Points per hour of campus presence |
 | `idle_logout` | -10 | Penalty for leaving a computer idling (negative) |
 | `exam` | 1000 | Factor in exam score formula |
-| `event_basic` | 1000 | Points for organizing a basic event |
-| `event_intermediate` | 3000 | Points for organizing an intermediate event |
-| `event_advanced` | 6000 | Points for organizing an advanced event |
+| `event_private` | 500 | Flat award for organizing a private event (e.g. for club members only) |
+| `event_basic` | 1000 | Flat award for organizing a basic event |
+| `event_intermediate` | 3000 | Flat award for organizing an intermediate event |
+| `event_advanced` | 6000 | Flat award for organizing an advanced event |
 | `ranking_bonus` | 0 | Not used directly; actual amounts come from ranking settings |
 
 #### `CodamCoalitionRanking`

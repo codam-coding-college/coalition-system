@@ -65,6 +65,11 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 			points: 1000, // recommended
 		},
 		{
+			type: "event_private",
+			desc: "Each private event organized (e.g. for club members only) will grant the student with this amount of points.",
+			points: 500, // recommended
+		},
+		{
 			type: "event_basic",
 			desc: "Each basic event organized will grant the student with this amount of points.",
 			points: 1000, // recommended

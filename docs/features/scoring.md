@@ -18,6 +18,7 @@ Fixed types are named categories defined in `CodamCoalitionFixedType`. They are 
 | `logtime` | 10 | Points per hour of campus computer usage |
 | `idle_logout` | −10 | Penalty per automatic idle logout from a campus computer (negative value) |
 | `exam` | 1000 | Factor in the exam score formula (see below) |
+| `event_private` | 500 | Flat award for organizing a private event (e.g. for club members only) |
 | `event_basic` | 1000 | Flat award for organizing a basic event |
 | `event_intermediate` | 3000 | Flat award for organizing an intermediate event |
 | `event_advanced` | 6000 | Flat award for organizing an advanced event |
@@ -121,10 +122,19 @@ Awarded manually by admins via the admin interface. Flat amounts based on event 
 
 These are the guidelines for the different tiers of events, including recommended criteria.
 
+##### Private event
+A private event is suitable for small gatherings of selected students (e.g. club members only), it's simple to organize, usually held within the campus building with minimal logistic requirements. Example: "Book Club Meeting".
+
+###### Criteria for a private event
+- Have an event listed in the Intra calendar.
+- Have a private audience (e.g. club members only).
+- Minimal logistic arrangements needed, such as reserving the auditorium or open space.
+
 ##### Basic event
 A basic event is suitable for small gatherings of students, it's simple to organize, held within the campus building with minimal logistic requirements , no budget involved. Example: "Movie Night".
 
 ###### Criteria for a basic event
+- Have an event listed in the Intra calendar that is open to all students.
 - Aim for around 1-10 attendees.
 - Minimal logistic arrangements needed, such as reserving the auditorium.
 - Short event duration, typically lasting 1-2 hours including setup and cleanup.
@@ -134,6 +144,7 @@ A basic event is suitable for small gatherings of students, it's simple to organ
 An intermediate-level event aimed at engaging a larger number of students through activities that require moderate planning and coordination. Example: "Eastern Lunch" & "Table Tennis League".
 
 ###### Criteria for an intermediate event
+- Have an event listed in the Intra calendar that is open to all students.
 - Aim for around 10-50 attendees.
 - Moderate logistical arrangements, including securing a location (inside or outside of the campus), prepare and coordinate activities or themes for - the event.
 - Limited budget requirement, covering food/drinks, possibility equipment and resources.
@@ -143,6 +154,7 @@ An intermediate-level event aimed at engaging a larger number of students throug
 An advanced-level event designed to bring together a large number of students for a significant social gathering or activity, requires extensive planning, resources and possibly external coordination. Example: "Student Party"
 
 ###### Criteria for an advanced event
+- Have an event listed in the Intra calendar that is open to all students.
 - Aim for more than 50 attendees.
 - Extensive planning with detailed scheduling and coordination, with several deadlines.
 - Might involve coordination with external stakeholders, such as partners.
