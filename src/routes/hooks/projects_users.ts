@@ -107,8 +107,12 @@ export const handleProjectsUserUpdateWebhook = async function(prisma: PrismaClie
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
 		}
 		const updatedAt = new Date(projectUser.updated_at); // Could use markedAt, but the updated_at is more reliable (marked_at can be months ago if the evaluation feedback was filled in months after the project was marked)
+		// occurrence == 0 is the first attempt; any value above that means the user re-evaluated the
+		// project (or exam), so label the score row accordingly to disambiguate retries from first-time
+		// validations on the user's score history.
+		const verb = (projectUser.occurrence && projectUser.occurrence > 0) ? 'Retried' : 'Validated';
 		const score = await handleFixedPointScore(prisma, fixedPointType, projectUser.id, userId, points,
-			`Validated ${project.name} with ${projectUser.final_mark}%`, updatedAt);
+			`${verb} ${project.name} with ${projectUser.final_mark}%`, updatedAt);
 		if (!score) {
 			console.warn("Refused or failed to create score, skipping...");
 			return (res ? respondWebHookHandledStatus(prisma, webhookDeliveryId, res, WebhookHandledStatus.Skipped) : null);
