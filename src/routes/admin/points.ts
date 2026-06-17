@@ -522,6 +522,36 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			});
 		}
 
+		if (type === 'contribution') {
+			// Fetch the most recent scores assigned for open source contributions
+			const recentContributionScores = await prisma.codamCoalitionScore.findMany({
+				where: {
+					fixed_type_id: 'contribution',
+				},
+				include: {
+					user: {
+						include: {
+							intra_user: true,
+						},
+					},
+					coalition: {
+						include: {
+							intra_coalition: true,
+						},
+					},
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+			});
+
+			return res.render('admin/points/manual/contribution.njk', {
+				manual_type: type,
+				fixedPointType,
+				recentContributionScores,
+			});
+		}
+
 		if (fs.existsSync(`templates/admin/points/manual/${type}.njk`)) {
 			return res.render(`admin/points/manual/${type}.njk`, {
 				manual_type: type,
@@ -795,6 +825,72 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 
 			// Assign the points
 			const score = await createScore(prisma, null, null, user.id, pointAmount, reason);
+			if (!score) {
+				console.warn(`Failed to create score for user ${user.login}`);
+				return res.render('admin/points/manual/added.njk', {
+					redirect,
+					scores: [],
+					failedScores: [{ login, amount: pointAmount, error: 'Failed to create score' }],
+				});
+			}
+
+			// Display the points assigned
+			return res.render('admin/points/manual/added.njk', {
+				redirect,
+				scores: [score],
+				failedScores: [],
+			});
+		}
+		catch (err) {
+			console.error(err);
+			return res.status(500).send('An error occurred');
+		}
+	});
+
+	app.post('/admin/points/manual/contribution/assign', async (req, res) => {
+		try {
+			const login = req.body.login;
+			const pointAmount = parseInt(req.body.point_amount);
+			const reason = req.body.reason;
+			if (!login || isNaN(pointAmount) || !reason) {
+				return res.status(400).send('Invalid input');
+			}
+			const redirect = `/admin/points/manual/contribution#single-score-form`;
+
+			// Fetch the contribution fixed point type so the score counts towards the Top Contributors ranking
+			const contributionType = await prisma.codamCoalitionFixedType.findFirst({
+				where: {
+					type: 'contribution',
+				},
+			});
+			if (!contributionType) {
+				return res.status(500).send('Contribution point type not found. Please make sure the application has been initialized correctly.');
+			}
+
+			const sessionUser = req.user as ExpressIntraUser;
+			console.log(`User ${sessionUser.login} is assigning ${pointAmount} contribution points manually to ${login} for reason "${reason}"`);
+
+			// Verify the login exists in our database
+			const user = await prisma.intraUser.findFirst({
+				where: {
+					login: login,
+				},
+				select: {
+					id: true,
+					login: true,
+				},
+			});
+			if (!user) {
+				console.log(`The login ${login} has not been found in the coalition system`);
+				return res.render('admin/points/manual/added.njk', {
+					redirect,
+					scores: [],
+					failedScores: [{ login, amount: pointAmount, error: 'Login not found in coalition system' }],
+				});
+			}
+
+			// Assign the points, tagged with the contribution fixed point type so they count towards the ranking
+			const score = await createScore(prisma, contributionType, null, user.id, pointAmount, reason);
 			if (!score) {
 				console.warn(`Failed to create score for user ${user.login}`);
 				return res.render('admin/points/manual/added.njk', {

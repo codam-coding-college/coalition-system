@@ -1,0 +1,71 @@
+{% extends "base.njk" %}
+{% set page_title = "Contribution points assigner" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+		<li class="breadcrumb-item"><a href="/admin/points/manual">Points Assigner</a></li>
+		<li class="breadcrumb-item active" aria-current="page">{{ manual_type }}</li>
+	</ol>
+</nav>
+
+<div class="alert alert-info">
+	<p>Use this form to award points to students who <b>contributed to Codam's open source projects</b> (for example the coalition system, CodamHero or the internal clustermap). These points count towards the <a href="/rankings/top_contributors">Top Contributors</a> ranking.</p>
+	<p class="mb-0">The amount of points is decided per contribution, depending on its size and impact.</p>
+</div>
+
+<form class="mb-4" action="/admin/points/manual/contribution/assign" method="post" id="single-score-form">
+	<div class="mb-2">
+		<label for="login" class="form-label">Login student</label>
+		<input type="text" id="login" name="login" class="form-control" placeholder="Login" required>
+	</div>
+
+	<div class="mb-2">
+		<label for="point_amount" class="form-label">Point amount</label>
+		<input type="number" id="point_amount" name="point_amount" class="form-control" placeholder="Point amount" required value="100" step="10" min="0">
+		<div class="form-text">The amount of points to award for this contribution.</div>
+	</div>
+
+	<div class="mb-2">
+		<label for="reason" class="form-label">Reason</label>
+		<input type="text" id="reason" name="reason" class="form-control" placeholder="Reason" required value="Contributed to Codam's open source projects ()">
+		<div class="form-text">Tip: mention which project and pull request, e.g. <i>"Contributed to Codam's open source projects (CodamHero #26)"</i>.</div>
+	</div>
+
+	<button type="submit" class="btn btn-primary">Assign contribution points</button>
+</form>
+
+<hr class="mt-4">
+
+<div>
+	<h3 class="mb-3">Recently assigned contribution points</h3>
+	<table class="table coalition-colored" id="points-added">
+		<thead>
+			<tr>
+				<th>Date</th>
+				<th>Login</th>
+				<th>Coalition</th>
+				<th>Points</th>
+				<th>Reason</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for score in recentContributionScores %}
+				<tr class="points-added-row" style="background: {{ score.coalition.intra_coalition.color | rgba(0.25) }}">
+					<td>{{ score.created_at | timeAgo }}</td>
+					<td><a href="/profile/{{ score.user.intra_user.login }}/">{{ score.user.intra_user.login }}</a></td>
+					<td>{{ score.coalition.intra_coalition.name | striptags(true) | escape }}</td>
+					<td>{{ score.amount | thousands }}</td>
+					<td>{{ score.reason | striptags(true) | escape }}</td>
+				</tr>
+			{% endfor %}
+			{% if recentContributionScores|length == 0 %}
+				<tr>
+					<td colspan="5"><i class="text-muted">No contribution points have been assigned yet.</i></td>
+				</tr>
+			{% endif %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}
