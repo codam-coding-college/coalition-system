@@ -66,7 +66,7 @@ Triggered when a peer evaluation is completed on Intra. Points go to the **corre
 
 **Skipped if:**
 - `filled_at` is null — evaluation not yet completed
-- Corrector login is `"invisible"` - the API key in use is owned by a student that does not have permission (yet) to see the corrector
+- Corrector object is replaced with the string `"invisible"` - the API key in use is owned by a student that does not have permission (yet) to see the corrector
 - Corrector login is `"supervisor"` — this is an internship evaluation by an external company
 - Corrector user is not found in the local database
 - Point amount is set to 0 for the evaluation fixed point formula
