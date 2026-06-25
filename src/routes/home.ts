@@ -5,10 +5,6 @@ import { isQuizAvailable } from './quiz';
 import { ExpressIntraUser } from '../sync/oauth';
 import { getCoalitionScore, CoalitionScore, getRanking, SingleRanking, getBlocAtDate, bonusPointsAwardingStarted } from '../utils';
 
-// The cross-coalition ranking shown in its own "Top Contributors" card below the
-// "Contribute to the coalition system" section (rather than in the main rankings list).
-const CONTRIBUTORS_RANKING_TYPE = 'top_contributors';
-
 export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/', passport.authenticate('session', {
 		keepSessionInfo: true,
@@ -85,7 +81,7 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			},
 		});
 
-		// Get rankings (excluding the contributors ranking, which is rendered in its own card below)
+		// Get rankings
 		const rankingTypes = await prisma.codamCoalitionRanking.findMany({
 			select: {
 				type: true,
@@ -98,28 +94,12 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			},
 			where: {
 				disabled: false,
-				type: {
-					not: CONTRIBUTORS_RANKING_TYPE,
-				},
 			},
 		});
 		const rankings: { [key: string]: SingleRanking[] } = {};
 		for (const rankingType of rankingTypes) {
 			rankings[rankingType.type] = await getRanking(prisma, rankingType.type);
 		}
-
-		// Get the students who earned the most points for contributing to Codam's open source projects.
-		// Driven by the standard ranking system (the 'top_contributors' ranking), shown in its own card below.
-		const contributorsRanking = await prisma.codamCoalitionRanking.findFirst({
-			where: {
-				type: CONTRIBUTORS_RANKING_TYPE,
-				disabled: false,
-			},
-			select: { type: true },
-		});
-		const topContributors: SingleRanking[] = contributorsRanking
-			? await getRanking(prisma, CONTRIBUTORS_RANKING_TYPE, now, 10)
-			: [];
 
 		// Check if bonus points awarding for rankings has started (7 days prior to end of the bloc)
 		const bonusPointsAwarding = await bonusPointsAwardingStarted(prisma, now);
@@ -181,7 +161,6 @@ export const setupHomeRoutes = function(app: Express, prisma: PrismaClient): voi
 			sortedCoalitionScores,
 			rankingTypes,
 			rankings,
-			topContributors,
 			bonusPointsAwarding,
 			rankingBonusPoints,
 		});

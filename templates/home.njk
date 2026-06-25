@@ -186,38 +186,4 @@
 		</div>
 	</div>
 </div>
-{% if topContributors | length > 0 %}
-	<div class="container-lg mw-900">
-		<div class="card w-100 mb-4" id="top-contributors">
-			<div class="card-header pe-2 d-flex align-items-center" style="background-color: #6c757d;">
-				<h4 class="d-inline-block pe-3 lh-lg flex-grow-1 text-white">Top Contributors</h4>
-				<div class="d-inline-block">
-
-				</div>
-			</div>
-			<div class="card-body p-0">
-				<p class="p-4 mb-0"><b>These students contributed the most to the codam repositories.</b></p>
-				<table class="table coalition-colored mb-0">
-					<tbody>
-						{% for ranking in topContributors %}
-							<tr class="align-middle position-relative" style="background: {{ ranking.coalition.color | rgba(0.25) }};">
-								<td class="fs-5 p-2" style="width: 25px;">{{ ranking.rank }}.</td>
-								<td class="p-0">
-									<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
-										<a href="/profile/{{ ranking.user.login | striptags(true) | escape }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
-											<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
-											<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
-										</a>
-									</div>
-								</td>
-								<td class="text-end ps-2 pe-2 mt-0 mb-2">{{ ranking.score | thousands }}</td>
-							</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-				<p class="m-2 text-end"><a href="/rankings/top_contributors">View full rankings</a></p>
-			</div>
-		</div>
-	</div>
-{% endif %}
 {% endblock %}
