@@ -42,16 +42,16 @@
 	</div>
 
 	<script>
-		// Watch for the word "event" in the reason field and display a warning if it is found
+		// Watch for the word "organize" in the reason field and display a warning if it is found
 		document.getElementById('reason').addEventListener('input', function() {
 			const reason = this.value.toLowerCase();
 			const warning = document.getElementById('reason-warning');
-			if (reason.includes('event')) {
+			if (reason.includes('organize')) {
 				if (!warning) {
 					const warningDiv = document.createElement('div');
 					warningDiv.id = 'reason-warning';
 					warningDiv.classList.add('form-text', 'text-danger');
-					warningDiv.innerText = 'It seems you are trying to assign points for an event. Please use the event-specific forms instead (see warning at the top of the page).';
+					warningDiv.innerText = 'It seems you are trying to assign points for organizing an event. Please use the event-specific forms instead (see warning at the top of the page).';
 					this.parentNode.appendChild(warningDiv);
 				}
 			} else {
@@ -97,16 +97,16 @@ login3,-1000,A very solid reason" required></textarea>
 	</script>
 
 	<script>
-		// Watch for the word "event" in the csv field and display a warning if it is found
+		// Watch for the word "organize" in the csv field and display a warning if it is found
 		document.getElementById('csv').addEventListener('input', function() {
 			const csv = this.value.toLowerCase();
 			const warning = document.getElementById('reason-warning-csv');
-			if (csv.includes('event')) {
+			if (csv.includes('organize')) {
 				if (!warning) {
 					const warningDiv = document.createElement('div');
 					warningDiv.id = 'reason-warning-csv';
 					warningDiv.classList.add('form-text', 'text-danger');
-					warningDiv.innerText = 'It seems you are trying to assign points for an event. Please use the event-specific forms instead (see warning at the top of the page).';
+					warningDiv.innerText = 'It seems you are trying to assign points for organizing an event. Please use the event-specific forms instead (see warning at the top of the page).';
 					this.parentNode.appendChild(warningDiv);
 				}
 			} else {
