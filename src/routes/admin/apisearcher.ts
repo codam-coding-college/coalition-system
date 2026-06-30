@@ -2,7 +2,7 @@ import { Express } from 'express';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/client';
 import { CAMPUS_ID, CURSUS_ID } from '../../env';
-import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTeamInAPISearcher, getPageNumber, getOffset } from '../../utils';
+import { getAPIClient, fetchSingleApiPage, parseTeamInAPISearcher, parseScaleTeamInAPISearcher, parseCloseInAPISearcher, getPageNumber, getOffset } from '../../utils';
 
 const EXAM_PROJECT_IDS = [1320, 1321, 1322, 1323, 1324];
 
@@ -50,6 +50,12 @@ export const API_DEFAULT_FILTERS_SCALE_TEAMS = {
 	'range[filled_at]': `2024-01-01T00:00:00,${new Date().toISOString()}`, // filled_at was only added later
 	'sort': '-filled_at',
 	'page[size]': '8', // ScaleTeams API endpoint is very slow so we limit the amount of items per page to avoid timeouts
+};
+
+// Filters applied to closes
+export const API_DEFAULT_FILTERS_CLOSES = {
+	'filter[campus_id]': CAMPUS_ID.toString(),
+	'sort': '-created_at',
 };
 
 // Filters applied to events
@@ -475,6 +481,64 @@ export const setupAPISearchRoutes = function(app: Express, prisma: PrismaClient)
 				data: modifiedScaleTeams,
 				meta: {
 					pagination: getPaginationMeta(evaluations.headers),
+				},
+			});
+		}
+		catch (err) {
+			console.log(err);
+			return res.status(500).json({ error: err });
+		}
+	});
+
+	// CLOSES
+	// All closes
+	app.get('/admin/apisearch/closes', async (req, res) => {
+		try {
+			const pageNum = getPageNumber(req, NaN);
+			const api = await getAPIClient();
+			const closes = await fetchSingleApiPage(api, '/closes', {
+				...API_DEFAULT_FILTERS_CLOSES,
+			}, pageNum);
+			const modifiedCloses = await parseCloseInAPISearcher(prisma, closes.data);
+			return res.json({
+				data: modifiedCloses,
+				meta: {
+					pagination: getPaginationMeta(closes.headers),
+				},
+			});
+		}
+		catch (err) {
+			console.log(err);
+			return res.status(500).json({ error: err });
+		}
+	});
+
+	// Closes for specific user
+	app.get('/admin/apisearch/closes/user/:login', async (req, res) => {
+		try {
+			const login = req.params.login;
+			const user = await prisma.intraUser.findFirst({
+				where: {
+					login: login,
+				},
+				select: {
+					id: true,
+				},
+			});
+			if (user === null) {
+				return res.status(404).json({ error: 'User not found' });
+			}
+			const pageNum = getPageNumber(req, NaN);
+			const api = await getAPIClient();
+			const closes = await fetchSingleApiPage(api, '/closes', {
+				...API_DEFAULT_FILTERS_CLOSES,
+				'filter[user_id]': user.id.toString(),
+			}, pageNum);
+			const modifiedCloses = await parseCloseInAPISearcher(prisma, closes.data);
+			return res.json({
+				data: modifiedCloses,
+				meta: {
+					pagination: getPaginationMeta(closes.headers),
 				},
 			});
 		}

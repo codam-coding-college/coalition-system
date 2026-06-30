@@ -1,6 +1,6 @@
 import Fast42 from '@codam/fast42';
 import { prisma } from '../handlers/db';
-import { syncData } from './base';
+import { fetchMultiple42ApiPages, syncData } from './base';
 import { CAMPUS_ID, CURSUS_ID } from '../env';
 
 export const syncCursusUser = async function(cursusUser: any): Promise<void> {
@@ -53,5 +53,30 @@ export const syncCursusUsers = async function(api: Fast42, syncSince: Date, sync
 	for (const cursusUser of cursusUsers) {
 		console.debug(`Syncing cursus_user ${++i}/${total} (${cursusUser.user.login} - ${cursusUser.cursus.name})...`);
 		await syncCursusUser(cursusUser);
+	}
+
+	// Find all staff in the database without any cursus_users and fetch their cursus_users specifically
+	// Needed to fetch staff that is still staff
+	const staffWithoutCursusUsers = await prisma.intraUser.findMany({
+		where: {
+			kind: 'admin',
+			cursus_users: {
+				none: {},
+			},
+		},
+	});
+	for (const user of staffWithoutCursusUsers) {
+		console.debug(`Staff ${user.login} has no cursus_users, fetching their cursus_users...`);
+		try {
+			const cursusUsers = await fetchMultiple42ApiPages(api, `/users/${user.id}/cursus_users`, {
+				'filter[cursus_id]': `${CURSUS_ID}`,
+			});
+			for (const cursusUser of cursusUsers) {
+				await syncCursusUser(cursusUser);
+			}
+		}
+		catch (err) {
+			console.error(`Error fetching cursus_users for user ${user.login}: ${err}`);
+		}
 	}
 };

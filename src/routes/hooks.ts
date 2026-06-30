@@ -5,6 +5,7 @@ import { handleIdleLogoutWebhook, IdleLogout } from './hooks/idlelogout';
 import { handleProjectsUserUpdateWebhook, ProjectUser } from './hooks/projects_users';
 import { handleScaleTeamUpdateWebhook, ScaleTeam } from './hooks/scale_teams';
 import { handlePointGivenWebhook, PointGiven } from './hooks/pools';
+import { Close, handleCloseWebhook } from './hooks/closes';
 
 export interface WebhookHeaders {
 	modelType: string;
@@ -93,6 +94,9 @@ export const handleWebhook = async function(prisma: PrismaClient, modelType: str
 		case "pool": // pool point_given
 			const pointGiven: PointGiven = body as PointGiven;
 			return await handlePointGivenWebhook(prisma, pointGiven, res, deliveryId);
+		case "close": // close with community services
+			const close: Close = body as Close;
+			return await handleCloseWebhook(prisma, close, res, deliveryId);
 		default:
 			console.warn("Unknown model type", modelType);
 			return await (res ? respondWebHookHandledStatus(prisma, deliveryId, res, WebhookHandledStatus.Error) : null);

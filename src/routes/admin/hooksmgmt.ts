@@ -13,6 +13,7 @@ const catchupOperation: CatchupOperation = {
 		locations: false,
 		projects: false,
 		evaluations: false,
+		community_services: false,
 		pool_donations: false,
 	}
 };
@@ -146,6 +147,7 @@ export const setupWebhookManagementRoutes = function(app: Express, prisma: Prism
 			const catchupLocations = req.body.catchup_locations === 'true';
 			const catchupProjects = req.body.catchup_projects === 'true';
 			const catchupEvaluations = req.body.catchup_evaluations === 'true';
+			const catchupCommunityServices = req.body.catchup_community_services === 'true';
 			const catchupPoolDonations = false; // req.body.catchup_pool_donations === 'true'; (not possible with Intra API)
 
 			// Set the catch-up operation data
@@ -157,6 +159,7 @@ export const setupWebhookManagementRoutes = function(app: Express, prisma: Prism
 			catchupOperation.filter.locations = catchupLocations;
 			catchupOperation.filter.projects = catchupProjects;
 			catchupOperation.filter.evaluations = catchupEvaluations;
+			catchupOperation.filter.community_services = catchupCommunityServices;
 			catchupOperation.filter.pool_donations = catchupPoolDonations;
 		}
 		catch (err) {

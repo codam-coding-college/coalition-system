@@ -3,9 +3,11 @@ import { fetchMultiple42ApiPagesCallback, fetchSingle42ApiPage } from "../../syn
 import { getAPIClient } from "../../utils";
 import { CAMPUS_ID } from "../../env";
 import { handleLocationCloseWebhook, Location } from "./locations";
-import { API_DEFAULT_FILTERS_LOCATIONS, API_DEFAULT_FILTERS_PROJECTS, API_DEFAULT_FILTERS_SCALE_TEAMS } from "../admin/apisearcher";
+import { API_DEFAULT_FILTERS_CLOSES, API_DEFAULT_FILTERS_LOCATIONS, API_DEFAULT_FILTERS_PROJECTS, API_DEFAULT_FILTERS_SCALE_TEAMS } from "../admin/apisearcher";
 import { handleProjectsUserUpdateWebhook, ProjectUser } from "./projects_users";
 import { handleScaleTeamUpdateWebhook, ScaleTeam } from "./scale_teams";
+import { handleCloseWebhook } from "./closes";
+import { Close } from "./closes";
 
 export interface CatchupOperation {
 	ongoing: boolean;
@@ -17,6 +19,7 @@ export interface CatchupOperation {
 		locations: boolean;
 		projects: boolean;
 		evaluations: boolean;
+		community_services: boolean;
 		pool_donations: boolean;
 	};
 }
@@ -152,6 +155,41 @@ const catchupEvaluations = async (catchupOperation: CatchupOperation, stepNumber
 	});
 }
 
+const catchupCommunityServices = async (catchupOperation: CatchupOperation, stepNumber: number, prisma: PrismaClient): Promise<void> => {
+	return new Promise(async (allDone, catchupFail) => {
+		const api = await getAPIClient();
+		let itemsHandled = 0;
+		let itemsTotal = 0;
+		fetchMultiple42ApiPagesCallback(api, `/closes`, {
+				...API_DEFAULT_FILTERS_CLOSES,
+				'sort': 'updated_at', // Oldest first
+				'range[updated_at]': `${catchupOperation.startDate?.toISOString()},${catchupOperation.endDate?.toISOString()}`,
+			},
+			async (closes, xPage, xTotal) => {
+				if (itemsTotal === 0) {
+					itemsTotal = xTotal;
+				}
+				for (const close of closes) {
+					try {
+						const parsedClose = close as Close;
+						await handleCloseWebhook(prisma, parsedClose);
+						itemsHandled++;
+						updatePercentage(catchupOperation, stepNumber, itemsHandled, xTotal);
+					}
+					catch (err) {
+						console.error(`Error catching up on close ${close.id}: ${err}`);
+					}
+				}
+				console.debug(`Handled ${itemsHandled} out of ${xTotal} closes.`);
+				if (itemsHandled == xTotal) {
+					console.debug('All closes handled.');
+					allDone();
+				}
+			}
+		);
+	});
+}
+
 export const startCatchupOperation = async (catchupOperation: CatchupOperation, prisma: PrismaClient): Promise<void> => {
 	console.log(`Starting catch-up operation from ${catchupOperation.startDate} to ${catchupOperation.endDate}...`);
 	let currentStep = 0;
@@ -175,6 +213,13 @@ export const startCatchupOperation = async (catchupOperation: CatchupOperation, 
 			console.log('Starting evaluations catch-up...');
 			await catchupEvaluations(catchupOperation, currentStep, prisma);
 			console.log('Evaluations catch-up completed.');
+			currentStep++;
+		}
+
+		if (catchupOperation.filter.community_services) {
+			console.log('Starting community services catch-up...');
+			await catchupCommunityServices(catchupOperation, currentStep, prisma);
+			console.log('Community services catch-up completed.');
 			currentStep++;
 		}
 

@@ -42,7 +42,7 @@ When the coalition system is offline, a webhook delivery fails, or after a new s
 ### How to Use
 
 1. Select a start date and end date for the catchup window
-2. Choose which event types to catch up (locations, projects/exams, evaluations)
+2. Choose which event types to catch up (locations, projects/exams, evaluations, community services)
 3. Submit the form — the catchup runs asynchronously in the background
 4. Progress (0–100%) is displayed on the page and updates as the operation proceeds
 
@@ -53,6 +53,7 @@ When the coalition system is offline, a webhook delivery fails, or after a new s
 | Locations | Campus checkout events (logtime points) |
 | Projects & exams | Project and exam validations |
 | Evaluations | Peer evaluation completions |
+| Community Services | Community services |
 
 ### Not Supported
 

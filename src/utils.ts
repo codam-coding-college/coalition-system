@@ -229,6 +229,36 @@ export const parseScaleTeamInAPISearcher = async function(prisma: PrismaClient, 
 	return scaleTeams;
 };
 
+export const parseCloseInAPISearcher = async function(prisma: PrismaClient, closes: any): Promise<any> {
+	const staff = await prisma.intraUser.findMany({
+		where: {
+			kind: 'admin',
+			cursus_users: {
+				some: {
+					OR: [
+						{ end_at: null },
+						{ end_at: { gt: new Date() } }, // also consider cursus_users that are still active
+					],
+				},
+			},
+		},
+	});
+
+	// Remove all closes that are not done by campus staff members
+	closes = closes.filter((c: any) => staff.some(s => s.id === c.closer.id));
+
+	// Remove all closes without community services
+	// Disabled for now as sometimes you might want to remove points for a cancelled community service
+	// closes = closes.filter((c: any) => c.community_service !== undefined);
+
+	// Add a field combining the duration of all community services for easier displaying in a table
+	for (const close of closes) {
+		close['cs_duration'] = (close.community_services.reduce((acc: number, cs: any) => acc + cs.duration, 0) / 3600).toFixed(1); // convert to hours
+	}
+
+	return closes;
+};
+
 export const timeAgo = function(date: Date | null): string {
 	if (!date) {
 		return 'never';

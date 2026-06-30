@@ -117,6 +117,20 @@ Awards a flat penalty of `idle_logout.point_amount` (default −10 points). The 
 
 `type_intra_id` is not set for idle logouts (no Intra object ID to reference). Therefore idle logout events are not idempotent by default and cannot be replayed safely.
 
+### `close:create` + `close:update` — User Account Close
+
+**File:** `src/routes/hooks/closes.ts`
+
+Triggered when a student's account gets closed or their closed status gets updated.
+
+**Skipped if:**
+- No community services are attached to the close create, or
+- No community service is attached to the close update and there wasn't one previously either
+
+**Point formula:** See [features/scoring.md](../features/scoring.md) for the community service formula.
+
+The `close.id` is used as `type_intra_id` for idempotency.
+
 ## Catchup Tool
 
 When the coalition system is offline or a webhook delivery fails, Intra does not retry indefinitely. The catchup tool allows admins to retroactively process missed events for a specific date range by querying the Intra API directly.

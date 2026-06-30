@@ -3,8 +3,8 @@ import { CodamCoalitionScore, Prisma, PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import { fetchSingleApiPage, getAPIClient, getBlocAtDate, getOffset, getPageNav, getPageNumber } from '../../utils';
 import { ExpressIntraUser } from '../../sync/oauth';
-import { createScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
-import { deleteIntraScore, intraScoreSyncingPossible, syncIntraScore, syncTotalCoalitionScore } from '../../handlers/intrascores';
+import { createScore, deleteScore, handleFixedPointScore, shiftScore } from '../../handlers/points';
+import { intraScoreSyncingPossible, syncIntraScore } from '../../handlers/intrascores';
 
 const SCORES_PER_PAGE = 100;
 
@@ -369,51 +369,14 @@ export const setupAdminPointsRoutes = function(app: Express, prisma: PrismaClien
 			return res.status(400).json({ error: 'Invalid score ID' });
 		}
 
-		// Fetch the score from the database
-		const score = await prisma.codamCoalitionScore.findFirst({
-			where: {
-				id: scoreId,
-			},
-			include: {
-				coalition: {
-					select: {
-						intra_coalition: true,
-					},
-				},
-				user: {
-					select: {
-						intra_user: {
-							select: {
-								login: true,
-							},
-						},
-					},
-				},
-			},
-		});
-
-		if (!score) {
-			return res.status(404).json({ error: 'Score not found' });
-		}
-
 		const sessionUser = req.user as ExpressIntraUser;
-		console.log(`User ${sessionUser.login} is deleting score ${score.id} for coalition ${score.coalition_id} (${score.coalition.intra_coalition.name}), user ${score.user_id} (${score.user.intra_user.login}), amount ${score.amount}, reason "${score.reason}"`);
+		console.log(`User ${sessionUser.login} is deleting score ${scoreId}"`);
 
-		if (await intraScoreSyncingPossible(prisma, score)) {
-			const api = await getAPIClient();
-			await deleteIntraScore(prisma, api, score);
-			await syncTotalCoalitionScore(prisma, api, score.coalition.intra_coalition);
+		const deleted = await deleteScore(prisma, scoreId);
+		if (!deleted) {
+			console.error(`Failed to delete score ${scoreId}`);
+			return res.status(500).json({ error: 'Failed to delete score' });
 		}
-		else {
-			console.log(`Intra score syncing not possible for score ${score.id}, skipping Intra score deletion`);
-		}
-
-		// Delete the score from the database
-		await prisma.codamCoalitionScore.delete({
-			where: {
-				id: scoreId,
-			},
-		});
 
 		return res.status(200).json({ status: 'ok' });
 	});

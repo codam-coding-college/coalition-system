@@ -58,7 +58,7 @@ model CodamCoalitionRanking {
 
 // Fixed type of score for the coalition system
 model CodamCoalitionFixedType {
-	type             String   @id // should not contain spaces. e.g. "project", "eval", "point_donated", "logtime", "idle_logout", "exam", "basic_event", "intermediate_event", "advanced_event", "ranking_bonus", etc.
+	type             String   @id // should not contain spaces. e.g. "project", "eval", "point_donated", "logtime", "idle_logout", "exam", "private_event", "basic_event", "intermediate_event", "advanced_event", "community_service", "ranking_bonus", etc.
 	description      String
 	point_amount     Int
 	ranking_type     String?  // The ranking type that this fixed type of score contributes to (leave empty to disable ranking, does not need to be unique)

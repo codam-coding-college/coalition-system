@@ -165,6 +165,7 @@ Default fixed types initialized on initial startup:
 | `event_basic` | 1000 | Flat award for organizing a basic event |
 | `event_intermediate` | 3000 | Flat award for organizing an intermediate event |
 | `event_advanced` | 6000 | Flat award for organizing an advanced event |
+| `community_service` | -1000 | Flat penalty for each 2 hours of community service |
 | `ranking_bonus` | 0 | Not used directly; actual amounts come from ranking settings |
 
 #### `CodamCoalitionRanking`

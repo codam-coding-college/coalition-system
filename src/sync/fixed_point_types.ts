@@ -85,6 +85,11 @@ export const initCodamCoalitionFixedTypes = async function(): Promise<void> {
 			points: 6000, // recommended
 		},
 		{
+			type: "community_service",
+			desc: "Each 2 hours of community service will deduct this amount of points (should be negative).",
+			points: -1000, // recommended
+		},
+		{
 			type: "ranking_bonus",
 			desc: "Bonus points awarded hourly during the final week of a season to top ranking users. This value is not used directly, as the actual points awarded depend on the ranking settings.",
 			points: 0, // not used directly

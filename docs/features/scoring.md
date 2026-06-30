@@ -22,6 +22,7 @@ Fixed types are named categories defined in `CodamCoalitionFixedType`. They are 
 | `event_basic` | 1000 | Flat award for organizing a basic event |
 | `event_intermediate` | 3000 | Flat award for organizing an intermediate event |
 | `event_advanced` | 6000 | Flat award for organizing an advanced event |
+| `community_service` | -1000 | Flat penalty for each 2 hours of community service |
 | `ranking_bonus` | 0 | Not used in a formula; actual amounts come from ranking settings |
 
 ## Point Formulas
@@ -159,6 +160,23 @@ An advanced-level event designed to bring together a large number of students fo
 - Extensive planning with detailed scheduling and coordination, with several deadlines.
 - Might involve coordination with external stakeholders, such as partners.
 - High budget requirement, covering expenses for venue, catering, and entertainment etc...
+
+### Community Services
+
+Triggered when a `close:create` or `close:update` webhook fires (a student's account gets closed or a close status gets updated).
+
+```
+points = floor( (total_duration_hours / 2) × point_amount )
+```
+
+Where:
+- `total_duration_hours` = the total duration of all community services attached to the close in hours
+- `point_amount` = `point_amount` of the `community_service` fixed type (default -1000)
+
+> Note: if a community service gets destroyed, the close gets updated, but the penalty only gets
+> removed if the total duration of all community services is now 0. Otherwise, the penalty stays the same.
+> This is not neccesarily intended, but it is a bug that is difficult to fix with the current database layout
+> and it won't happen too often anyways.
 
 ### Ranking Bonuses
 

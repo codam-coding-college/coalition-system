@@ -5,6 +5,7 @@ import { getAPIClient, fetchSingleApiPage } from '../../utils';
 import { handleLocationCloseWebhook, Location } from './locations';
 import { handleProjectsUserUpdateWebhook, ProjectUser } from './projects_users';
 import { handleScaleTeamUpdateWebhook, ScaleTeam } from './scale_teams';
+import { Close, handleCloseWebhook } from './closes';
 
 export const setupWebhookTriggerRoutes = function(app: Express, prisma: PrismaClient): void {
 	app.get('/admin/points/trigger/logtime/id/:id', async (req, res) => {
@@ -106,6 +107,31 @@ export const setupWebhookTriggerRoutes = function(app: Express, prisma: PrismaCl
 		}
 		catch (err) {
 			console.error(`Failed to trigger scale_team update webhook for scale_team ${req.params.id}`, err);
+			return res.status(500).json({ error: err });
+		}
+	});
+
+	app.get('/admin/points/trigger/community_service/id/:id', async (req, res) => {
+		// Redirect to close ID trigger
+		// It is not the same as a community service ID, but in the coalition system,
+		// points for community services are always linked to a close ID.
+		// This is due to the fact that there is only a webhook for closes,
+		// not for community services, and the close webhook contains all the community services for that close.
+		return res.redirect(`/admin/points/trigger/close/id/${req.params.id}`);
+	});
+
+	app.get('/admin/points/trigger/close/id/:id', async (req, res) => {
+		// ID belongs to a close ID in the intra system
+		const api = await getAPIClient();
+		try {
+			const apires = await fetchSingleApiPage(api, `/closes/${req.params.id}`, {});
+			const close: Close = apires.data as Close;
+
+			await handleCloseWebhook(prisma, close);
+			return res.status(200).json({ status: 'ok' });
+		}
+		catch (err) {
+			console.error(`Failed to trigger close webhook for close ${req.params.id}`, err);
 			return res.status(500).json({ error: err });
 		}
 	});

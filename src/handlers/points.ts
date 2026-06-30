@@ -1,6 +1,6 @@
 import { CodamCoalitionFixedType, CodamCoalitionScore, PrismaClient } from '@prisma/client';
 import { CURSUS_ID, INTRA_TEST_ACCOUNTS } from '../env';
-import { syncIntraScore } from './intrascores';
+import { deleteIntraScore, intraScoreSyncingPossible, syncIntraScore, syncTotalCoalitionScore } from './intrascores';
 import { getAPIClient, getBlocAtDate } from '../utils';
 import { generateChartAllCoalitionScoreHistory, generateChartCoalitionScoreHistory } from '../routes/charts';
 import { triggerSSE } from '../routes/sse';
@@ -147,6 +147,52 @@ export const shiftScore = async function(prisma: PrismaClient, scoreId: number, 
 	}
 
 	return score;
+}
+
+export const deleteScore = async function(prisma: PrismaClient, scoreId: number): Promise<boolean> {
+	// Fetch the score from the database
+	const score = await prisma.codamCoalitionScore.findFirst({
+		where: {
+			id: scoreId,
+		},
+		include: {
+			coalition: {
+				select: {
+					intra_coalition: true,
+				},
+			},
+			user: {
+				select: {
+					intra_user: {
+						select: {
+							login: true,
+						},
+					},
+				},
+			},
+		},
+	});
+
+	if (!score) {
+		return false;
+	}
+
+	if (await intraScoreSyncingPossible(prisma, score)) {
+		const api = await getAPIClient();
+		await deleteIntraScore(prisma, api, score);
+		await syncTotalCoalitionScore(prisma, api, score.coalition.intra_coalition);
+	}
+	else {
+		console.log(`Intra score syncing not possible for score ${score.id}, skipping Intra score deletion`);
+	}
+
+	// Delete the score from the database
+	await prisma.codamCoalitionScore.delete({
+		where: {
+			id: scoreId,
+		},
+	});
+	return true;
 }
 
 export const handleFixedPointScore = async function(prisma: PrismaClient, type: CodamCoalitionFixedType, typeIntraId: number | null, userId: number, points: number, reason: string, scoreDate: Date = new Date()): Promise<CodamCoalitionScore | null> {

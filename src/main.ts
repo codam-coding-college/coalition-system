@@ -104,7 +104,9 @@ const main = async () => {
 		api = await new Fast42([{
 			client_id: INTRA_API_UID,
 			client_secret: INTRA_API_SECRET,
-		}]).init();
+		}], {
+			scopes: ['public', 'projects', 'profile', 'elearning', 'tig', 'forum'],
+		}).init();
 
 		if (!NO_INTRA_SYNC) {
 			await syncWithIntra(api);

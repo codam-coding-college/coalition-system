@@ -7,7 +7,7 @@ It is a replacement for 42's existing coalition system, intending to make it mor
 ## Features
 
 - **Sorting Hat quiz** — students answer a weighted questionnaire to get placed into a coalition
-- **Points system** — automatic point awards for projects, exams, evaluations, logtime, and event organization
+- **Points system** — automatic point awards for projects, exams, evaluations, logtime, community services and event organization
 - **Coalition leaderboard** — coalitions compete based on the mean score of their active contributors
 - **Individual rankings** — cross-coalition leaderboards measuring specific engagement types
 - **Titles** — top-ranked students receive titles that appear on their Intra profile
