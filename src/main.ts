@@ -137,7 +137,11 @@ const main = async () => {
 	if (!NO_INTRA_SYNC) {
 		// Schedule the Intra synchronization to run every 10 minutes
 		setInterval(async () => {
-			await syncWithIntra(api!);
+			try {
+				await syncWithIntra(api!);
+			} catch (error) {
+				console.error('Failed to synchronize with Intra API:', error);
+			}
 		}, 10 * 60 * 1000);
 	}
 };

@@ -140,7 +140,7 @@ export const setupWebhookRoutes = function(app: Express, prisma: PrismaClient): 
 
 		// Actually handle the webhook, but do catch any errors
 		try {
-			return handleWebhook(prisma, webhookHeaders.modelType, req.body, res, webhookHeaders.deliveryId);
+			return await handleWebhook(prisma, webhookHeaders.modelType, req.body, res, webhookHeaders.deliveryId);
 		}
 		catch (err) {
 			console.error("Failed to handle webhook", err);
