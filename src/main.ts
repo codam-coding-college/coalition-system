@@ -35,6 +35,28 @@ import { setupCanvasRoutes } from './routes/canvas';
 
 export let api: Fast42 | null = null;
 
+// Catch any promise rejection that was not handled anywhere else, and any
+// synchronous exception that was thrown outside of a try/catch. Without this,
+// Node's default behavior already crashes the process, but silently and without
+// a useful log. We log the error and its stack trace (with TypeScript line
+// numbers thanks to --enable-source-maps in the start script), then deliberately
+// crash so the container restarts with a clean state.
+process.on('unhandledRejection', (reason: unknown) => {
+	console.error('FATAL: Unhandled promise rejection. Crashing so the container can restart.');
+	if (reason instanceof Error) {
+		console.error(reason.stack ?? `${reason.name}: ${reason.message}`);
+	}
+	else {
+		console.error('Rejection reason was not an Error:', reason);
+	}
+	process.exit(1); // Exit with a non-zero code so the container orchestrator restarts us.
+});
+process.on('uncaughtException', (err: Error) => {
+	console.error('FATAL: Uncaught exception. Crashing so the container can restart.');
+	console.error(err.stack ?? `${err.name}: ${err.message}`);
+	process.exit(1); // Exit with a non-zero code so the container orchestrator restarts us.
+});
+
 const main = async () => {
 	// Set up the Express app
 	const app = express();
