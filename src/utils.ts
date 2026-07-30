@@ -24,7 +24,7 @@ export const fetchSingleApiPage = function(api: Fast42, endpoint: string, params
 				console.error(`Failed to fetch page ${endpoint} with status ${job.status}`);
 				reject(`Failed to fetch page ${endpoint} with status ${job.status}`);
 			}
-			const headers = job.headers.raw();
+			const headers = job.headers;
 			const data = await job.json();
 			resolve({ headers, data });
 		}
