@@ -36,14 +36,6 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
 				let p = null;
 				while (!p) {
 					p = await page;
-					if (p.status == 429) {
-						console.error('Intra API rate limit exceeded, let\'s wait a bit...');
-						const waitFor = parseInt(p.headers.get('Retry-After'));
-						console.log(`Waiting ${waitFor} seconds...`);
-						await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
-						p = null;
-						continue;
-					}
 					if (!p.ok) {
 						throw new Error(`Intra API error: ${p.status} ${p.statusText} on ${p.url}`);
 					}
@@ -82,26 +74,13 @@ export const fetchMultiple42ApiPagesCallback = async function(api: Fast42, path:
 				let p = null;
 				while (!p) {
 					p = await page;
-					if (!p) {
-						console.log('Retrying page fetch...');
-						await new Promise((resolve) => setTimeout(resolve, 1000));
-						continue;
-					}
-					if (p.status == 429) {
-						console.error('Intra API rate limit exceeded, let\'s wait a bit...');
-						const waitFor = parseInt(p.headers.get('Retry-After'));
-						console.log(`Waiting ${waitFor} seconds...`);
-						await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
-						p = null;
-						continue;
-					}
 					if (!p.ok) {
 						throw new Error(`Intra API error: ${p.status} ${p.statusText} on ${p.url}`);
 					}
 				}
 				if (p.ok) {
-					const xPage = parseInt(p.headers.get('X-Page'));
-					const xTotal = parseInt(p.headers.get('X-Total'));
+					const xPage = parseInt(p.headers.get('X-Page') ?? '0');
+					const xTotal = parseInt(p.headers.get('X-Total') ?? '0');
 					const data = await p.json();
 					console.debug(`Fetched page ${++i} of ${pages.length} on ${path}...`);
 					callback(data, xPage, xTotal);
@@ -127,14 +106,6 @@ export const fetchSingle42ApiPage = async function(api: Fast42, path: string, pa
 		try {
 			retry: while (true) {
 				const page = await api.get(path, params);
-
-				if (page.status == 429) {
-					console.error('Intra API rate limit exceeded, let\'s wait a bit...');
-					const waitFor = parseInt(page.headers.get('Retry-After'));
-					console.log(`Waiting ${waitFor} seconds...`);
-					await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
-					continue retry;
-				}
 				if (page.ok) {
 					const data = await page.json();
 					return resolve(data);
