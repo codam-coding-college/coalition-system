@@ -30,7 +30,9 @@ Three pieces of middleware run on every request (configured in `src/handlers/mid
 
 **`checkIfAuthenticated`** — runs on all routes:
 - Passes through: `/login*`, `/logout`, `/hooks/*`, `/static/*`, `/canvas*`, and 503 responses
-- For all other routes: redirects unauthenticated users to `/login`, saving `returnTo`
+- For all other routes, unauthenticated requests are handled in one of two ways:
+  - Page requests are redirected to `/login`, and the requested URL is saved as `returnTo`.
+  - Requests that are not pages get `401 Unauthorized` instead, with no redirect and no `returnTo`. These are requests under `/cdn/` (see [intra-cdn.md](intra-cdn.md)) and requests whose path looks like a file, i.e. contains a dot (e.g. `/favicon.ico`). An image or file request that ends up on the login page is useless, and saving its URL as `returnTo` would send the user to that image after logging in.
 
 **`includeUser`** — adds `res.locals.user` (the `IntraUser` object) so all Nunjucks templates can access it.
 

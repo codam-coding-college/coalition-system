@@ -102,7 +102,7 @@ Set via shell: `DEV_DAYS_LIMIT=30 npm start`
 
 ## Fast42 Wrapper Functions
 
-The system uses `@codam/fast42` as its Intra API client. Fast42 handles OAuth2 token refresh, rate limiting (to some extent) and low-level HTTP. Three wrapper functions in `src/sync/base.ts` fill some gaps left by Fast42:
+The system uses `@codam/fast42` as its Intra API client. Fast42 handles OAuth2 token refresh, rate limiting (to some extent) and low-level HTTP. It also provides `download()` for files on Intra's CDN, which require an access token (see [../features/intra-cdn.md](../features/intra-cdn.md)). Three wrapper functions in `src/sync/base.ts` fill some gaps left by Fast42:
 
 ### `fetchMultiple42ApiPages(api, path, params)`
 

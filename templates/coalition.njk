@@ -62,7 +62,7 @@
 										<td class="p-0">
 											<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
 												<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
-													<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+													<img loading="lazy" src="/cdn/users/{{ ranking.user.id }}/picture" class="user-picture rounded-circle d-inline-block me-2" height="32" />
 													<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
 												</a>
 											</div>
@@ -96,7 +96,7 @@
 										<td class="p-0">
 											<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
 												<a href="/profile/{{ ranking.user.login }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
-													<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+													<img loading="lazy" src="/cdn/users/{{ ranking.user.id }}/picture" class="user-picture rounded-circle d-inline-block me-2" height="32" />
 													<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
 												</a>
 											</div>
@@ -172,7 +172,7 @@
 							{% for assistant in assistants %}
 								<div class="col">
 									<div class="card text-center">
-										<img src="{{ assistant.image }}" class="img-square card-img-top" alt="{{ assistant.login | striptags(true) | escape }}" />
+										<img src="/cdn/users/{{ assistant.id }}/picture" class="img-square card-img-top" alt="{{ assistant.login | striptags(true) | escape }}" />
 										<div class="card-body">
 											<span><a class="stretched-link" target="_blank" href="https://profile.intra.42.fr/users/{{ assistant.login | striptags(true) | escape }}/">{{ assistant.usual_first_name if assistant.usual_first_name is not none else assistant.first_name | striptags(true) | escape }}</a></span>
 										</div>
@@ -199,7 +199,7 @@
 						{% for staff_member in staff %}
 							<div class="col">
 								<div class="card text-center">
-									<img src="{{ staff_member.image }}" class="img-square card-img-top" alt="{{ staff_member.login | striptags(true) | escape }}" />
+									<img src="/cdn/users/{{ staff_member.id }}/picture" class="img-square card-img-top" alt="{{ staff_member.login | striptags(true) | escape }}" />
 									<div class="card-body">
 										<span>{{ staff_member.usual_first_name if staff_member.usual_first_name is not none else staff_member.first_name | striptags(true) | escape }}</span>
 									</div>

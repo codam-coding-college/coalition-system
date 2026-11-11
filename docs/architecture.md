@@ -9,7 +9,7 @@
 | Web framework | Express.js | ^5.2.1 |
 | ORM | Prisma | ^7.7.0 |
 | Database | PostgreSQL | 13 |
-| Intra API client | @codam/fast42 | ^2.1.7 |
+| Intra API client | @codam/fast42 | ^3.2.0 |
 | Authentication | Passport.js + passport-oauth2 | ^0.7.0 |
 | Template engine | Nunjucks | ^3.2.4 |
 | Session store | @quixo3/prisma-session-store | ^3.1.19 |
@@ -32,7 +32,8 @@ Browser / Intra webhook
         ├─ Login routes (/login, /logout) → Passport.js OAuth2 flow
         │
         ├─ checkIfAuthenticated middleware
-        │       └─ redirects unauthenticated requests to /login
+        │       └─ redirects unauthenticated page requests to /login
+        │       └─ answers unauthenticated /cdn/* and file requests with 401
         │
         ├─ includeUser middleware → adds req.user to res.locals
         ├─ includeCoalitions middleware → adds all coalitions to res.locals (cached 50 min)
@@ -64,6 +65,7 @@ coalition-system/
 │   │   ├── quiz.ts              Sorting Hat questionnaire (/quiz)
 │   │   ├── charts.ts            Score history charts (/charts)
 │   │   ├── canvas.ts            Server-rendered PNG displays (/canvas/*)
+│   │   ├── cdn.ts               Proxy for images on Intra's token-protected CDN (/cdn/*)
 │   │   ├── admin/               Admin interface routes (/admin/*)
 │   │   └── hooks/               Intra webhook handlers (/hooks/*)
 │   ├── handlers/

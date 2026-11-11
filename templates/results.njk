@@ -83,7 +83,7 @@
 									<td class="p-0">
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
 											<a href="/profile/{{ userScore.user.intra_user.login }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
-												<img loading="lazy" src="{{ userScore.user.intra_user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+												<img loading="lazy" src="/cdn/users/{{ userScore.user.intra_user.id }}/picture" class="user-picture rounded-circle d-inline-block me-2" height="32" />
 												<span>{{ userScore.user.intra_user.usual_full_name | striptags(true) | escape }}</span>
 											</a>
 										</div>
@@ -124,7 +124,7 @@
 									<td class="p-0">
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
 											<a href="/profile/{{ result.user.intra_user.login | striptags(true) | escape }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
-												<img loading="lazy" src="{{ result.user.intra_user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+												<img loading="lazy" src="/cdn/users/{{ result.user.intra_user.id }}/picture" class="user-picture rounded-circle d-inline-block me-2" height="32" />
 												<span>{{ result.user.intra_user.usual_full_name | striptags(true) | escape }}</span>
 											</a>
 										</div>

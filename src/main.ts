@@ -32,6 +32,7 @@ import { setupAdminRoutes } from './routes/admin';
 import { setupWebhookRoutes } from './routes/hooks';
 import { setupServerSideEventsRoutes } from './routes/sse';
 import { setupCanvasRoutes } from './routes/canvas';
+import { setupCDNProxyRoutes } from './routes/cdn';
 
 export let api: Fast42 | null = null;
 
@@ -143,6 +144,7 @@ const main = async () => {
 	}
 
 	// Set up remaining routes
+	setupCDNProxyRoutes(app, prisma, api);
 	setupLoginRoutes(app, prisma);
 	setupHomeRoutes(app, prisma);
 	setupCoalitionRoutes(app, prisma);
@@ -154,7 +156,7 @@ const main = async () => {
 	setupAdminRoutes(app, prisma);
 	setupWebhookRoutes(app, prisma);
 	setupServerSideEventsRoutes(app, prisma);
-	setupCanvasRoutes(app, prisma);
+	setupCanvasRoutes(app, prisma, api);
 
 	if (!NO_INTRA_SYNC) {
 		// Schedule the Intra synchronization to run every 10 minutes

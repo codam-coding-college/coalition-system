@@ -24,6 +24,7 @@ The Codam Coalition System is a full-stack web application that manages student-
 | [features/titles.md](features/titles.md) | Coalition titles (rank achievements) and their sync to Intra |
 | [features/charts.md](features/charts.md) | Interactive score history charts for coalitions |
 | [features/canvas.md](features/canvas.md) | Server-rendered 1920×1080 PNG displays for physical campus screens |
+| [features/intra-cdn.md](features/intra-cdn.md) | Proxy routes for displaying images, such as profile pictures, from Intra's token-protected CDN |
 
 ### Intra Synchronization
 

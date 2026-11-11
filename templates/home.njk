@@ -104,7 +104,7 @@
 									<td class="p-0">
 										<div class="d-inline-flex flex-row justify-content-start align-items-center text-light">
 											<a href="/profile/{{ ranking.user.login | striptags(true) | escape }}" class="p-2 text-light stretched-link" style="text-decoration: none;">
-												<img loading="lazy" src="{{ ranking.user.image }}" class="user-picture rounded-circle d-inline-block me-2" height="32" />
+												<img loading="lazy" src="/cdn/users/{{ ranking.user.id }}/picture" class="user-picture rounded-circle d-inline-block me-2" height="32" />
 												<span>{{ ranking.user.usual_full_name | striptags(true) | escape }}</span>
 											</a>
 										</div>

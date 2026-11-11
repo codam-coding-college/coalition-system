@@ -2,6 +2,7 @@ import { IntraCoalition, PrismaClient } from '@prisma/client';
 import { Express } from 'express';
 import { CanvasRenderingContext2D, createCanvas, loadImage, registerFont } from 'canvas';
 import { bonusPointsAwardingStarted, CoalitionScore, formatThousands, getBlocAtDate, getCoalitionScore, getCoalitionTopContributors, getRanking, SingleRanking, SMALL_CONTRIBUTION_TYPES, timeAgo } from '../utils';
+import { Fast42 } from '@codam/fast42';
 
 const CANVAS_WIDTH = 1920;
 const CANVAS_HEIGHT = 1080;
@@ -10,19 +11,15 @@ const OVERLAY_INNER_WIDTH = CANVAS_WIDTH * 0.05;
 const BOTTOM_BAR_HEIGHT = PADDING * 1.5;
 const BIG_BOX_HEIGHT = CANVAS_HEIGHT - PADDING * 3 - BOTTOM_BAR_HEIGHT;
 
-const drawUserProfilePicture = async function(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, imageUrl: string | null) {
+const drawUserProfilePicture = async function(api: Fast42, ctx: CanvasRenderingContext2D, x: number, y: number, size: number, imageUrl: string | null) {
 	try {
 		if (!imageUrl) {
-			console.warn('No image URL provided for user profile picture in canvas, drawing placeholder');
-			// Draw a placeholder circle
-			ctx.fillStyle = '#CCCCCC';
-			ctx.beginPath();
-			ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2, true);
-			ctx.closePath();
-			ctx.fill();
-			return;
+			throw new Error('No image URL provided for user profile picture in canvas');
 		}
-		const image = await loadImage(imageUrl);
+		const imageResponse = await api.download(imageUrl);
+		const imageArrayBuffer = await imageResponse.arrayBuffer();
+		const imageBuffer = Buffer.from(imageArrayBuffer);
+		const image = await loadImage(imageBuffer);
 		// Draw circle clip
 		ctx.save();
 		ctx.beginPath();
@@ -40,7 +37,7 @@ const drawUserProfilePicture = async function(ctx: CanvasRenderingContext2D, x: 
 		ctx.restore();
 	}
 	catch (error) {
-		console.error('Failed to load user profile picture:', error);
+		console.error('Failed to load user profile picture for canvas:', error);
 		// Draw a placeholder circle
 		ctx.fillStyle = '#CCCCCC';
 		ctx.beginPath();
@@ -95,7 +92,7 @@ const initCanvas = function() {
 	return { canvas, ctx};
 }
 
-const drawInitialCanvas = async function(prisma: PrismaClient, ctx: CanvasRenderingContext2D) {
+const drawInitialCanvas = async function(api: Fast42, prisma: PrismaClient, ctx: CanvasRenderingContext2D) {
 	// INITIAL DATA FETCH
 	const now = new Date();
 
@@ -322,7 +319,7 @@ const drawInitialCanvas = async function(prisma: PrismaClient, ctx: CanvasRender
 			const profilePicSize = entryHeight * 0.33;
 
 			// Draw profile picture
-			await drawUserProfilePicture(ctx, profilePicX, profilePicY, profilePicSize, topContributor.user.image || '');
+			await drawUserProfilePicture(api, ctx, profilePicX, profilePicY, profilePicSize, topContributor.user.image || '');
 
 			// Draw "TOP CONTRIBUTOR" text
 			ctx.font = `bold ${Math.floor(entryHeight * 0.1)}px "Bebas Neue"`;
@@ -343,7 +340,7 @@ const drawInitialCanvas = async function(prisma: PrismaClient, ctx: CanvasRender
 	return { leaderboardX, leaderboardWidth };
 }
 
-export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): void {
+export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient, api: Fast42): void {
 	app.get('/canvas', (req, res) => {
 		res.redirect('/canvas/rankings');
 	});
@@ -376,7 +373,7 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 			const { canvas, ctx } = initCanvas();
 
 			// Draw initial canvas (background, left overlay, bottom bar, coalition leaderboard)
-			const { leaderboardX, leaderboardWidth } = await drawInitialCanvas(prisma, ctx);
+			const { leaderboardX, leaderboardWidth } = await drawInitialCanvas(api, prisma, ctx);
 
 			// Right side of the remaining space: #1 of each coalition ranking
 			const rightX = leaderboardX + leaderboardWidth + PADDING;
@@ -452,7 +449,7 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 					for (let i = 0; i < topRankings.length; i++) {
 						const topRanking = topRankings[i];
 						// Draw user profile picture in the vertical center of the entry
-						await drawUserProfilePicture(ctx, rightX + PADDING + entryPadding + profilePicOffset * i, currentY + entryPadding, profilePicSize, topRanking.user.image || '');
+						await drawUserProfilePicture(api, ctx, rightX + PADDING + entryPadding + profilePicOffset * i, currentY + entryPadding, profilePicSize, topRanking.user.image || '');
 					}
 					ctx.fillText(entryTextContent, entryTextX + profilePicOffset * (topRankings.length - 1), entryTextY, entryTextMaxWidth);
 				}
@@ -528,7 +525,7 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 			const { canvas, ctx } = initCanvas();
 
 			// Draw initial canvas (background, left overlay, bottom bar, coalition leaderboard)
-			const { leaderboardX, leaderboardWidth } = await drawInitialCanvas(prisma, ctx);
+			const { leaderboardX, leaderboardWidth } = await drawInitialCanvas(api, prisma, ctx);
 
 			// Right side of the remaining space: #1 of each coalition ranking
 			const rightX = leaderboardX + leaderboardWidth + PADDING;
@@ -572,7 +569,7 @@ export const setupCanvasRoutes = function(app: Express, prisma: PrismaClient): v
 				ctx.fillText(`${score.user.intra_user.login} / ${formatThousands(score.amount)} pts. / ${timeAgo(score.created_at)}`, entryTextX, entryTextY, entryTextMaxWidth);
 
 				// Draw user profile picture in the vertical center of the entry
-				await drawUserProfilePicture(ctx, rightX + PADDING + entryPadding, currentY + entryPadding, profilePicSize, score.user.intra_user.image || '');
+				await drawUserProfilePicture(api, ctx, rightX + PADDING + entryPadding, currentY + entryPadding, profilePicSize, score.user.intra_user.image || '');
 
 				// Draw score reason next to profile picture
 				ctx.textBaseline = 'top';

@@ -329,6 +329,22 @@ const ApiSearcherTable = function(options) {
 							}
 							break;
 						}
+						case 'image-cdn': {
+							if (!value) {
+								td.innerText = 'No image';
+								td.classList.add('text-muted');
+							}
+							else {
+								const img = document.createElement('img');
+								img.src = '/cdn/proxy?url=' + encodeURIComponent(value);
+								img.alt = "Image failed to load";
+								img.style.maxWidth = '100px';
+								img.style.maxHeight = '100px';
+								img.setAttribute('loading', 'lazy');
+								td.appendChild(img);
+							}
+							break;
+						}
 						default: {
 							console.warn('Unknown data format', header.dataFormat);
 							td.innerText = value;

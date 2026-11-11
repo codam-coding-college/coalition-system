@@ -23,12 +23,15 @@ const checkIfAuthenticated = function(req: Request, res: Response, next: NextFun
 	if (req.isAuthenticated()) {
 		return next();
 	}
-	// Only save the path for return-to if we are not requesting a static resource
-	if (!req.path.match(/^.*\.[^\\]+$/)) {
+	// Only redirect to login page if we are not requesting a static resource.
+	// Save the original URL the user was trying to access, so we can redirect them back after login.
+	if (!req.path.match(/^.*\.[^\\]+$/) && !req.path.startsWith('/cdn/')) {
 		// Store the path the user was trying to access
 		(req.session as CustomSessionData).returnTo = req.originalUrl;
 		return res.redirect('/login');
 	}
+	// Return 401 Unauthorized otherwise
+	return res.status(401).send('Unauthorized');
 };
 
 const expressErrorHandler = function(err: any, req: Request, res: Response, next: NextFunction) {
