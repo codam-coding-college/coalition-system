@@ -31,7 +31,7 @@ export const setupCDNProxyRoutes = function(app: Express, prisma: PrismaClient, 
 			res.setHeader('Content-Length', response.headers.get('content-length') || '0');
 			return Readable.fromWeb(response.body as any).pipe(res);
 		} else {
-			return res.status(500).send('Failed to download resource');
+			return res.status(response.status).send('Failed to download resource');
 		}
 	});
 
@@ -65,7 +65,7 @@ export const setupCDNProxyRoutes = function(app: Express, prisma: PrismaClient, 
 			res.setHeader('Content-Length', picture.headers.get('content-length') || '0');
 			return Readable.fromWeb(picture.body as any).pipe(res);
 		} else {
-			return res.status(500).send('Failed to download picture');
+			return res.status(picture.status).send('Failed to download user profile picture');
 		}
 	});
 };
